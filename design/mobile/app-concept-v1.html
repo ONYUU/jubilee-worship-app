@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jubilee Worship Mobile Concept v1</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #080b10;
+        --surface: #121925;
+        --surface-2: #192231;
+        --line: rgba(255, 255, 255, 0.11);
+        --text: #fffdf4;
+        --muted: #aaa9a5;
+        --blue: #6fa6d9;
+        --gold: #fff5ae;
+        --danger: #d46a65;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; min-height: 100%; }
+
+      body {
+        background:
+          radial-gradient(circle at 15% 0%, rgba(111, 166, 217, 0.12), transparent 32rem),
+          #05070b;
+        color: var(--text);
+        font-family: "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
+      }
+
+      button { font: inherit; }
+
+      .board {
+        width: max-content;
+        min-width: 100%;
+        padding: 46px 54px 68px;
+      }
+
+      .board-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .board-header h1 {
+        margin: 7px 0 0;
+        font-family: "AppleMyungjo", "Noto Serif KR", serif;
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+      }
+
+      .board-meta {
+        max-width: 420px;
+        color: #999da5;
+        font-size: 13px;
+        line-height: 1.6;
+        text-align: right;
+      }
+
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(6, 390px);
+        gap: 24px;
+      }
+
+      .mockup[data-screen="splash"] { order: 0; }
+      .mockup[data-screen="home"] { order: 1; }
+      .mockup[data-screen="worship"] { order: 2; }
+      .mockup[data-screen="songlist"] { order: 3; }
+      .mockup[data-screen="media"] { order: 4; }
+      .mockup[data-screen="guide"] { order: 5; }
+
+      .mockup-label {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 4px 10px;
+        color: #9298a2;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .device {
+        position: relative;
+        width: 390px;
+        height: 844px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 36px;
+        background: var(--ink);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.46);
+      }
+
+      .screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--ink);
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 30;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 42px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 22px;
+        color: white;
+        font-size: 12px;
+        font-weight: 800;
+        text-shadow: 0 1px 8px rgba(0,0,0,.45);
+      }
+
+      .status-icons { display: flex; align-items: center; gap: 6px; }
+      .signal { font-size: 9px; letter-spacing: -1px; }
+      .battery { width: 21px; height: 10px; border: 1.4px solid currentColor; border-radius: 3px; padding: 1px; }
+      .battery::after { content: ""; display: block; width: 14px; height: 100%; border-radius: 1px; background: currentColor; }
+
+      .topbar {
+        position: absolute;
+        z-index: 20;
+        top: 42px;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 58px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+      }
+
+      .brand-lockup { display: flex; align-items: center; gap: 10px; }
+      .brand-lockup img { width: 31px; height: 31px; border-radius: 9px; }
+      .brand-lockup strong { font-size: 16px; letter-spacing: -0.03em; }
+      .detail-bar-title { font-size: 15px; font-weight: 800; letter-spacing: -.025em; }
+      .detail-topbar { display: grid; grid-template-columns: 70px 1fr 70px; }
+      .detail-topbar .detail-bar-title { text-align: center; }
+      .detail-topbar > :last-child { justify-self: end; }
+      .back-button {
+        display: inline-flex;
+        width: max-content;
+        height: 40px;
+        align-items: center;
+        gap: 2px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .back-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+      .icon-button {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 50%;
+        background: rgba(8, 11, 16, .48);
+        color: white;
+        backdrop-filter: blur(12px);
+      }
+
+      .icon-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+      .scroll-content {
+        position: absolute;
+        inset: 0 0 77px;
+        overflow: hidden;
+      }
+
+      .tabbar {
+        position: absolute;
+        z-index: 40;
+        bottom: 0;
+        left: 0;
+        display: grid;
+        width: 100%;
+        height: 77px;
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid var(--line);
+        background: rgba(8, 11, 16, .94);
+        backdrop-filter: blur(20px);
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        color: #737b87;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .tab.active { color: var(--blue); }
+      .tab svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+      .page-header { padding: 112px 20px 18px; }
+      .page-header h2 {
+        margin: 4px 0 6px;
+        font-family: "AppleMyungjo", "Noto Serif KR", serif;
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+      }
+      .page-header p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+      .section-label { display: flex; align-items: center; justify-content: space-between; margin: 0 20px 12px; }
+      .section-label h3 { margin: 0; font-size: 17px; letter-spacing: -0.03em; }
+      .section-label span { color: var(--blue); font-size: 12px; font-weight: 700; }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: rgba(111, 166, 217, .15);
+        color: #9cc9f1;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .btn {
+        display: flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: transparent;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .btn.primary { border-color: var(--gold); background: var(--gold); color: #10131a; }
+      .btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+      /* Splash */
+      .splash {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background: #060a10 url("assets/app-worship-light-v1.png") center / cover no-repeat;
+      }
+      .splash::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,7,12,.14), rgba(4,7,12,.34)); }
+      .splash-inner { position: relative; z-index: 2; display: flex; align-items: center; flex-direction: column; transform: translateY(-42px); }
+      .splash-logo { width: 116px; height: 116px; border-radius: 28px; box-shadow: 0 18px 45px rgba(0,0,0,.38); }
+      .splash-kicker { display: none; }
+      .splash h2 { margin: 24px 0 7px; font-family: "AppleMyungjo", serif; font-size: 27px; font-weight: 600; letter-spacing: -0.03em; }
+      .splash p { margin: 0; color: rgba(255,255,255,.74); font-size: 12px; font-weight: 700; letter-spacing: .14em; }
+      .splash-foot { position: absolute; z-index: 3; bottom: 34px; color: rgba(255,255,255,.52); font-size: 11px; }
+
+      /* Home */
+      .home-hero { position: relative; height: 360px; }
+      .home-hero > img { width: 100%; height: 100%; object-fit: cover; object-position: center 43%; }
+      .home-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(3,6,10,.16) 18%, rgba(3,6,10,.2) 44%, #080b10 100%); }
+      .hero-copy { position: absolute; z-index: 4; left: 20px; right: 20px; bottom: 25px; }
+      .hero-copy .eyebrow { color: var(--gold); font-size: 10px; }
+      .hero-copy h2 { margin: 8px 0 8px; font-family: "AppleMyungjo", serif; font-size: 28px; font-weight: 600; letter-spacing: -.04em; }
+      .hero-copy p { max-width: 325px; margin: 0; color: rgba(255,255,255,.78); font-size: 13px; line-height: 1.55; }
+      .home-card { margin: -6px 16px 0; padding: 17px; border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(150deg, #1a2433, #101722); box-shadow: 0 14px 30px rgba(0,0,0,.24); }
+      .home-card-top { display: flex; align-items: center; justify-content: space-between; }
+      .home-card h3 { margin: 11px 0 5px; font-size: 19px; letter-spacing: -.035em; }
+      .home-card .meta { color: #d5d6d7; font-size: 13px; line-height: 1.55; }
+      .home-card .place { display: flex; align-items: center; gap: 6px; margin: 5px 0 14px; color: var(--muted); font-size: 12px; }
+      .notice-card { display: flex; align-items: center; justify-content: space-between; margin: 12px 16px 0; padding: 12px 14px; border: 1px solid rgba(255,245,174,.2); border-radius: 16px; background: rgba(255,245,174,.07); }
+      .notice-card strong { display: block; font-size: 12px; }
+      .notice-card span { color: var(--muted); font-size: 10px; }
+      .notice-card button { border: 0; border-radius: 10px; padding: 9px 11px; background: var(--gold); color: #11141a; font-size: 11px; font-weight: 800; }
+      .home-recent { display: grid; grid-template-columns: 84px 1fr auto; gap: 11px; align-items: center; margin: 12px 16px 0; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: #101620; }
+      .home-recent img { width: 84px; height: 53px; object-fit: cover; border-radius: 10px; }
+      .home-recent small { display: block; margin-bottom: 3px; color: var(--blue); font-size: 9px; font-weight: 800; }
+      .home-recent strong { display: block; overflow: hidden; font-size: 11px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+      .home-recent .round-play { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--gold); font-size: 11px; }
+      .song-preview { display: grid; grid-template-columns: 42px 1fr auto; gap: 11px; align-items: center; margin: 12px 16px 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 16px; background: #101620; }
+      .song-preview .music-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: rgba(111,166,217,.15); color: var(--blue); font-size: 20px; }
+      .song-preview small { display: block; margin-bottom: 3px; color: var(--blue); font-size: 9px; font-weight: 800; }
+      .song-preview strong { display: block; font-size: 12px; letter-spacing: -.02em; }
+      .song-preview > span:last-child { color: var(--muted); font-size: 20px; }
+      .home-setlist { margin: 12px 16px 0; padding: 12px 14px 10px; border: 1px solid var(--line); border-radius: 18px; background: #101620; }
+      .home-setlist-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 7px; }
+      .home-setlist-header small { display: block; margin-bottom: 2px; color: var(--blue); font-size: 8px; font-weight: 900; letter-spacing: .08em; }
+      .home-setlist-header strong { display: block; font-size: 12px; }
+      .home-setlist-header > span { color: var(--blue); font-size: 10px; font-weight: 800; }
+      .home-song-row { display: grid; min-height: 29px; grid-template-columns: 26px 1fr; align-items: center; border-top: 1px solid var(--line); }
+      .home-song-number { color: var(--blue); font-size: 9px; font-weight: 900; }
+      .home-song-title { overflow: hidden; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* Sermon — shown only in the v6 feature mockup */
+      .sermon-brief {
+        display: none;
+        margin: 10px 0 11px;
+        padding-left: 10px;
+        border-left: 3px solid var(--blue);
+      }
+      .theme-sermon .sermon-brief { display: block; }
+      .sermon-brief small {
+        display: block;
+        color: var(--blue);
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: .08em;
+      }
+      .sermon-brief strong {
+        display: block;
+        margin-top: 3px;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.35;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .sermon-brief span {
+        display: block;
+        margin-top: 2px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.35;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .event-directions-inline { display: none; }
+      .theme-sermon .home-hero { height: 310px; }
+      .theme-sermon .event-share-button,
+      .theme-sermon .event-directions-wide { display: none; }
+      .theme-sermon .event-directions-inline { display: flex; }
+
+      /* Worship */
+      .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0 20px 16px; padding: 4px; border-radius: 13px; background: #101620; }
+      .segment { display: grid; height: 37px; place-items: center; border-radius: 10px; color: #747c89; font-size: 12px; font-weight: 800; }
+      .segment.active { background: #222d3d; color: white; }
+      .event-card { margin: 0 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 23px; background: var(--surface); }
+      .event-photo { position: relative; height: 184px; }
+      .event-photo img { width: 100%; height: 100%; object-fit: cover; }
+      .event-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(8,11,16,.86)); }
+      .event-photo .pill { position: absolute; z-index: 2; top: 14px; left: 14px; }
+      .date-lockup { position: absolute; z-index: 2; right: 15px; bottom: 13px; text-align: right; }
+      .date-lockup strong { display: block; font-size: 23px; letter-spacing: .04em; }
+      .date-lockup span { color: rgba(255,255,255,.72); font-size: 11px; }
+      .event-body { padding: 16px; }
+      .event-body h3 { margin: 0 0 8px; font-size: 19px; letter-spacing: -.035em; }
+      .event-line { display: flex; gap: 8px; margin: 5px 0; color: #c6c8cc; font-size: 12px; }
+      .event-line b { width: 39px; color: var(--blue); font-size: 11px; }
+      .event-note { margin: 12px 0 14px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+      .event-note.song-link { display: flex; align-items: center; justify-content: space-between; color: var(--blue); font-weight: 800; }
+      .event-note.song-link span { color: var(--muted); font-weight: 700; }
+      .wide-btn { width: 100%; margin-top: 8px; }
+
+      /* Media */
+      .media-feature { margin: 0 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
+      .media-thumb { position: relative; height: 196px; }
+      .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+      .play { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.14); }
+      .play span { display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid rgba(255,255,255,.52); border-radius: 50%; background: rgba(8,11,16,.7); color: white; font-size: 18px; backdrop-filter: blur(8px); }
+      .media-body { padding: 15px 16px 16px; }
+      .media-body .eyebrow { font-size: 9px; }
+      .media-body h3 { margin: 6px 0 4px; font-size: 17px; line-height: 1.35; letter-spacing: -.03em; }
+      .media-body p { margin: 0 0 12px; color: var(--muted); font-size: 11px; }
+      .gallery-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 9px; margin: 0 16px; }
+      .gallery-row img { width: 100%; height: 112px; object-fit: cover; border-radius: 16px; }
+
+      /* Guide */
+      .guide-hero { position: relative; height: 215px; margin-top: 0; }
+      .guide-hero img { width: 100%; height: 100%; object-fit: cover; }
+      .guide-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,11,16,.12), #080b10 98%); }
+      .guide-title { position: absolute; z-index: 2; left: 20px; right: 20px; bottom: 14px; }
+      .guide-title h2 { margin: 0 0 6px; font-family: "AppleMyungjo", serif; font-size: 27px; font-weight: 600; letter-spacing: -.04em; }
+      .guide-title p { margin: 0; color: rgba(255,255,255,.74); font-size: 12px; line-height: 1.45; }
+      .location-card { margin: 8px 16px 13px; padding: 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+      .location-card h3 { margin: 0 0 6px; font-size: 18px; }
+      .location-card p { margin: 0 0 13px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .map-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+      .map-buttons button { height: 37px; border: 1px solid var(--line); border-radius: 11px; background: #1a2330; color: white; font-size: 10px; font-weight: 800; }
+      .menu-list { margin: 0 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #101620; }
+      .menu-item { display: flex; height: 46px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+      .menu-item:last-child { border-bottom: 0; }
+      .menu-item span { color: #626b79; font-size: 18px; }
+
+      /* Song list */
+      .setlist-header { padding-bottom: 14px; }
+      .setlist-header h2 { font-size: 28px; }
+      .setlist-summary { margin: 0 16px 12px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+      .setlist-summary-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+      .setlist-summary strong { font-size: 13px; }
+      .setlist-summary p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .setlist-card { margin: 0 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+      .song-row { display: grid; min-height: 58px; grid-template-columns: 32px 1fr 28px; gap: 10px; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--line); }
+      .song-row:last-child { border-bottom: 0; }
+      .song-number { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: rgba(111,166,217,.15); color: var(--blue); font-size: 10px; font-weight: 900; }
+      .song-copy strong { display: block; font-size: 13px; letter-spacing: -.025em; }
+      .song-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+      .song-action { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--blue); font-size: 9px; }
+      .setlist-note { margin: 10px 20px 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+      .setlist-actions { margin: 10px 16px 0; }
+      .detail-screen .scroll-content { bottom: 0; }
+      .detail-screen .tabbar { display: none; }
+
+      /* Open Sky · Light v2 */
+      body.theme-light {
+        color-scheme: light;
+        --ink: #f7fafc;
+        --surface: #ffffff;
+        --surface-2: #eef5fa;
+        --line: #d7e2ea;
+        --text: #162331;
+        --muted: #5d6a77;
+        --blue: #2d6f9f;
+        --gold: #fff5ae;
+        --danger: #b94343;
+        background:
+          radial-gradient(circle at 14% 0%, rgba(98, 162, 228, 0.2), transparent 34rem),
+          linear-gradient(150deg, #f7fafc, #eaf2f7 62%, #f9f4df);
+      }
+
+      .theme-light .board-meta,
+      .theme-light .mockup-label { color: #647382; }
+      .theme-light .device {
+        border-color: #c7d5df;
+        background: var(--ink);
+        box-shadow: 0 24px 64px rgba(34, 64, 88, .18);
+      }
+      .theme-light .screen { background: var(--ink); }
+      .theme-light .status-bar {
+        color: var(--text);
+        text-shadow: none;
+      }
+      .theme-light .brand-lockup strong { color: var(--text); }
+      .theme-light .icon-button {
+        border-color: #c8d8e4;
+        background: rgba(255, 255, 255, .88);
+        color: var(--text);
+        box-shadow: 0 5px 16px rgba(34, 64, 88, .08);
+      }
+      .theme-light .tabbar {
+        border-top-color: #d7e2ea;
+        background: rgba(255, 255, 255, .96);
+        box-shadow: 0 -8px 24px rgba(34, 64, 88, .06);
+      }
+      .theme-light .tab { color: #647382; }
+      .theme-light .tab.active { color: #24689e; }
+      .theme-light .page-header p { color: var(--muted); }
+      .theme-light .pill { background: #e7f2fc; color: #2d6f9f; }
+      .theme-light .btn {
+        border-color: #aabfcd;
+        background: #ffffff;
+        color: #2c4053;
+      }
+      .theme-light .btn.primary {
+        border-color: #a88923;
+        background: var(--gold);
+        color: var(--text);
+      }
+
+      .theme-light .splash {
+        background: #f7fafc url("assets/app-worship-light-v2.png") center / cover no-repeat;
+        color: var(--text);
+      }
+      .theme-light .splash::after {
+        background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.18));
+      }
+      .theme-light .splash-logo { box-shadow: 0 18px 44px rgba(34, 64, 88, .18); }
+      .theme-light .splash p { color: #516578; }
+      .theme-light .splash-foot { color: #647382; }
+      .theme-light .splash .status-bar { color: var(--text); }
+
+      .theme-light .home-screen .status-bar,
+      .theme-light .home-screen .brand-lockup strong { color: #ffffff; }
+      .theme-light .home-screen .status-bar { text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+      .theme-light .home-screen .icon-button {
+        border-color: rgba(255,255,255,.28);
+        background: rgba(13, 28, 42, .48);
+        color: #ffffff;
+        box-shadow: none;
+      }
+      .theme-light .home-hero::after {
+        background: linear-gradient(180deg, rgba(13,28,42,.05) 12%, rgba(13,28,42,.24) 48%, rgba(13,28,42,.9) 100%);
+      }
+      .theme-light .hero-copy { color: #ffffff; }
+      .theme-light .hero-copy .eyebrow { color: #fff5ae; }
+      .theme-light .hero-copy p { color: rgba(255,255,255,.82); }
+      .theme-light .home-card {
+        border-color: #d7e2ea;
+        background: linear-gradient(150deg, #ffffff, #f0f7fc);
+        box-shadow: 0 14px 30px rgba(34, 64, 88, .12);
+      }
+      .theme-light .home-card .meta { color: #3f4f5e; }
+      .theme-light .home-card .place { color: var(--muted); }
+      .theme-light .notice-card {
+        border-color: #d6c268;
+        background: #fff9da;
+      }
+      .theme-light .notice-card span { color: #5d6a77; }
+      .theme-light .notice-card button {
+        border: 1px solid #a88923;
+        background: var(--gold);
+        color: var(--text);
+      }
+      .theme-light .home-recent {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(34, 64, 88, .07);
+      }
+      .theme-light .home-recent small { color: #2d6f9f; }
+      .theme-light .home-recent .round-play {
+        border-color: #aabfcd;
+        background: #ffffff;
+        color: #2d6f9f;
+      }
+      .theme-light .song-preview {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(34, 64, 88, .07);
+      }
+      .theme-light .song-preview .music-mark { background: #e7f2fc; color: #2d6f9f; }
+      .theme-light .song-preview small { color: #2d6f9f; }
+      .theme-light .home-setlist {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(34, 64, 88, .07);
+      }
+      .theme-light .home-song-row { border-top-color: #d7e2ea; }
+      .theme-light .home-setlist-header small,
+      .theme-light .home-setlist-header > span,
+      .theme-light .home-song-number { color: #2d6f9f; }
+
+      .theme-light .segmented { background: #e9f0f5; }
+      .theme-light .segment { color: #647382; }
+      .theme-light .segment.active {
+        background: #ffffff;
+        color: var(--text);
+        box-shadow: 0 2px 8px rgba(34, 64, 88, .1);
+      }
+      .theme-light .event-card,
+      .theme-light .media-feature,
+      .theme-light .location-card {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(34, 64, 88, .08);
+      }
+      .theme-light .event-photo::after {
+        background: linear-gradient(180deg, transparent 42%, rgba(13,28,42,.84));
+      }
+      .theme-light .event-photo .date-lockup { color: #ffffff; }
+      .theme-light .event-photo .pill { background: rgba(255,255,255,.94); color: #2d6f9f; }
+      .theme-light .event-line { color: #465665; }
+      .theme-light .event-line b { color: #2d6f9f; }
+      .theme-light .event-note { color: var(--muted); }
+      .theme-light .event-note.song-link { color: #2d6f9f; }
+      .theme-light .event-note.song-link span { color: #2d6f9f; }
+      .theme-light .media-body p { color: var(--muted); }
+      .theme-light .play span {
+        border-color: rgba(22,35,49,.22);
+        background: rgba(255,255,255,.94);
+        color: var(--text);
+      }
+
+      .theme-light .guide-hero::after {
+        background: linear-gradient(180deg, rgba(13,28,42,.04), rgba(13,28,42,.84) 98%);
+      }
+      .theme-light .guide-title { color: #ffffff; }
+      .theme-light .guide-title p { color: rgba(255,255,255,.82); }
+      .theme-light .map-buttons button {
+        border-color: #aabfcd;
+        background: #ffffff;
+        color: #2c4053;
+      }
+      .theme-light .menu-list {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(34, 64, 88, .06);
+      }
+      .theme-light .menu-item { border-bottom-color: #d7e2ea; }
+      .theme-light .menu-item span { color: #647382; }
+      .theme-light .setlist-summary,
+      .theme-light .setlist-card {
+        border-color: #d7e2ea;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(34, 64, 88, .07);
+      }
+      .theme-light .song-row { border-bottom-color: #d7e2ea; }
+      .theme-light .song-number { background: #e7f2fc; color: #2d6f9f; }
+      .theme-light .song-action { border-color: #aabfcd; color: #2d6f9f; }
+
+      /* Morning Haze · Balanced v3 */
+      body.theme-light.theme-balanced {
+        --ink: #e7eef1;
+        --surface: #f3f5f3;
+        --surface-2: #dde7eb;
+        --line: #bccbd2;
+        --text: #1d2a34;
+        --muted: #566670;
+        --blue: #27658f;
+        --gold: #f2e398;
+        --danger: #a94747;
+        background:
+          radial-gradient(circle at 14% 0%, rgba(72, 121, 157, .18), transparent 34rem),
+          linear-gradient(150deg, #d7e3e8, #ccd9df 62%, #e7e3d7);
+      }
+      .theme-light.theme-balanced .board-meta,
+      .theme-light.theme-balanced .mockup-label { color: #566670; }
+      .theme-light.theme-balanced .device {
+        border-color: #aebdc6;
+        box-shadow: 0 22px 56px rgba(26, 46, 58, .2);
+      }
+      .theme-light.theme-balanced .icon-button {
+        border-color: #a5bbc6;
+        background: rgba(231, 238, 240, .92);
+        box-shadow: 0 5px 16px rgba(26, 46, 58, .09);
+      }
+      .theme-light.theme-balanced .tabbar {
+        border-top-color: #b8c7ce;
+        background: rgba(221, 231, 235, .96);
+        box-shadow: 0 -7px 20px rgba(26, 46, 58, .08);
+      }
+      .theme-light.theme-balanced .tab { color: #566670; }
+      .theme-light.theme-balanced .tab.active { color: #27658f; }
+      .theme-light.theme-balanced .pill {
+        background: #d5e6f0;
+        color: #27658f;
+      }
+      .theme-light.theme-balanced .btn,
+      .theme-light.theme-balanced .map-buttons button {
+        border-color: #a5bbc6;
+        background: #e7eef0;
+        color: #1d2a34;
+      }
+      .theme-light.theme-balanced .btn.primary {
+        border-color: #9b7e16;
+        background: #f2e398;
+        color: #1d2a34;
+      }
+
+      .theme-light.theme-balanced .splash {
+        background: #aebbc3 url("assets/app-worship-balanced-v3.png") center / cover no-repeat;
+      }
+      .theme-light.theme-balanced .splash::after {
+        background: linear-gradient(180deg, rgba(25,48,65,.07), rgba(25,48,65,.15));
+      }
+      .theme-light.theme-balanced .splash-logo {
+        box-shadow: 0 18px 44px rgba(26, 46, 58, .24);
+      }
+      .theme-light.theme-balanced .splash p { color: #405663; }
+      .theme-light.theme-balanced .splash .status-bar,
+      .theme-light.theme-balanced .splash-foot {
+        color: rgba(255, 255, 255, .86);
+        text-shadow: 0 1px 8px rgba(13, 28, 42, .45);
+      }
+
+      .theme-light.theme-balanced .home-hero::after {
+        background: linear-gradient(180deg, rgba(13,28,42,.05) 12%, rgba(13,28,42,.23) 48%, rgba(13,28,42,.84) 100%);
+      }
+      .theme-light.theme-balanced .home-screen .icon-button {
+        border-color: rgba(255,255,255,.28);
+        background: rgba(13, 28, 42, .48);
+        color: #ffffff;
+        box-shadow: none;
+      }
+      .theme-light.theme-balanced .home-card {
+        border-color: #b8c7ce;
+        background: linear-gradient(150deg, #f3f5f3, #e2e9e9);
+        box-shadow: 0 14px 30px rgba(26, 46, 58, .16);
+      }
+      .theme-light.theme-balanced .home-card .meta { color: #43545f; }
+      .theme-light.theme-balanced .notice-card {
+        border-color: #bda84f;
+        background: #eee6bf;
+      }
+      .theme-light.theme-balanced .notice-card span { color: #566670; }
+      .theme-light.theme-balanced .notice-card button {
+        border-color: #9b7e16;
+        background: #f2e398;
+        color: #1d2a34;
+      }
+      .theme-light.theme-balanced .home-recent {
+        border-color: #bccbd2;
+        background: #edf2f2;
+        box-shadow: 0 5px 16px rgba(26, 46, 58, .09);
+      }
+      .theme-light.theme-balanced .home-recent small { color: #27658f; }
+      .theme-light.theme-balanced .home-recent .round-play {
+        border-color: #a5bbc6;
+        background: #e7eef0;
+        color: #27658f;
+      }
+      .theme-light.theme-balanced .song-preview {
+        border-color: #bccbd2;
+        background: #edf2f2;
+        box-shadow: 0 5px 16px rgba(26, 46, 58, .09);
+      }
+      .theme-light.theme-balanced .song-preview .music-mark,
+      .theme-light.theme-balanced .song-number {
+        background: #d5e6f0;
+        color: #27658f;
+      }
+      .theme-light.theme-balanced .song-preview small { color: #27658f; }
+      .theme-light.theme-balanced .home-setlist {
+        border-color: #bccbd2;
+        background: #edf2f2;
+        box-shadow: 0 5px 16px rgba(26, 46, 58, .09);
+      }
+      .theme-light.theme-balanced .home-song-row { border-top-color: #bccbd2; }
+      .theme-light.theme-balanced .home-setlist-header small,
+      .theme-light.theme-balanced .home-setlist-header > span,
+      .theme-light.theme-balanced .home-song-number { color: #27658f; }
+
+      .theme-light.theme-balanced .segmented { background: #d5e0e5; }
+      .theme-light.theme-balanced .segment { color: #566670; }
+      .theme-light.theme-balanced .segment.active {
+        background: #f3f5f3;
+        box-shadow: 0 2px 8px rgba(26, 46, 58, .11);
+      }
+      .theme-light.theme-balanced .event-card,
+      .theme-light.theme-balanced .media-feature,
+      .theme-light.theme-balanced .location-card,
+      .theme-light.theme-balanced .menu-list {
+        border-color: #bccbd2;
+        background: #f3f5f3;
+        box-shadow: 0 10px 28px rgba(26, 46, 58, .12);
+      }
+      .theme-light.theme-balanced .event-photo .pill,
+      .theme-light.theme-balanced .play span {
+        background: rgba(243, 245, 243, .94);
+      }
+      .theme-light.theme-balanced .event-line { color: #43545f; }
+      .theme-light.theme-balanced .event-line b,
+      .theme-light.theme-balanced .section-label span { color: #27658f; }
+      .theme-light.theme-balanced .event-note.song-link,
+      .theme-light.theme-balanced .event-note.song-link span { color: #27658f; }
+      .theme-light.theme-balanced .guide-hero::after {
+        background: linear-gradient(180deg, rgba(13,28,42,.04), rgba(13,28,42,.82) 98%);
+      }
+      .theme-light.theme-balanced .menu-item { border-bottom-color: #bccbd2; }
+      .theme-light.theme-balanced .menu-item span { color: #566670; }
+      .theme-light.theme-balanced .setlist-summary,
+      .theme-light.theme-balanced .setlist-card {
+        border-color: #bccbd2;
+        background: #f3f5f3;
+        box-shadow: 0 10px 28px rgba(26, 46, 58, .12);
+      }
+      .theme-light.theme-balanced .song-row { border-bottom-color: #bccbd2; }
+      .theme-light.theme-balanced .song-action {
+        border-color: #a5bbc6;
+        background: #e7eef0;
+        color: #27658f;
+      }
+
+      /* Rose Haze · v4 */
+      body.theme-light.theme-rose {
+        --ink: #e5d8d9;
+        --surface: #f0e8e5;
+        --surface-2: #d9cbce;
+        --line: #c1aeb3;
+        --text: #30272b;
+        --muted: #62545a;
+        --blue: #27658f;
+        --gold: #f2e398;
+        --danger: #a5484f;
+        background:
+          radial-gradient(circle at 14% 0%, rgba(174, 110, 132, .2), transparent 34rem),
+          linear-gradient(150deg, #d7c6ca, #cbbabd 62%, #e6d9cf);
+      }
+      .theme-light.theme-rose .board-meta,
+      .theme-light.theme-rose .mockup-label,
+      .theme-light.theme-rose .tab { color: #62545a; }
+      .theme-light.theme-rose .device {
+        border-color: #bca4aa;
+        box-shadow: 0 22px 56px rgba(64, 42, 51, .22);
+      }
+      .theme-light.theme-rose .icon-button {
+        border-color: #92747c;
+        background: rgba(233, 222, 222, .92);
+        color: #30272b;
+        box-shadow: 0 5px 16px rgba(64, 42, 51, .1);
+      }
+      .theme-light.theme-rose .tabbar {
+        border-top-color: #c1aeb3;
+        background: rgba(228, 216, 217, .96);
+        box-shadow: 0 -7px 20px rgba(64, 42, 51, .09);
+      }
+      .theme-light.theme-rose .tab.active { color: #27658f; }
+      .theme-light.theme-rose .pill,
+      .theme-light.theme-rose .song-preview .music-mark,
+      .theme-light.theme-rose .song-number {
+        background: #d4dee7;
+        color: #27658f;
+      }
+      .theme-light.theme-rose .btn,
+      .theme-light.theme-rose .map-buttons button {
+        border-color: #92747c;
+        background: #e9dede;
+        color: #30272b;
+      }
+      .theme-light.theme-rose .btn.primary,
+      .theme-light.theme-rose .notice-card button {
+        border-color: #9b7e16;
+        background: #f2e398;
+        color: #30272b;
+      }
+
+      .theme-light.theme-rose .splash {
+        background: #cdbfc2 url("assets/app-worship-rose-v4.png") center / cover no-repeat;
+      }
+      .theme-light.theme-rose .splash::after {
+        background: linear-gradient(180deg, rgba(82,43,57,.04), rgba(82,43,57,.13));
+      }
+      .theme-light.theme-rose .splash-logo {
+        box-shadow: 0 18px 44px rgba(64, 42, 51, .24);
+      }
+      .theme-light.theme-rose .splash p { color: #584d52; }
+      .theme-light.theme-rose .splash .status-bar,
+      .theme-light.theme-rose .splash-foot {
+        color: rgba(255,255,255,.9);
+        text-shadow: 0 1px 8px rgba(64,42,51,.48);
+      }
+
+      .theme-light.theme-rose .home-screen .icon-button {
+        border-color: rgba(255,255,255,.28);
+        background: rgba(13,28,42,.48);
+        color: #ffffff;
+        box-shadow: none;
+      }
+      .theme-light.theme-rose .home-card {
+        border-color: #c1aeb3;
+        background: linear-gradient(150deg, #f0e8e5, #e6d8d9);
+        box-shadow: 0 14px 30px rgba(64, 42, 51, .16);
+      }
+      .theme-light.theme-rose .home-card .meta { color: #51474c; }
+      .theme-light.theme-rose .notice-card {
+        border-color: #c6a856;
+        background: #efe2bc;
+      }
+      .theme-light.theme-rose .home-recent,
+      .theme-light.theme-rose .song-preview,
+      .theme-light.theme-rose .home-setlist {
+        border-color: #c1aeb3;
+        background: #e9dede;
+        box-shadow: 0 5px 16px rgba(64, 42, 51, .1);
+      }
+      .theme-light.theme-rose .home-recent small,
+      .theme-light.theme-rose .song-preview small,
+      .theme-light.theme-rose .home-setlist-header small,
+      .theme-light.theme-rose .home-setlist-header > span,
+      .theme-light.theme-rose .home-song-number { color: #27658f; }
+      .theme-light.theme-rose .home-song-row { border-top-color: #c1aeb3; }
+      .theme-light.theme-rose .home-recent .round-play,
+      .theme-light.theme-rose .song-action {
+        border-color: #92747c;
+        background: #e9dede;
+        color: #27658f;
+      }
+
+      /* Rose Haze · v5 — logo-free in-app identity */
+      .theme-no-logo .brand-lockup { gap: 0; }
+      .theme-no-logo .brand-lockup img,
+      .theme-no-logo .splash-logo { display: none; }
+      .theme-no-logo .brand-lockup strong {
+        font-family: "AppleMyungjo", "Noto Serif KR", serif;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -.045em;
+      }
+      .theme-no-logo .splash-inner { transform: translateY(-20px); }
+      .theme-no-logo .splash-kicker {
+        display: block;
+        margin-bottom: 12px;
+        color: #62545a;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .18em;
+      }
+      .theme-no-logo .splash h2 {
+        margin: 0 0 9px;
+        font-size: 35px;
+        letter-spacing: -.055em;
+      }
+      .theme-no-logo .splash p {
+        color: #62545a;
+        font-size: 11px;
+        letter-spacing: .18em;
+      }
+      .theme-no-logo .home-hero { overflow: hidden; }
+      .theme-no-logo .home-hero > img {
+        transform: scale(1.28);
+        transform-origin: left 43%;
+      }
+      .theme-no-logo .hero-copy .eyebrow { color: #f0e8e5; }
+
+      .theme-light.theme-rose .segmented { background: #d9cbce; }
+      .theme-light.theme-rose .segment { color: #62545a; }
+      .theme-light.theme-rose .segment.active {
+        background: #f0e8e5;
+        color: #30272b;
+        box-shadow: 0 2px 8px rgba(64, 42, 51, .12);
+      }
+      .theme-light.theme-rose .event-card,
+      .theme-light.theme-rose .media-feature,
+      .theme-light.theme-rose .location-card,
+      .theme-light.theme-rose .menu-list,
+      .theme-light.theme-rose .setlist-summary,
+      .theme-light.theme-rose .setlist-card {
+        border-color: #c1aeb3;
+        background: #f0e8e5;
+        box-shadow: 0 10px 28px rgba(64, 42, 51, .14);
+      }
+      .theme-light.theme-rose .event-photo .pill,
+      .theme-light.theme-rose .play span {
+        background: rgba(240, 232, 229, .94);
+        color: #30272b;
+      }
+      .theme-light.theme-rose .event-line { color: #51474c; }
+      .theme-light.theme-rose .event-line b,
+      .theme-light.theme-rose .event-note.song-link,
+      .theme-light.theme-rose .event-note.song-link span,
+      .theme-light.theme-rose .section-label span { color: #27658f; }
+      .theme-light.theme-rose .menu-item,
+      .theme-light.theme-rose .song-row { border-bottom-color: #c1aeb3; }
+      .theme-light.theme-rose .menu-item span { color: #62545a; }
+      .theme-light.theme-rose .song-action {
+        border-color: #92747c;
+        background: #e9dede;
+        color: #27658f;
+      }
+
+      body.single { display: grid; min-height: 100vh; place-items: start; background: transparent; }
+      body.single .board { min-width: 0; padding: 0; }
+      body.single .board-header { display: none; }
+      body.single .screens { display: block; }
+      body.single .mockup { display: none; }
+      body.single .mockup.selected { display: block; }
+      body.single .mockup-label { display: none; }
+      body.single .device { border: 0; border-radius: 0; box-shadow: none; }
+    </style>
+  </head>
+  <body>
+    <main class="board">
+      <header class="board-header">
+        <div>
+          <div class="eyebrow">Jubilee Worship · Mobile Design Concept</div>
+          <h1>Night Gathering · v1</h1>
+        </div>
+        <div class="board-meta">공식 사진과 로고는 원형을 유지하고, GPT 생성 이미지는 인물·문구·로고가 없는 배경에만 사용했습니다.</div>
+      </header>
+
+      <div class="screens">
+        <section class="mockup" data-screen="splash">
+          <div class="mockup-label"><span>00</span><span>시작 화면</span></div>
+          <div class="device">
+            <div class="screen splash">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="splash-inner">
+                <img class="splash-logo" src="../../apps/web/public/images/brand/app-icon-1024-source-locked.png" alt="" />
+                <div class="splash-kicker">SUNDOO CHURCH · WORSHIP MINISTRY</div>
+                <h2>쥬빌리워십</h2>
+                <p>JUBILEE WORSHIP</p>
+              </div>
+              <div class="splash-foot">인천 선두교회 예배사역팀</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mockup" data-screen="home">
+          <div class="mockup-label"><span>01</span><span>홈</span></div>
+          <div class="device">
+            <div class="screen home-screen">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="topbar">
+                <div class="brand-lockup"><img src="../../apps/web/public/images/brand/app-icon-1024-source-locked.png" alt="" /><strong>쥬빌리워십</strong></div>
+                <button class="icon-button" aria-label="알림"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button>
+              </div>
+              <div class="scroll-content">
+                <div class="home-hero">
+                  <img src="../../apps/web/public/images/hero/hero-home-group-07-mobile-1080x1350.webp" alt="" />
+                  <div class="hero-copy">
+                    <div class="eyebrow">SUNDOO CHURCH WORSHIP MINISTRY</div>
+                    <h2>오직 예배를 세우는 일</h2>
+                    <p>개인의 예배를 넘어 공동체의 예배로, 인천의 다음 세대와 함께 하나님을 예배합니다.</p>
+                  </div>
+                </div>
+                <div class="home-card">
+                  <div class="home-card-top"><span class="pill">다음 예배</span><span class="pill">D-21</span></div>
+                  <h3>쥬빌리워십 찬양집회</h3>
+                  <div class="meta">9월 4일 금요일 · 오후 8:00</div>
+                  <div class="place">⌖ 선두교회 본당</div>
+                  <div class="sermon-brief" aria-label="설교 정보 화면 예시">
+                    <small>이번 예배 말씀 · 화면 예시</small>
+                    <strong>설교 주제가 표시됩니다</strong>
+                    <span>본문 · 말씀 구절이 표시됩니다</span>
+                  </div>
+                  <div class="button-row"><button class="btn primary">캘린더에 추가</button><button class="btn">길찾기</button></div>
+                </div>
+                <section class="home-setlist" aria-label="홈 송리스트 화면 예시">
+                  <div class="home-setlist-header"><div><small>THIS WEEK · 화면 예시</small><strong>이번 주 워십 송리스트</strong></div><span>전체 보기 ›</span></div>
+                  <div class="home-song-row"><span class="home-song-number">01</span><span class="home-song-title">첫 번째 곡 제목</span></div>
+                  <div class="home-song-row"><span class="home-song-number">02</span><span class="home-song-title">두 번째 곡 제목</span></div>
+                  <div class="home-song-row"><span class="home-song-number">03</span><span class="home-song-title">세 번째 곡 제목</span></div>
+                </section>
+              </div>
+              <nav class="tabbar">
+                <div class="tab active"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9H6v-9"/><path d="M9 20v-6h6v6"/></svg><span>홈</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>예배</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg><span>미디어</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>안내</span></div>
+              </nav>
+            </div>
+          </div>
+        </section>
+
+        <section class="mockup" data-screen="worship">
+          <div class="mockup-label"><span>02</span><span>예배 메인</span></div>
+          <div class="device">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="topbar"><div class="brand-lockup"><img src="../../apps/web/public/images/brand/app-icon-1024-source-locked.png" alt="" /><strong>쥬빌리워십</strong></div><button class="icon-button" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v8h14v-8"/></svg></button></div>
+              <div class="scroll-content">
+                <header class="page-header"><div class="eyebrow">WORSHIP</div><h2>예배</h2><p>확정된 예배 일정을 확인하세요.</p></header>
+                <div class="segmented"><div class="segment active">다가오는 예배</div><div class="segment">지난 예배</div></div>
+                <article class="event-card">
+                  <div class="event-photo"><img src="../../apps/web/public/images/hero/worship-community-960x610.webp" alt="" /><span class="pill">예정</span><div class="date-lockup"><strong>SEP 04</strong><span>FRIDAY · 8:00 PM</span></div></div>
+                  <div class="event-body">
+                    <h3>쥬빌리워십 찬양집회</h3>
+                    <div class="event-line"><b>일시</b><span>9월 4일 금요일 · 오후 8:00</span></div>
+                    <div class="event-line"><b>장소</b><span>선두교회 본당</span></div>
+                    <div class="event-line"><b>주소</b><span>인천 서구 거북로109번길 10</span></div>
+                    <div class="sermon-brief" aria-label="설교 정보 화면 예시">
+                      <small>이번 예배 말씀 · 화면 예시</small>
+                      <strong>설교 주제가 표시됩니다</strong>
+                      <span>본문 · 말씀 구절이 표시됩니다</span>
+                    </div>
+                    <p class="event-note song-link"><strong>이번 주 워십 송리스트</strong><span>보기 ›</span></p>
+                    <div class="button-row"><button class="btn primary">캘린더에 추가</button><button class="btn event-share-button">일정 공유</button><button class="btn event-directions-inline">오시는 길</button></div>
+                    <button class="btn wide-btn event-directions-wide">오시는 길 확인</button>
+                  </div>
+                </article>
+              </div>
+              <nav class="tabbar">
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9H6v-9"/><path d="M9 20v-6h6v6"/></svg><span>홈</span></div>
+                <div class="tab active"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>예배</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg><span>미디어</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>안내</span></div>
+              </nav>
+            </div>
+          </div>
+        </section>
+
+        <section class="mockup" data-screen="media">
+          <div class="mockup-label"><span>03</span><span>미디어</span></div>
+          <div class="device">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="topbar"><div class="brand-lockup"><img src="../../apps/web/public/images/brand/app-icon-1024-source-locked.png" alt="" /><strong>쥬빌리워십</strong></div><button class="icon-button" aria-label="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button></div>
+              <div class="scroll-content">
+                <header class="page-header"><div class="eyebrow">MEDIA</div><h2>미디어</h2><p>찬양과 말씀, 다시 이어지는 예배</p></header>
+                <article class="media-feature">
+                  <div class="media-thumb"><img id="media-feature-image" src="../../apps/web/public/images/media/youtube-featured-E5mD29x_-dM-1280x720.webp" alt="" /><div class="play"><span>▶</span></div></div>
+                  <div class="media-body"><div class="eyebrow">최근 예배</div><h3>[LIVE] 쥬빌리 워십 7월 찬양집회</h3><p>2026. 7. 3. · Jubilee Worship</p><button class="btn primary wide-btn">영상 재생</button></div>
+                </article>
+                <div style="height:18px"></div>
+                <div class="section-label"><h3>예배 현장</h3><span>전체 보기</span></div>
+                <div class="gallery-row"><img src="../../apps/web/public/images/gallery/sundoo-jubilee-03.webp" alt="" /><img src="../../apps/web/public/images/gallery/sundoo-jubilee-01.webp" alt="" /></div>
+              </div>
+              <nav class="tabbar">
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9H6v-9"/><path d="M9 20v-6h6v6"/></svg><span>홈</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>예배</span></div>
+                <div class="tab active"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg><span>미디어</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>안내</span></div>
+              </nav>
+            </div>
+          </div>
+        </section>
+
+        <section class="mockup" data-screen="guide">
+          <div class="mockup-label"><span>04</span><span>안내</span></div>
+          <div class="device">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="topbar"><div class="brand-lockup"><img src="../../apps/web/public/images/brand/app-icon-1024-source-locked.png" alt="" /><strong>쥬빌리워십</strong></div><button class="icon-button" aria-label="알림"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button></div>
+              <div class="scroll-content" style="padding-top:100px">
+                <div class="guide-hero"><img id="guide-hero-image" src="../../apps/web/public/images/hero/visit-welcome-960x610.webp" alt="" /><div class="guide-title"><h2>처음 오셔도 괜찮습니다</h2><p>처음 오시는 길이 어렵지 않도록 위치와 교통 정보를 안내해 드립니다.</p></div></div>
+                <article class="location-card"><span class="pill">오시는 길</span><h3 style="margin-top:10px">선두교회 본당</h3><p>인천광역시 서구 거북로109번길 10</p><div class="map-buttons"><button>네이버 지도</button><button>카카오 지도</button><button>주소 복사</button></div></article>
+                <div class="menu-list"><div class="menu-item">주차·교통 안내 <span>›</span></div><div class="menu-item">쥬빌리워십 소개 <span>›</span></div><div class="menu-item">공식 Instagram <span>›</span></div><div class="menu-item">알림 설정 <span>›</span></div><div class="menu-item">개인정보 처리방침 <span>›</span></div></div>
+              </div>
+              <nav class="tabbar">
+                <div class="tab"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9H6v-9"/><path d="M9 20v-6h6v6"/></svg><span>홈</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>예배</span></div>
+                <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg><span>미디어</span></div>
+                <div class="tab active"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>안내</span></div>
+              </nav>
+            </div>
+          </div>
+        </section>
+
+        <section class="mockup" data-screen="songlist">
+          <div class="mockup-label"><span>02-1</span><span>예배에서 열리는 송리스트 상세</span></div>
+          <div class="device">
+            <div class="screen detail-screen">
+              <div class="status-bar"><span>9:41</span><span class="status-icons"><span class="signal">●●●</span><span>5G</span><span class="battery"></span></span></div>
+              <div class="topbar detail-topbar">
+                <button class="back-button" aria-label="예배 화면으로 돌아가기"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg><span>예배</span></button>
+                <strong class="detail-bar-title">송리스트</strong>
+                <button class="icon-button" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v8h14v-8"/></svg></button>
+              </div>
+              <div class="scroll-content">
+                <header class="page-header setlist-header"><div class="eyebrow">예배 · 상세</div><h2>이번 주 송리스트</h2><p>9월 4일 금요일 · 오후 8:00 · 쥬빌리워십 찬양집회</p></header>
+                <section class="setlist-summary">
+                  <div class="setlist-summary-top"><span class="pill">화면 예시</span><strong>선두교회 본당</strong></div>
+                  <p>실제 곡은 예배팀 확인과 관리자 등록 후 공개됩니다.</p>
+                </section>
+                <section class="setlist-card" aria-label="송리스트 화면 예시">
+                  <div class="song-row"><span class="song-number">01</span><div class="song-copy"><strong>첫 번째 곡 제목</strong><span>아티스트 · 공식 듣기 링크</span></div><span class="song-action">▶</span></div>
+                  <div class="song-row"><span class="song-number">02</span><div class="song-copy"><strong>두 번째 곡 제목</strong><span>아티스트 · 공식 듣기 링크</span></div><span class="song-action">▶</span></div>
+                  <div class="song-row"><span class="song-number">03</span><div class="song-copy"><strong>세 번째 곡 제목</strong><span>아티스트 · 공식 듣기 링크</span></div><span class="song-action">▶</span></div>
+                  <div class="song-row"><span class="song-number">04</span><div class="song-copy"><strong>네 번째 곡 제목</strong><span>아티스트 · 공식 듣기 링크</span></div><span class="song-action">▶</span></div>
+                  <div class="song-row"><span class="song-number">05</span><div class="song-copy"><strong>다섯 번째 곡 제목</strong><span>아티스트 · 공식 듣기 링크</span></div><span class="song-action">▶</span></div>
+                </section>
+                <p class="setlist-note">현장 상황에 따라 곡과 순서가 변경될 수 있습니다. 가사·악보·음원은 권리 확인 전 앱에서 직접 제공하지 않습니다.</p>
+                <div class="setlist-actions button-row"><button class="btn primary">전체 듣기</button><button class="btn">송리스트 공유</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const screen = params.get("screen");
+      const theme = params.get("theme");
+      if (theme === "light") {
+        document.body.classList.add("theme-light");
+        document.title = "Jubilee Worship Mobile Concept — Open Sky v2";
+        document.querySelector(".board-header h1").textContent = "Open Sky · v2";
+      }
+      if (theme === "balanced") {
+        document.body.classList.add("theme-light", "theme-balanced");
+        document.title = "Jubilee Worship Mobile Concept — Morning Haze v3";
+        document.querySelector(".board-header h1").textContent = "Morning Haze · v3";
+      }
+      if (theme === "rose") {
+        document.body.classList.add("theme-light", "theme-rose");
+        document.title = "Jubilee Worship Mobile Concept — Rose Haze v4";
+        document.querySelector(".board-header h1").textContent = "Rose Haze · v4";
+      }
+      if (theme === "rose-nologo") {
+        document.body.classList.add("theme-light", "theme-rose", "theme-no-logo");
+        document.title = "Jubilee Worship Mobile Concept — Rose Haze Logo-free v5";
+        document.querySelector(".board-header h1").textContent = "Rose Haze · Logo-free v5";
+        document.querySelector(".board-meta").textContent = "예배 메인에서 송리스트 상세로 이동하는 구조입니다. 두 화면은 별도 탭이나 연속 스크롤 화면이 아닙니다.";
+        document.querySelector("#media-feature-image").src = "../../apps/web/public/images/gallery/sundoo-jubilee-03.webp";
+        document.querySelector("#guide-hero-image").src = "../../apps/web/public/images/gallery/sundoo-jubilee-02.webp";
+      }
+      if (theme === "rose-nologo-sermon") {
+        document.body.classList.add("theme-light", "theme-rose", "theme-no-logo", "theme-sermon");
+        document.title = "Jubilee Worship Mobile Concept — Rose Haze Logo-free v6";
+        document.querySelector(".board-header h1").textContent = "Rose Haze · Logo-free v6";
+        document.querySelector(".board-meta").textContent = "홈과 예배 카드 안에 설교 주제와 말씀 구절을 함께 표시합니다. 송리스트 상세는 예배에서 여는 별도 화면입니다.";
+        document.querySelector("#media-feature-image").src = "../../apps/web/public/images/gallery/sundoo-jubilee-03.webp";
+        document.querySelector("#guide-hero-image").src = "../../apps/web/public/images/gallery/sundoo-jubilee-02.webp";
+      }
+      if (screen) {
+        document.body.classList.add("single");
+        const selected = document.querySelector(`[data-screen="${screen}"]`);
+        if (selected) selected.classList.add("selected");
+      }
+    </script>
+  </body>
+</html>

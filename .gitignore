@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build and test output
+.next/
+.vinext/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+.turbo/
+.expo/
+.expo-shared/
+.eas/
+.wrangler/
+outputs/
+work/
+reference/
+*.tsbuildinfo
+
+# Generated mobile native projects and store artifacts
+apps/mobile/ios/
+apps/mobile/android/
+*.ipa
+*.apk
+*.aab
+*.xcarchive/
+
+# Local environment and credentials
+.env*
+!.env.example
+*.pem
+*.key
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pfx
+*.cer
+*.csr
+*.mobileprovision
+*.provisionprofile
+.netrc
+.npmrc
+.pypirc
+.easignore
+credentials.json
+google-services.json
+GoogleService-Info.plist
+*service-account*.json
+*-firebase-adminsdk-*.json
+
+# Local databases and dumps
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+.vercel/
+
+# Design exploration outputs are local review artifacts. The reproducible HTML,
+# styles and renderer stay in Git; raster exports duplicate identifiable photos.
+design/mobile/assets/
+design/mobile/output/
+
+# Local brand archive; runtime uses the optimized web/app derivatives.
+apps/web/public/images/brand/logo-official-master-4096-source-locked.png
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# Logs and OS files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store

@@ -1,0 +1,21 @@
+{
+  "name": "jubilee-worship",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @jubilee/web dev",
+    "dev:mobile": "pnpm --filter @jubilee/mobile start",
+    "preview": "pnpm --filter @jubilee/web exec next start -H 127.0.0.1 -p 3001",
+    "build": "pnpm --filter @jubilee/domain build && pnpm --filter @jubilee/web build && pnpm --filter @jubilee/mobile build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "audit:baseline": "node scripts/check-audit-baseline.mjs",
+    "test:e2e": "pnpm --filter @jubilee/web test:e2e",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  }
+}
