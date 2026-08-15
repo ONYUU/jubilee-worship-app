@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
+    owner: "trust_me",
     name: `쥬빌리워십${settings.nameSuffix}`,
     slug: "jubilee-worship",
     description: "쥬빌리 워십 공식 예배 안내 앱",
@@ -46,14 +47,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       buildNumber: "1",
       supportsTablet: false,
       associatedDomains: webHost ? [`applinks:${webHost}`] : undefined,
-      infoPlist:
-        variant === "development"
-          ? undefined
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+        ...(variant === "development"
+          ? {}
           : {
               NSAppTransportSecurity: {
                 NSAllowsArbitraryLoads: false
               }
-            }
+            })
+      }
     },
     android: {
       package: identifier,
@@ -126,9 +129,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     extra: {
       appVariant: variant,
-      ...(process.env.EXPO_PUBLIC_EAS_PROJECT_ID
-        ? { eas: { projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID } }
-        : {})
+      eas: {
+        projectId: "b003dbe7-c515-43c6-b1eb-e025c03f25bd"
+      }
     }
   };
 };
