@@ -21,7 +21,7 @@
 - 프로젝트 요청자(쥬빌리워십 팀원)가 공식 로고와 선두교회 소개 사진의 홈페이지·앱 사용 권한을 확인
 - 앱명 `쥬빌리워십`, 앱 내부 운영주체 `쥬빌리 워십`
 - 문의·개인정보 이메일 `sundoojubileeworship@gmail.com`
-- `Jubilee Worship` 조직의 Free `쥬빌리` Supabase 프로젝트(Seoul), 저장소 link, 원격 migration 8개, Edge Function 6개
+- `Jubilee Worship` 조직의 Free `쥬빌리` Supabase 프로젝트(Seoul), 저장소 link, 원격 migration 9개, Edge Function 6개
 - 원격 retention cron 활성화와 외부 push 발송 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`)
 - 예배 전날 19:30 KST 및 예배 당일 1시간 전 알림 일정
 - 알림은 예약 시각부터 15분 이내만 발송하고 이후 만료하는 운영 기준

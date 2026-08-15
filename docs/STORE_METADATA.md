@@ -63,7 +63,7 @@
 - Google Play 공개 개발자명: `쥬빌리 워십` 예정, Console 검토 필요
 - iOS·Android 실제 테스트 기기: 사용자 준비 완료
 - Supabase: `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트, Seoul 리전으로 생성 확인
-- 이 저장소의 Supabase 원격 연결: 완료, migration 8개 적용·Edge Function 6개 활성·retention cron 활성
+- 이 저장소의 Supabase 원격 연결: 완료, migration 9개 적용·Edge Function 6개 활성·retention cron 활성
 - 실제 push 외부 발송: 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`), 실기기 통합검증 후 별도 승인 필요
 - Vercel 프로젝트와 홈페이지 주소: 미연결
 - 최초 오너 이메일: 운영 DB 연결 시 사용자에게 요청

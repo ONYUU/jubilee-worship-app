@@ -43,7 +43,7 @@
 | 모바일 앱 | Expo 기반 iOS·Android 공통 앱과 핵심 화면 구현 | 푸시 알림·딥링크·실기기 검증과 스토어 빌드 마무리 |
 | 웹 공개 사이트 | 공개 페이지와 로컬 QA 완료 | 앱과 동일 데이터 사용 여부 회귀검증 |
 | 웹 관리자 | 기존 관리 기능과 설교·송리스트·갤러리·안내·관리자 승인 기능 구현 | 법적 문서·푸시 발송 최종 연동과 운영 메일 검증 |
-| 데이터베이스 | 앱 공개 view, 설교·송리스트 승인 흐름, RLS·Storage 정책 구현, 원격 migration 8개 적용 | 최초 owner·정책 원문·운영 데이터 검증 |
+| 데이터베이스 | 앱 공개 view, 설교·송리스트 승인 흐름, RLS·Storage 정책 구현, 원격 migration 9개 적용 | 최초 owner·정책 원문·운영 데이터 검증 |
 | 공통 규칙 | 앱 DTO, 날짜·D-Day·YouTube·송리스트 검증 규칙 구현 | 푸시 요청·응답 계약 최종 검증 |
 | 운영 연결 | Free `쥬빌리` Supabase 저장소 link·Edge Function 6개·retention cron 적용, 외부 push 비활성 | 웹 Preview, EAS, 실제 push, TestFlight·Play 테스트 연결 |
 

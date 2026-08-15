@@ -67,7 +67,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 - [x] `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트를 Seoul 리전에 생성
 - [x] 단일 원격 프로젝트를 통합검수 후 초기 운영으로 사용하고 일상 reset·seed·CI는 로컬에서만 수행하는 기준 확정
-- [x] Supabase remote 프로젝트 link·dry-run·migration 8개 적용
+- [x] Supabase remote 프로젝트 link·dry-run·migration 9개 적용
 - [x] 6개 Edge Function 배포와 인증 없는 요청 차단 smoke test
 - [x] 공개 DTO 조회·원본 비공개 열 차단·함수 method/auth 원격 smoke test
 - [x] 외부 push 비활성 상태로 `PUSH_EXTERNAL_SEND_ENABLED=false` 설정
