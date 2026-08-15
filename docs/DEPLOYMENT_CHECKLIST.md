@@ -94,7 +94,11 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 ## 7. EAS·스토어
 
-- [ ] Expo/EAS 프로젝트 연결과 운영 환경 변수 설정
+- [x] Expo/EAS `jubilee-worship` 프로젝트 연결과 Preview·Production용 Supabase 공개 환경 변수 설정
+- [x] iOS Simulator development build 생성·설치·홈/예배/미디어 실행 확인
+- [x] Android development APK 생성과 개발용 패키지·서명 확인
+- [ ] 운영 웹 주소 확정 후 `EXPO_PUBLIC_WEB_ORIGIN` 설정
+- [ ] APNs·FCM 자격 증명 설정과 iOS·Android 실기기 원격 알림 검증
 - [ ] iOS·Android 운영 서명 빌드 생성
 - [ ] TestFlight·Google Play 내부 테스트 배포
 - [ ] 내부 테스터 실기기 검수와 치명적 이슈 0건 확인

@@ -5,6 +5,7 @@ import {
   errorResponse,
   jsonResponse,
   readJsonObject,
+  requiredAppVariant,
   requiredExpoPushToken,
   requiredPlatform,
   requiredString,
@@ -24,6 +25,7 @@ export async function registerInstallation(
     const input = await readJsonObject(request);
     const platform = requiredPlatform(input.platform);
     const appVersion = requiredString(input.appVersion, "appVersion", 64);
+    const appVariant = requiredAppVariant(input.appVariant);
     const expoPushToken = requiredExpoPushToken(input.expoPushToken);
     const subscriptions = requiredSubscriptions(input.subscriptions);
     const installationId = crypto.randomUUID();
@@ -36,6 +38,7 @@ export async function registerInstallation(
         target_secret_hash: await sha256Hex(installationSecret),
         target_platform: platform,
         target_app_version: appVersion,
+        target_app_variant: appVariant,
         target_expo_push_token: expoPushToken,
         target_token_hash: await sha256Hex(expoPushToken),
         target_worship_reminder: subscriptions.worshipReminder,

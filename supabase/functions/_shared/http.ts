@@ -142,6 +142,21 @@ export function requiredPlatform(value: unknown): "ios" | "android" {
   return value;
 }
 
+export type AppVariant = "development" | "preview" | "production";
+
+export function requiredAppVariant(value: unknown): AppVariant {
+  if (
+    value !== "development" && value !== "preview" && value !== "production"
+  ) {
+    throw new HttpError(
+      400,
+      "invalid_input",
+      "appVariant는 development, preview 또는 production이어야 합니다.",
+    );
+  }
+  return value;
+}
+
 export function requiredExpoPushToken(value: unknown): string {
   const result = requiredString(value, "expoPushToken", 256);
   if (!EXPO_PUSH_TOKEN_PATTERN.test(result)) {

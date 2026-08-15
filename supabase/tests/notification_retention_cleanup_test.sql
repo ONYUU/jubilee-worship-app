@@ -187,58 +187,59 @@ values (
 );
 
 insert into private.app_installations (
-  id, secret_hash, platform, app_version, last_seen_at, disabled_at, disable_reason
+  id, secret_hash, platform, app_version, app_variant,
+  last_seen_at, disabled_at, disable_reason
 )
 values
   (
     '10000000-0000-4000-8000-000000000001', repeat('1', 64),
-    'ios', '1.0.0',
+    'ios', '1.0.0', 'production',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '179 days',
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000002', repeat('2', 64),
-    'android', '1.0.0',
+    'android', '1.0.0', 'production',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '180 days',
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000003', repeat('3', 64),
-    'ios', '1.0.0',
+    'ios', '1.0.0', 'production',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '40 days',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '29 days',
     'user_unregistered'
   ),
   (
     '10000000-0000-4000-8000-000000000004', repeat('4', 64),
-    'android', '1.0.0',
+    'android', '1.0.0', 'production',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '40 days',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '30 days',
     'user_unregistered'
   ),
   (
     '10000000-0000-4000-8000-000000000005', repeat('5', 64),
-    'ios', '1.0.0', current_setting('jubilee.cleanup_now')::timestamptz,
+    'ios', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000006', repeat('6', 64),
-    'android', '1.0.0', current_setting('jubilee.cleanup_now')::timestamptz,
+    'android', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000007', repeat('7', 64),
-    'ios', '1.0.0', current_setting('jubilee.cleanup_now')::timestamptz,
+    'ios', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000008', repeat('8', 64),
-    'android', '1.0.0', current_setting('jubilee.cleanup_now')::timestamptz,
+    'android', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   ),
   (
     '10000000-0000-4000-8000-000000000009', repeat('9', 64),
-    'ios', '1.0.0', current_setting('jubilee.cleanup_now')::timestamptz,
+    'ios', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   );
 
@@ -791,6 +792,7 @@ select lives_ok(
       '10000000-0000-4000-8000-000000000002'::uuid,
       repeat('2', 64),
       '1.0.1',
+      'production',
       'ExpoPushToken[retention_stale_reactivated]',
       repeat('8', 64),
       true, false, false
@@ -852,10 +854,10 @@ select throws_ok(
 select throws_ok(
   $$
     insert into private.app_installations (
-      id, secret_hash, platform, app_version, disabled_at, disable_reason
+      id, secret_hash, platform, app_version, app_variant, disabled_at, disable_reason
     ) values (
       '10000000-0000-4000-8000-000000000099', repeat('9', 64),
-      'ios', '1.0.0', statement_timestamp(), null
+      'ios', '1.0.0', 'production', statement_timestamp(), null
     )
   $$,
   '23514',

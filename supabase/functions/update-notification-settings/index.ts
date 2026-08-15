@@ -3,6 +3,7 @@ import { withSupabase } from "@supabase/server";
 import {
   errorResponse,
   readJsonObject,
+  requiredAppVariant,
   requiredExpoPushToken,
   requiredString,
   requiredSubscriptions,
@@ -25,6 +26,7 @@ export async function updateNotificationSettings(
       128,
     );
     const appVersion = requiredString(input.appVersion, "appVersion", 64);
+    const appVariant = requiredAppVariant(input.appVariant);
     const subscriptions = requiredSubscriptions(input.subscriptions);
     const expoPushToken =
       input.expoPushToken === undefined || input.expoPushToken === null
@@ -35,6 +37,7 @@ export async function updateNotificationSettings(
       target_installation_id: installationId,
       target_secret_hash: await sha256Hex(installationSecret),
       target_app_version: appVersion,
+      target_app_variant: appVariant,
       target_expo_push_token: expoPushToken,
       target_token_hash: expoPushToken ? await sha256Hex(expoPushToken) : null,
       target_worship_reminder: subscriptions.worshipReminder,

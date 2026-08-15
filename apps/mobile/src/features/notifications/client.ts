@@ -5,6 +5,7 @@ import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { resolveNotificationAppVariant } from "./app-variant";
 import { isInvalidInstallationError, NotificationSetupError } from "./errors";
 
 export { NotificationSetupError } from "./errors";
@@ -112,6 +113,10 @@ function appVersion(): string {
   return Constants.expoConfig?.version ?? "0.1.0";
 }
 
+function appVariant() {
+  return resolveNotificationAppVariant(Constants.expoConfig?.extra);
+}
+
 async function functionRequest<T>(name: string, body: Record<string, unknown>): Promise<T> {
   const { url, key } = publicConfig();
   const controller = new AbortController();
@@ -212,6 +217,7 @@ async function registerInstallation(
   const created = await functionRequest<InstallationCredentials>("register-installation", {
     platform: Platform.OS,
     appVersion: appVersion(),
+    appVariant: appVariant(),
     expoPushToken: token,
     subscriptions: preferences
   });
@@ -229,6 +235,7 @@ async function updateInstallation(
   await functionRequest<void>("update-notification-settings", {
     ...credentials,
     appVersion: appVersion(),
+    appVariant: appVariant(),
     expoPushToken: token,
     subscriptions: preferences
   });

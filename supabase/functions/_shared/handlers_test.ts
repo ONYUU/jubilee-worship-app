@@ -70,6 +70,7 @@ Deno.test("registration returns the raw secret once and sends only its hash to P
     jsonRequest({
       platform: "ios",
       appVersion: "0.1.0",
+      appVariant: "preview",
       expoPushToken: "ExpoPushToken[local_test_token]",
       subscriptions: {
         worshipReminder: true,
@@ -90,6 +91,7 @@ Deno.test("registration returns the raw secret once and sends only its hash to P
   assertEquals(client.calls.length, 1);
   const params = client.calls[0].params ?? {};
   assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
+  assertEquals(params.target_app_variant, "preview");
   assert(params.target_secret_hash !== result.installationSecret);
   assert(!("target_installation_secret" in params));
 });
@@ -100,6 +102,7 @@ Deno.test("registration rejects an invalid push token before an RPC call", async
     jsonRequest({
       platform: "android",
       appVersion: "0.1.0",
+      appVariant: "development",
       expoPushToken: "not-a-push-token",
       subscriptions: {
         worshipReminder: false,
@@ -113,6 +116,28 @@ Deno.test("registration rejects an invalid push token before an RPC call", async
   assertEquals(client.calls.length, 0);
 });
 
+Deno.test("registration rejects a missing or invalid app variant before an RPC call", async () => {
+  for (const appVariant of [undefined, "staging"]) {
+    const client = new MockRpcClient(() => ({ data: null, error: null }));
+    const response = await registerInstallation(
+      jsonRequest({
+        platform: "ios",
+        appVersion: "0.1.0",
+        ...(appVariant === undefined ? {} : { appVariant }),
+        expoPushToken: "ExpoPushToken[variant_validation_token]",
+        subscriptions: {
+          worshipReminder: true,
+          scheduleChanges: false,
+          setlistUpdates: false,
+        },
+      }),
+      client,
+    );
+    assertEquals(response.status, 400);
+    assertEquals(client.calls.length, 0);
+  }
+});
+
 Deno.test("settings update hashes a body secret before the service RPC", async () => {
   const client = new MockRpcClient(() => ({ data: null, error: null }));
   const rawSecret = "settings-secret-that-must-not-reach-postgres";
@@ -121,6 +146,7 @@ Deno.test("settings update hashes a body secret before the service RPC", async (
       installationId: crypto.randomUUID(),
       installationSecret: rawSecret,
       appVersion: "0.1.1",
+      appVariant: "production",
       subscriptions: {
         worshipReminder: false,
         scheduleChanges: true,
@@ -132,8 +158,29 @@ Deno.test("settings update hashes a body secret before the service RPC", async (
   assertEquals(response.status, 204);
   const params = client.calls[0].params ?? {};
   assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
+  assertEquals(params.target_app_variant, "production");
   assert(params.target_secret_hash !== rawSecret);
   assert(!Object.values(params).includes(rawSecret));
+});
+
+Deno.test("settings update rejects an invalid app variant before an RPC call", async () => {
+  const client = new MockRpcClient(() => ({ data: null, error: null }));
+  const response = await updateNotificationSettings(
+    jsonRequest({
+      installationId: crypto.randomUUID(),
+      installationSecret: "settings-secret-that-must-not-reach-postgres",
+      appVersion: "0.1.1",
+      appVariant: "staging",
+      subscriptions: {
+        worshipReminder: true,
+        scheduleChanges: false,
+        setlistUpdates: false,
+      },
+    }),
+    client,
+  );
+  assertEquals(response.status, 400);
+  assertEquals(client.calls.length, 0);
 });
 
 Deno.test("unregister hashes a body secret before the service RPC", async () => {

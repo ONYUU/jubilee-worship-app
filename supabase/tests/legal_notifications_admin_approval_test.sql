@@ -1134,6 +1134,7 @@ select lives_ok(
     select public.service_register_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
       repeat('a', 64), 'ios', '0.1.0',
+      'production',
       'ExpoPushToken[database_test_token]', repeat('b', 64),
       true, true, true
     )
@@ -1158,6 +1159,7 @@ select throws_ok(
     select public.service_register_app_installation(
       '86666666-6666-4666-8666-666666666666'::uuid,
       repeat('c', 64), 'android', '0.1.0',
+      'production',
       'ExpoPushToken[database_test_token]', repeat('b', 64),
       false, false, false
     )
@@ -1172,7 +1174,7 @@ select throws_ok(
   $$
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
-      repeat('f', 64), '0.1.1', null, null, true, true, true
+      repeat('f', 64), '0.1.1', 'production', null, null, true, true, true
     )
   $$,
   '28000',
@@ -1185,7 +1187,7 @@ select lives_ok(
   $$
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
-      repeat('a', 64), '0.1.1', null, null, false, true, true
+      repeat('a', 64), '0.1.1', 'production', null, null, false, true, true
     )
   $$,
   'the correct installation secret hash can change notification settings'

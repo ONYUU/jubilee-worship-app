@@ -11,7 +11,7 @@
 | 2 | 유료 `.com` 또는 `.org` 도메인 선택 | 정식 운영 URL 확정 | 완성 후 구매 예정 |
 | 2 | DNS 담당자 | 승인 후 레코드 생성 | 확인 필요 |
 | 2 | Apple Team ID와 Android 앱 서명 인증서 SHA-256 | 공식 웹 주소의 Universal Link·App Link 검증 파일 생성 | Apple 개인 계정 준비 완료, 식별자·서명값 확인 필요 |
-| 2 | EAS 프로젝트 ID·APNs·FCM 자격 증명 | 실제 기기 푸시 토큰과 내부 테스트 빌드 생성 | Expo 계정 연결 후 확인 |
+| 2 | APNs·FCM 자격 증명 | 실제 기기 푸시 토큰과 원격 알림 검증 | EAS 프로젝트 연결 완료, 알림 자격 증명은 미설정 |
 | 2 | Google Play 비공개 테스터 12명 | 2025년 생성 개인 개발자 계정의 Production access 조건 | 14일 연속 참여자 확보 필요 |
 | 2 | Play Console Android 기기·연락처 검증 상태 | 신규 개인 개발자 계정 필수 절차 여부 확인 | Console Dashboard에서 확인 필요 |
 | 3 | Production 공개 승인 | 외부 공개·DNS 변경 권한 | 개발 검수 후 요청 |
@@ -29,6 +29,7 @@
 - Apple 개인 계정의 스토어 판매자·개발자명은 계정 소유자의 법적 이름으로 표시
 - Google Play 개발자 계정은 개인 유형이며 2025년에 등록
 - Apple·Google 개발자 계정과 iOS·Android 실제 테스트 기기 준비
+- Expo/EAS `jubilee-worship` 프로젝트와 앱 연결, Preview·Production용 Supabase 공개 환경변수
 - 알림 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 자동 정리 기준
 - 웹용 Hero, 갤러리, 영상 커버, OG, 아이콘
 - 현행 운영 YouTube 채널 URL과 channel ID
