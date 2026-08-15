@@ -3,7 +3,24 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(50);
+select plan(51);
+
+select ok(
+  not exists (
+    select 1
+    from pg_proc as procedure_row
+    join pg_namespace as namespace_row
+      on namespace_row.oid = procedure_row.pronamespace
+    where namespace_row.nspname = 'public'
+      and procedure_row.proname = 'rls_auto_enable'
+      and procedure_row.pronargs = 0
+      and (
+        has_function_privilege('anon', procedure_row.oid, 'EXECUTE')
+        or has_function_privilege('authenticated', procedure_row.oid, 'EXECUTE')
+      )
+  ),
+  'the managed RLS event-trigger helper is not executable through API roles when present'
+);
 
 select ok(
   (
