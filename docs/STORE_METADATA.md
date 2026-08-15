@@ -40,8 +40,8 @@
 - Apple 개발자 계정: 개인 계정으로 준비 완료
 - Google Play Console 계정: 사용자 준비 완료
 - iOS·Android 실제 테스트 기기: 사용자 준비 완료
-- Supabase 계정: 서울 리전의 `SUNDOO`, `YUBIN` 프로젝트가 있으나 둘 다 비활성
-- 이 저장소의 Supabase 원격 연결: 미설정, 대상 프로젝트 선택·복구·link 필요
+- Supabase 계정: 기존 프로젝트 정리 완료, 현재 프로젝트 0개
+- 이 저장소의 Supabase 원격 연결: 미설정, 신규 무료 프로젝트 생성·link 필요
 - Vercel 프로젝트와 홈페이지 주소: 미연결
 - 최초 오너 이메일: 운영 DB 연결 시 사용자에게 요청
 
@@ -57,7 +57,7 @@ Vercel Hobby는 개인·비상업용으로 제한되므로 공식 운영 전 실
 
 1. Apple 개인 계정의 스토어 개발자명은 법적 이름으로 표시되므로 실제 표시명을 App Store Connect에서 확인
 2. 개인정보처리방침의 보유 기간·국외 처리 내용 검토 및 오너 공개 승인
-3. 기존 `SUNDOO`, `YUBIN` 중 쥬빌리워십 대상 프로젝트를 확정한 뒤 복구·link·migration 사전검증
+3. 쥬빌리워십 신규 Supabase 프로젝트를 생성한 뒤 link·migration 사전검증
 4. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
 5. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
 

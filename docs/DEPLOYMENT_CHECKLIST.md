@@ -59,9 +59,9 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 ## 5. Supabase remote·Push
 
-- [x] 계정 내 서울 리전 `SUNDOO`, `YUBIN` 프로젝트 존재 확인(둘 다 현재 비활성)
-- [ ] 기존 프로젝트 중 쥬빌리워십 대상 확정·복구·현재 schema 읽기 전용 감사
-- [ ] 선택한 Supabase remote 프로젝트 link·migration dry-run·적용
+- [x] 기존 Supabase 프로젝트 정리 후 계정 프로젝트 0개 확인
+- [ ] 쥬빌리워십 신규 무료 프로젝트 생성
+- [ ] 신규 Supabase remote 프로젝트 link·migration dry-run·적용
 - [ ] 6개 Edge Function 배포
 - [ ] `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
 - [ ] 등록 API에 분산 rate limit·gateway 적용
