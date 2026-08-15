@@ -408,7 +408,9 @@ select lives_ok(
     insert into public.legal_documents (
       document_type, version, title, body, effective_on
     ) values (
-      'privacy_policy', '1.0.0', '개인정보 처리방침', '첫 번째 공개 문서 본문', current_date
+      'privacy_policy', '1.0.0', '개인정보 처리방침',
+      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 첫 번째 공개 문서 본문\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매월 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      current_date
     )
   $$,
   'an active editor can create a legal draft'
@@ -820,7 +822,9 @@ select lives_ok(
     insert into public.legal_documents (
       document_type, version, title, body, effective_on
     ) values (
-      'privacy_policy', '2.0.0', '개인정보 처리방침 개정', '두 번째 공개 문서 본문', current_date
+      'privacy_policy', '2.0.0', '개인정보 처리방침 개정',
+      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 두 번째 공개 문서 본문\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매월 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      current_date
     )
   $$,
   'an editor can prepare a replacement legal draft'
@@ -975,24 +979,40 @@ select lives_ok(
       '예배 시간과 장소를 확인해 주세요.'
     )
   $$,
-  'an owner can manually approve a D-1 worship reminder'
+  'an owner can manually approve both timed worship reminders'
 );
 
 select results_eq(
   $$
-    select public.schedule_worship_reminder_campaign(
-      (select id from public.events where slug = 'followup-security-event'),
-      '내일은 쥬빌리워십 예배가 있습니다',
-      '예배 시간과 장소를 확인해 주세요.'
-    ) = (
-      select id from public.list_notification_campaigns()
-      where kind = 'worship_reminder'
-        and event_id = (select id from public.events where slug = 'followup-security-event')
-        and status = 'approved'
+    with repeated as (
+      select public.schedule_worship_reminder_campaign(
+        (select id from public.events where slug = 'followup-security-event'),
+        '내일은 쥬빌리워십 예배가 있습니다',
+        '예배 시간과 장소를 확인해 주세요.'
+      ) as campaign_id
     )
+    select
+      repeated.campaign_id = (
+        select reminder.campaign_id
+        from public.list_worship_reminder_schedules() as reminder
+        where reminder.event_id = (
+          select id from public.events where slug = 'followup-security-event'
+        )
+          and reminder.reminder_slot = 'day_before_1930'
+          and reminder.requires_reapproval = false
+      )
+      and (
+        select count(*)
+        from public.list_worship_reminder_schedules() as reminder
+        where reminder.event_id = (
+          select id from public.events where slug = 'followup-security-event'
+        )
+          and reminder.requires_reapproval = false
+      ) = 2
+    from repeated
   $$,
   $$values (true)$$,
-  'preparing the same event reminder is idempotent'
+  'preparing the same two event reminders is idempotent'
 );
 
 reset role;
@@ -1045,23 +1065,47 @@ set local role service_role;
 
 select is(
   public.service_queue_due_worship_reminders(
-    (select starts_at - interval '2 days' from public.events where slug = 'followup-security-event')
+    (
+      select schedule.scheduled_for - interval '1 second'
+      from private.worship_reminder_schedules as schedule
+      where schedule.event_id = (
+        select id from public.events where slug = 'followup-security-event'
+      )
+        and schedule.reminder_slot = 'day_before_1930'
+        and schedule.is_current = true
+    )
   ),
   0,
-  'the KST due worker does not queue an event two days away'
+  'the KST due worker does not queue before the D-1 19:30 slot'
 );
 
 select is(
   public.service_queue_due_worship_reminders(
-    (select starts_at - interval '1 day' from public.events where slug = 'followup-security-event')
+    (
+      select schedule.scheduled_for
+      from private.worship_reminder_schedules as schedule
+      where schedule.event_id = (
+        select id from public.events where slug = 'followup-security-event'
+      )
+        and schedule.reminder_slot = 'day_before_1930'
+        and schedule.is_current = true
+    )
   ),
   1,
-  'the KST due worker queues a manually approved next-day reminder'
+  'the KST due worker queues the owner-approved D-1 19:30 reminder'
 );
 
 select is(
   public.service_queue_due_worship_reminders(
-    (select starts_at - interval '1 day' from public.events where slug = 'followup-security-event')
+    (
+      select schedule.scheduled_for
+      from private.worship_reminder_schedules as schedule
+      where schedule.event_id = (
+        select id from public.events where slug = 'followup-security-event'
+      )
+        and schedule.reminder_slot = 'day_before_1930'
+        and schedule.is_current = true
+    )
   ),
   0,
   'the D-1 reminder due worker is idempotent'
@@ -1072,13 +1116,16 @@ select is(
     select count(*)
     from private.notification_outbox as outbox
     join private.notification_campaigns as campaign on campaign.id = outbox.campaign_id
+    join private.worship_reminder_schedules as schedule
+      on schedule.campaign_id = campaign.id
     where campaign.kind = 'worship_reminder'
       and campaign.event_id = (
         select id from public.events where slug = 'followup-security-event'
       )
+      and schedule.reminder_slot = 'day_before_1930'
   ),
   1::bigint,
-  'the due reminder has exactly one deduplicated outbox row'
+  'the D-1 reminder has exactly one deduplicated outbox row'
 );
 
 -- 78

@@ -11,6 +11,7 @@ type AdminFormProps = {
   children: React.ReactNode;
   submitLabel: string;
   className?: string;
+  confirmMessage?: string;
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -27,7 +28,7 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-export function AdminForm({ action, children, submitLabel, className = "" }: AdminFormProps) {
+export function AdminForm({ action, children, submitLabel, className = "", confirmMessage }: AdminFormProps) {
   const [state, formAction] = useActionState(action, INITIAL_ACTION_STATE);
   const errors = Object.entries(state.fieldErrors ?? {});
   const formId = useId().replaceAll(":", "");
@@ -44,7 +45,14 @@ export function AdminForm({ action, children, submitLabel, className = "" }: Adm
   }, [state.status, state.message, state.fieldErrors]);
 
   return (
-    <form action={formAction} className={`space-y-6 ${className}`} noValidate>
+    <form
+      action={formAction}
+      className={`space-y-6 ${className}`}
+      noValidate
+      onSubmit={(event) => {
+        if (confirmMessage && !window.confirm(confirmMessage)) event.preventDefault();
+      }}
+    >
       <AdminFieldErrorsContext.Provider value={fieldContext}>
         {children}
       </AdminFieldErrorsContext.Provider>

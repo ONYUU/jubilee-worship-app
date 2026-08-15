@@ -1,3 +1,5 @@
+import { SERVICE_IDENTITY } from "@/lib/site-identity";
+
 export type EventStatus = "scheduled" | "postponed" | "cancelled" | "completed";
 
 export interface WorshipEvent {
@@ -66,6 +68,8 @@ export interface GalleryImage {
 export const SITE = {
   nameKo: "쥬빌리워십",
   nameEn: "JUBILEE WORSHIP",
+  operatorName: SERVICE_IDENTITY.operatorName,
+  contactEmail: SERVICE_IDENTITY.contactEmail,
   eyebrow: "Sundoo Church Worship Ministry",
   heroTitle: "오직 예배를 세우는 일",
   heroDescription:

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath, unstable_noStore as noStore } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
   actionError,
@@ -15,7 +16,9 @@ import type { ActionState } from "@/lib/auth/types";
 import {
   notificationCampaignFormSchema,
   notificationCampaignIdSchema,
-  testPushFormSchema
+  testPushFormSchema,
+  worshipReminderScheduleFormSchema,
+  worshipReminderScheduleResultSchema
 } from "@/lib/admin/mobile-content-schemas";
 
 function revalidateNotificationPaths() {
@@ -53,11 +56,51 @@ function campaignRpcArguments(campaign: z.infer<typeof notificationCampaignFormS
   };
 }
 
+const campaignKindRowsSchema = z.array(z.object({
+  id: z.uuid(),
+  kind: z.enum(["test", "worship_reminder", "schedule_change", "setlist_update"])
+}));
+
+const schedulableEventSchema = z.object({
+  id: z.number().int().positive(),
+  starts_at: z.iso.datetime({ offset: true }),
+  status: z.enum(["scheduled", "postponed"]),
+  published: z.literal(true)
+});
+
+const reminderResultSlotLabels = {
+  day_before_1930: "전날 19:30",
+  one_hour_before: "당일 1시간 전"
+} as const;
+
+const reminderResultStatusLabels = {
+  approved: "승인됨",
+  queued: "발송 큐 등록됨",
+  processing: "발송 처리 중",
+  completed: "발송 완료",
+  failed: "발송 실패"
+} as const;
+
+async function isWorshipReminderCampaign(
+  supabase: SupabaseClient,
+  campaignId: string
+): Promise<boolean | null> {
+  const { data, error } = await supabase.rpc("list_notification_campaigns");
+  if (error) return null;
+  const campaigns = campaignKindRowsSchema.safeParse(data);
+  if (!campaigns.success) return null;
+  const campaign = campaigns.data.find((item) => item.id === campaignId);
+  return campaign ? campaign.kind === "worship_reminder" : null;
+}
+
 export async function saveNotificationCampaignAction(_state: ActionState, formData: FormData): Promise<ActionState> {
   noStore();
   const { supabase } = await requireActiveAdmin();
   const parsed = parseCampaignForm(formData);
   if (!parsed.success) return zodActionError(parsed.error);
+  if (parsed.data.kind === "worship_reminder") {
+    return actionError("정기 예배 알림은 상단의 `예배 알림 승인·예약`에서 전날·당일 두 문구를 함께 확인해 생성해 주세요.");
+  }
 
   const idValue = requiredString(formData.get("id"));
   if (idValue) {
@@ -101,6 +144,12 @@ export async function approveNotificationCampaignAction(_state: ActionState, for
   const id = parseCampaignId(formData.get("id"));
   if (!id.success) return zodActionError(id.error);
 
+  const isWorshipReminder = await isWorshipReminderCampaign(supabase, id.data);
+  if (isWorshipReminder === null) return actionError("승인할 알림 캠페인을 확인하지 못했습니다.");
+  if (isWorshipReminder) {
+    return actionError("정기 예배 알림은 `예배 알림 승인·예약`에서 전날·당일 두 문구를 함께 승인해야 합니다.");
+  }
+
   const { error } = await supabase.rpc("approve_notification_campaign", { target_campaign_id: id.data });
   if (error) return actionError("알림 캠페인을 승인하지 못했습니다. 초안 내용과 오너 권한을 확인해 주세요.");
 
@@ -114,11 +163,71 @@ export async function queueNotificationCampaignAction(_state: ActionState, formD
   const id = parseCampaignId(formData.get("id"));
   if (!id.success) return zodActionError(id.error);
 
+  const isWorshipReminder = await isWorshipReminderCampaign(supabase, id.data);
+  if (isWorshipReminder === null) return actionError("큐에 넣을 알림 캠페인을 확인하지 못했습니다.");
+  if (isWorshipReminder) {
+    return actionError("예약된 예배 알림은 운영 scheduler만 해당 예약 시각에 큐에 넣을 수 있습니다.");
+  }
+
   const { error } = await supabase.rpc("queue_notification_campaign", { target_campaign_id: id.data });
   if (error) return actionError("승인된 알림 캠페인을 발송 큐에 넣지 못했습니다.");
 
   revalidateNotificationPaths();
   return actionSuccess("알림 캠페인을 발송 큐에 넣었습니다. 외부 발송은 별도 worker 설정에 따라 처리됩니다.");
+}
+
+export async function scheduleWorshipRemindersAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  noStore();
+  const { supabase } = await requireOwner();
+  const parsed = worshipReminderScheduleFormSchema.safeParse({
+    event_id: parsePositiveId(formData.get("event_id")),
+    day_before_title: requiredString(formData.get("day_before_title")),
+    day_before_body: requiredString(formData.get("day_before_body")),
+    one_hour_title: requiredString(formData.get("one_hour_title")),
+    one_hour_body: requiredString(formData.get("one_hour_body"))
+  });
+  if (!parsed.success) return zodActionError(parsed.error);
+
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("id,starts_at,status,published")
+    .eq("id", parsed.data.event_id)
+    .maybeSingle();
+  const schedulableEvent = schedulableEventSchema.safeParse(event);
+  if (eventError || !schedulableEvent.success || Date.parse(schedulableEvent.data.starts_at) <= Date.now()) {
+    return actionError("예배 알림은 앞으로 다가올 공개 예정·연기 예배에만 예약할 수 있습니다.");
+  }
+
+  const { data, error } = await supabase.rpc("schedule_worship_reminder_campaigns", {
+    target_event_id: parsed.data.event_id,
+    target_day_before_title: parsed.data.day_before_title,
+    target_day_before_body: parsed.data.day_before_body,
+    target_one_hour_title: parsed.data.one_hour_title,
+    target_one_hour_body: parsed.data.one_hour_body
+  });
+  if (error) {
+    return actionError("예배 알림을 승인·예약하지 못했습니다. 공개된 예정·연기 예배, 오너 권한, 각 예약 시각의 15분 유효 범위를 확인해 주세요.");
+  }
+
+  const rows = z.array(worshipReminderScheduleResultSchema).length(2).safeParse(data);
+  if (!rows.success || new Set(rows.data.map((row) => row.reminder_slot)).size !== 2) {
+    return actionError("예배 알림 예약 응답이 완전하지 않습니다. 발송을 시작하지 말고 예약 목록을 확인해 주세요.");
+  }
+
+  revalidateNotificationPaths();
+  const statusSummary = rows.data
+    .map((row) => `${reminderResultSlotLabels[row.reminder_slot]} ${reminderResultStatusLabels[row.status]}`)
+    .join(", ");
+  if (rows.data.some((row) => row.requires_action || row.status === "failed")) {
+    return actionError(`예배 알림 상태: ${statusSummary}. 기존 실패 알림은 새 예약으로 대체되지 않습니다. 예약 목록과 worker 오류를 확인해 주세요.`);
+  }
+  if (rows.data.some((row) => row.status === "processing" || row.status === "completed")) {
+    return actionSuccess(`예배 알림 상태를 확인했습니다: ${statusSummary}. 이미 처리 중이거나 완료된 슬롯은 새 예약으로 대체되지 않습니다.`);
+  }
+  if (rows.data.some((row) => row.status === "queued")) {
+    return actionSuccess(`예배 알림 2개 슬롯의 기존 예약을 확인했습니다: ${statusSummary}. 큐에 등록된 알림은 worker 처리 상태를 따릅니다.`);
+  }
+  return actionSuccess("예배 전날 19:30과 당일 1시간 전 알림 2개 슬롯의 오너 승인 상태 예약을 확인했습니다. 실제 발송은 scheduler·worker 설정을 따릅니다.");
 }
 
 const queuedTestPushResponseSchema = z.object({

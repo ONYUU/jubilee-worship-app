@@ -131,17 +131,20 @@ reference/          전달 패키지·초기 starter의 로컬 참고 사본(배
 - 운영 Supabase 프로젝트 URL·publishable key
 - 최초 관리자 이메일과 생성된 Auth 사용자 UUID
 - 2026년 9월 4일 예배 일정의 공개 직전 재확인
-- 쥬빌리워십 전용 문의 이메일 사용 여부
-- 선두교회 하위 도메인과 DNS 담당자 승인
-- Vercel Preview 확인 후 사용자의 공식 공개 승인
+- Vercel Preview 프로젝트·무료 주소와 사용자의 공개 승인
+- 개인정보처리방침 보유 기간·국외 처리 항목의 오너 검토
+- Apple Team ID·Android 앱 서명값과 실제 기기 푸시 검증
+- 정식 운영용 `.com` 또는 `.org` 도메인 선택
 
-`jubilee.sundoo.org`와 `worship.sundoo.org`는 현재 생성된 주소가 아니라 후보입니다. DNS 담당자가 레코드를 만들기 전에는 공식 URL로 표기하지 않습니다.
+개발·검수에는 Supabase Free와 Vercel `*.vercel.app` 주소를 사용하고,
+정식 공개 전에 실제 운영 형태와 가용성 요건에 맞는 요금제를 다시 확인합니다.
 
 ## 운영 문서
 
 - [관리자 운영 안내](docs/ADMIN_OPERATIONS.md)
 - [배포 전 체크리스트](docs/DEPLOYMENT_CHECKLIST.md)
 - [외부 입력 목록](docs/EXTERNAL_INPUTS.md)
+- [스토어·운영 메타데이터](docs/STORE_METADATA.md)
 - [개발본 QA 보고서](docs/QA_REPORT.md)
 - [자산 사용 기준](docs/ASSET_USAGE.md)
 

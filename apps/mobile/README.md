@@ -2,6 +2,10 @@
 
 Expo SDK 57과 Expo Router로 구성한 iOS·Android 공용 앱입니다. 공개 사용자는 로그인하지 않으며, 앱은 Supabase 공개 전용 view만 읽습니다. 콘텐츠 작성과 공개 승인은 웹 관리자에서 수행합니다.
 
+- 앱명: 쥬빌리워십
+- 운영주체 표시: 쥬빌리 워십
+- 문의·개인정보 연락처: sundoojubileeworship@gmail.com
+
 ## 로컬 실행
 
 ```bash

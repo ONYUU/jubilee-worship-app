@@ -20,7 +20,7 @@ export const SITE = {
   address_lot: "인천광역시 서구 석남동 547-23",
   phone_display: "032-574-7221~5",
   phone_href: "+82-32-574-7221",
-  contact_email: "sundoomedia@naver.com",
+  contact_email: "sundoojubileeworship@gmail.com",
   naver_map_url:
     "https://map.naver.com/p/entry/place/12087641?placePath=%2Fhome",
   kakao_map_url: "https://place.map.kakao.com/9174591",

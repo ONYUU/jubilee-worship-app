@@ -7,7 +7,10 @@ import {
   notificationCampaignFormSchema,
   sermonRevisionFormSchema,
   setlistItemFormSchema,
-  testPushFormSchema
+  testPushFormSchema,
+  worshipReminderScheduleFormSchema,
+  worshipReminderScheduleListSchema,
+  worshipReminderScheduleResultSchema
 } from "./mobile-content-schemas";
 
 describe("mobile admin content schemas", () => {
@@ -147,5 +150,52 @@ describe("mobile admin content schemas", () => {
         deep_link: null
       }).success
     ).toBe(true);
+  });
+
+  it("validates both approved worship reminder messages", () => {
+    const schedule = {
+      event_id: 1,
+      day_before_title: "내일 예배가 있습니다",
+      day_before_body: "예배 시간과 장소를 확인해 주세요.",
+      one_hour_title: "예배 1시간 전입니다",
+      one_hour_body: "곧 예배가 시작됩니다."
+    };
+    expect(worshipReminderScheduleFormSchema.safeParse(schedule).success).toBe(true);
+    expect(
+      worshipReminderScheduleFormSchema.safeParse({ ...schedule, one_hour_body: "" }).success
+    ).toBe(false);
+  });
+
+  it("accepts the two-slot reminder RPC and reapproval list contract", () => {
+    const campaignId = "550e8400-e29b-41d4-a716-446655440000";
+    expect(worshipReminderScheduleResultSchema.safeParse({
+      reminder_slot: "day_before_1930",
+      campaign_id: campaignId,
+      scheduled_for: "2026-09-03T10:30:00+00:00",
+      status: "approved",
+      requires_action: false
+    }).success).toBe(true);
+    expect(worshipReminderScheduleResultSchema.safeParse({
+      reminder_slot: "day_before_1930",
+      campaign_id: campaignId,
+      scheduled_for: "2026-09-03T10:30:00+00:00"
+    }).success).toBe(false);
+    expect(worshipReminderScheduleListSchema.safeParse([{
+      campaign_id: campaignId,
+      event_id: 1,
+      event_slug: "jubilee-worship-2026-09-04",
+      event_title: "쥬빌리워십 찬양집회",
+      reminder_slot: "one_hour_before",
+      scheduled_for: "2026-09-04T10:00:00+00:00",
+      event_starts_at_snapshot: "2026-09-04T11:00:00+00:00",
+      current_event_starts_at: "2026-09-04T11:30:00+00:00",
+      status: "cancelled",
+      title: "예배 1시간 전입니다",
+      body: "예배 시간을 확인해 주세요.",
+      approved_at: "2026-08-15T03:00:00+00:00",
+      queued_at: null,
+      completed_at: null,
+      requires_reapproval: true
+    }]).success).toBe(true);
   });
 });

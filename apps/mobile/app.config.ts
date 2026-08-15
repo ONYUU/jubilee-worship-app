@@ -35,6 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: `쥬빌리워십${settings.nameSuffix}`,
     slug: "jubilee-worship",
+    description: "쥬빌리 워십 공식 예배 안내 앱",
     scheme: "jubileeworship",
     version: "0.1.0",
     orientation: "portrait",

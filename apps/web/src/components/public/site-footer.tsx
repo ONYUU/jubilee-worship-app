@@ -66,13 +66,17 @@ export function SiteFooter({ site }: { site: PublicSite }) {
             {site.postalCode} {site.address}
             <br />
             <a href={site.phoneHref} className="hover:text-ivory-50">{site.phoneDisplay}</a>
+            <br />
+            <a href={`mailto:${site.contactEmail}`} className="break-all hover:text-ivory-50">
+              {site.contactEmail}
+            </a>
           </address>
         </div>
       </div>
 
       <div className="border-t border-white/10">
         <div className="container-site flex flex-col gap-2 py-6 text-xs text-stone-500 md:flex-row md:items-center md:justify-between">
-          <p>인천 선두교회 예배사역팀</p>
+          <p>운영주체: {site.operatorName} · 인천 선두교회 예배사역팀</p>
           <p>© {new Date().getFullYear()} Jubilee Worship, Sundoo Church. All rights reserved.</p>
         </div>
       </div>

@@ -3,6 +3,8 @@ import "server-only";
 import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { APPROVED_YOUTUBE_VIDEO_IDS } from "@jubilee/domain";
+import { z } from "zod";
+import { SERVICE_IDENTITY } from "@/lib/site-identity";
 import {
   SITE,
   events as localEvents,
@@ -24,6 +26,26 @@ export interface PublicContent {
   teamMembers: TeamMember[];
   gallery: typeof gallery;
 }
+
+export interface PublicLegalDocument {
+  id: number;
+  document_type: "privacy_policy" | "terms_of_service";
+  version: string;
+  title: string;
+  body: string;
+  effective_on: string;
+  published_at: string;
+}
+
+const publicLegalDocumentSchema = z.object({
+  id: z.number().int().positive(),
+  document_type: z.enum(["privacy_policy", "terms_of_service"]),
+  version: z.string().trim().min(1).max(64),
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1).max(100_000),
+  effective_on: z.iso.date(),
+  published_at: z.iso.datetime({ offset: true })
+});
 
 export type PublicSite = { -readonly [Key in keyof typeof SITE]: string };
 
@@ -214,6 +236,8 @@ async function loadPublicContent(): Promise<PublicContent> {
   const site: PublicSite = {
     nameKo: row.name_ko,
     nameEn: row.name_en,
+    operatorName: SERVICE_IDENTITY.operatorName,
+    contactEmail: SERVICE_IDENTITY.contactEmail,
     eyebrow: row.eyebrow,
     heroTitle: row.hero_title,
     heroDescription: row.hero_description,
@@ -321,7 +345,36 @@ async function loadPublicContent(): Promise<PublicContent> {
   return { site, events, announcements, mediaItems, teamMembers, gallery };
 }
 
+async function loadPublicPrivacyPolicy(): Promise<PublicLegalDocument | null> {
+  const source = process.env.CONTENT_SOURCE ?? "local";
+  if (source !== "supabase") return null;
+  if (!hasSupabaseConfig()) {
+    throw new Error("Supabase 공개 콘텐츠 연결에 필요한 환경 변수가 없습니다.");
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+  const { data, error } = await supabase
+    .from("public_legal_documents")
+    .select("id,document_type,version,title,body,effective_on,published_at")
+    .eq("document_type", "privacy_policy")
+    .order("effective_on", { ascending: false })
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error("공개 개인정보처리방침을 불러오지 못했습니다.");
+  if (data === null) return null;
+  const parsed = publicLegalDocumentSchema.safeParse(data);
+  if (!parsed.success) throw new Error("공개 개인정보처리방침 형식이 올바르지 않습니다.");
+  return parsed.data;
+}
+
 export const getPublicContent = cache(loadPublicContent);
+export const getPublicPrivacyPolicy = cache(loadPublicPrivacyPolicy);
 
 export function selectNextPublicEvent(events: WorshipEvent[], now = new Date()) {
   return (

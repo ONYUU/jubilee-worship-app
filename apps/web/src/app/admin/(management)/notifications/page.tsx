@@ -5,10 +5,13 @@ import { AdminForm } from "@/components/admin/admin-form";
 import { FormSection, SelectField, TextAreaField, TextField } from "@/components/admin/admin-fields";
 import { AdminDataNotice, AdminPageHeader, StatusPill } from "@/components/admin/admin-page";
 import { requireActiveAdmin } from "@/lib/auth/admin";
+import { worshipReminderScheduleListSchema } from "@/lib/admin/mobile-content-schemas";
+import { WORSHIP_REMINDER_SCHEDULE } from "@/lib/site-identity";
 import {
   approveNotificationCampaignAction,
   deleteNotificationCampaignAction,
   queueNotificationCampaignAction,
+  scheduleWorshipRemindersAction,
   saveNotificationCampaignAction,
   sendTestPushAction
 } from "./actions";
@@ -50,6 +53,11 @@ const AUDIENCE_LABELS: Record<string, string> = {
   all_opted_in: "알림 동의자 전체"
 };
 
+const REMINDER_SLOT_LABELS = {
+  day_before_1930: "전날 19:30",
+  one_hour_before: "당일 1시간 전"
+} as const;
+
 function formatSeoul(value: string | null): string {
   if (!value) return "기록 없음";
   return new Intl.DateTimeFormat("ko-KR", {
@@ -73,15 +81,29 @@ export default async function NotificationsAdminPage({
 }) {
   noStore();
   const [{ edit }, { supabase, admin }] = await Promise.all([searchParams, requireActiveAdmin()]);
-  const [campaignResult, eventResult] = await Promise.all([
+  const [campaignResult, eventResult, reminderScheduleResult] = await Promise.all([
     supabase.rpc("list_notification_campaigns"),
-    supabase.from("events").select("id,title,starts_at").order("starts_at", { ascending: false }).limit(100)
+    supabase
+      .from("events")
+      .select("id,slug,title,starts_at,status,published")
+      .order("starts_at", { ascending: false })
+      .limit(100),
+    supabase.rpc("list_worship_reminder_schedules")
   ]);
   const campaigns = campaignRows(campaignResult.data);
   const events = eventResult.data ?? [];
+  const reminderSchedules = worshipReminderScheduleListSchema.safeParse(reminderScheduleResult.data);
+  const schedules = reminderSchedules.success ? reminderSchedules.data : [];
+  const reminderContractAvailable = !reminderScheduleResult.error && reminderSchedules.success;
+  const eligibleEvents = events.filter(
+    (event) => event.published
+      && (event.status === "scheduled" || event.status === "postponed")
+  );
   const selected = campaigns.find((campaign) => campaign.id === edit && campaign.status === "draft") ?? null;
   const eventNames = new Map(events.map((event) => [event.id, event.title]));
-  const hasError = Boolean(campaignResult.error || eventResult.error);
+  const hasError = Boolean(
+    campaignResult.error || eventResult.error || reminderScheduleResult.error || !reminderSchedules.success
+  );
 
   return (
     <div className="space-y-8">
@@ -92,6 +114,78 @@ export default async function NotificationsAdminPage({
         createHref="/admin/notifications"
       />
       {hasError ? <AdminDataNotice message="알림 캠페인을 불러오지 못했습니다. RPC migration과 관리자 권한을 확인해 주세요." /> : null}
+
+      <section className="rounded-2xl border border-brand-sun/30 bg-brand-sun/5 p-5">
+        <h2 className="text-xl font-bold">예배 알림 승인·예약</h2>
+        <p className="mt-2 text-sm text-stone-300">
+          운영 기준은 {WORSHIP_REMINDER_SCHEDULE.dayBeforeLabel}과 {WORSHIP_REMINDER_SCHEDULE.oneHourBeforeLabel}입니다. 예배 시각·공개 상태 또는 승인 문구 기준이 바뀌면 기존 예약은 자동으로 재계산되지 않으므로 오너가 두 문구를 다시 확인하고 재승인해야 합니다.
+        </p>
+
+        <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
+          <div>
+            <h3 className="font-bold">예약 목록</h3>
+            <ul className="mt-3 divide-y divide-white/10">
+              {schedules.map((schedule) => (
+                <li key={schedule.campaign_id} className="py-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{schedule.event_title}</p>
+                    <StatusPill status={REMINDER_SLOT_LABELS[schedule.reminder_slot]} />
+                    <StatusPill status={schedule.status} />
+                    {schedule.requires_reapproval ? <StatusPill status="재승인 필요" /> : null}
+                  </div>
+                  <p className="mt-2 text-sm text-stone-300">{schedule.title}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-stone-400">{schedule.body}</p>
+                  <p className="mt-2 text-xs text-stone-400">예약 시각 {formatSeoul(schedule.scheduled_for)} · 예배 {formatSeoul(schedule.current_event_starts_at)}</p>
+                  {schedule.requires_reapproval ? (
+                    <p className="mt-2 text-xs text-danger">예배 시각·공개 상태·승인 문구 기준이 달라졌거나 예약 시각이 지났습니다. 오너가 아래에서 다시 승인해야 합니다.</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {reminderContractAvailable && schedules.length === 0 ? <p className="mt-3 text-sm text-stone-300">예약된 예배 알림이 없습니다.</p> : null}
+          </div>
+
+          {admin.role === "owner" ? (
+            <div>
+              <h3 className="font-bold">두 알림 문구 확인</h3>
+              {!reminderContractAvailable ? (
+                <AdminDataNotice message="두 단계 예배 알림 DB migration이 아직 연결되지 않았습니다. 운영 설정 전에는 알림을 승인·예약하지 마세요." />
+              ) : eligibleEvents.length > 0 ? (
+                <AdminForm
+                  action={scheduleWorshipRemindersAction}
+                  submitLabel="두 알림 승인·예약"
+                  className="mt-3"
+                  confirmMessage="선택한 예배의 전날 19:30과 당일 1시간 전 알림 문구를 모두 확인했습니까? 제출하면 오너 승인 상태로 예약됩니다."
+                >
+                  <FormSection title="예배 선택" description="공개된 예정·연기 예배만 예약할 수 있습니다.">
+                    <SelectField
+                      label="예배"
+                      name="event_id"
+                      options={eligibleEvents.map((event) => ({
+                        value: String(event.id),
+                        label: `${event.title} · ${formatSeoul(event.starts_at)}`
+                      }))}
+                    />
+                  </FormSection>
+                  <FormSection title="전날 19:30 알림">
+                    <TextField label="제목" name="day_before_title" required defaultValue={WORSHIP_REMINDER_SCHEDULE.dayBeforeTitle} />
+                    <TextAreaField label="본문" name="day_before_body" required rows={4} defaultValue={WORSHIP_REMINDER_SCHEDULE.dayBeforeBody} />
+                  </FormSection>
+                  <FormSection title="당일 1시간 전 알림">
+                    <TextField label="제목" name="one_hour_title" required defaultValue={WORSHIP_REMINDER_SCHEDULE.oneHourBeforeTitle} />
+                    <TextAreaField label="본문" name="one_hour_body" required rows={4} defaultValue={WORSHIP_REMINDER_SCHEDULE.oneHourBeforeBody} />
+                  </FormSection>
+                </AdminForm>
+              ) : (
+                <AdminDataNotice message="알림을 예약할 공개 예정·연기 예배가 없습니다." />
+              )}
+              <p className="mt-4 text-xs text-stone-400">승인·예약은 발송 완료를 의미하지 않습니다. 운영 scheduler가 예약 시각부터 15분 안에 queue하고 `dispatch-notifications` worker가 실제 발송해야 합니다. 이 유예 시간을 넘긴 알림은 늦게 발송하지 않습니다.</p>
+            </div>
+          ) : (
+            <p className="text-sm text-stone-300">예약 목록은 확인할 수 있지만, 두 알림의 최종 승인·예약은 오너만 수행할 수 있습니다.</p>
+          )}
+        </div>
+      </section>
 
       <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_minmax(440px,0.95fr)]">
         <section className="rounded-2xl border border-white/10 bg-night-900 p-5">
@@ -120,10 +214,10 @@ export default async function NotificationsAdminPage({
                         <AdminActionButton action={deleteNotificationCampaignAction} id={campaign.id} label="초안 삭제" tone="danger" confirmMessage="이 알림 캠페인 초안을 삭제할까요?" />
                       </>
                     ) : null}
-                    {admin.role === "owner" && campaign.status === "draft" ? (
+                    {admin.role === "owner" && campaign.status === "draft" && campaign.kind !== "worship_reminder" ? (
                       <AdminActionButton action={approveNotificationCampaignAction} id={campaign.id} label="내용 승인" confirmMessage="알림 내용·대상·딥링크를 확인했습니까? 승인 후에는 초안을 수정할 수 없습니다." />
                     ) : null}
-                    {admin.role === "owner" && campaign.status === "approved" ? (
+                    {admin.role === "owner" && campaign.status === "approved" && campaign.kind !== "worship_reminder" ? (
                       <AdminActionButton action={queueNotificationCampaignAction} id={campaign.id} label="발송 큐에 넣기" confirmMessage="승인된 이 알림을 발송 큐에 넣을까요? 외부 worker가 활성화되면 복구하기 어려운 발송이 시작될 수 있습니다." />
                     ) : null}
                   </div>
@@ -144,7 +238,6 @@ export default async function NotificationsAdminPage({
                 name="kind"
                 defaultValue={selected?.kind ?? "schedule_change"}
                 options={[
-                  { value: "worship_reminder", label: "예배 알림" },
                   { value: "schedule_change", label: "일정 변경" },
                   { value: "setlist_update", label: "송리스트 변경" }
                 ]}

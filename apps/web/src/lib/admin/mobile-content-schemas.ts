@@ -72,6 +72,40 @@ export const legalDocumentFormSchema = z.object({
 
 export const notificationCampaignIdSchema = z.uuid("알림 캠페인 식별값을 확인해 주세요.");
 
+export const worshipReminderScheduleFormSchema = z.object({
+  event_id: adminRecordIdSchema,
+  day_before_title: z.string().trim().min(1).max(120),
+  day_before_body: z.string().trim().min(1).max(500),
+  one_hour_title: z.string().trim().min(1).max(120),
+  one_hour_body: z.string().trim().min(1).max(500)
+});
+
+export const worshipReminderScheduleResultSchema = z.object({
+  reminder_slot: z.enum(["day_before_1930", "one_hour_before"]),
+  campaign_id: z.uuid(),
+  scheduled_for: z.iso.datetime({ offset: true }),
+  status: z.enum(["approved", "queued", "processing", "completed", "failed"]),
+  requires_action: z.boolean()
+});
+
+export const worshipReminderScheduleListSchema = z.array(z.object({
+  campaign_id: z.uuid(),
+  event_id: adminRecordIdSchema,
+  event_slug: z.string().trim().min(1).max(200),
+  event_title: z.string().trim().min(1).max(200),
+  reminder_slot: z.enum(["day_before_1930", "one_hour_before"]),
+  scheduled_for: z.iso.datetime({ offset: true }),
+  event_starts_at_snapshot: z.iso.datetime({ offset: true }),
+  current_event_starts_at: z.iso.datetime({ offset: true }),
+  status: z.enum(["draft", "approved", "queued", "processing", "completed", "cancelled", "failed"]),
+  title: z.string().trim().min(1).max(120),
+  body: z.string().trim().min(1).max(500),
+  approved_at: z.iso.datetime({ offset: true }).nullable(),
+  queued_at: z.iso.datetime({ offset: true }).nullable(),
+  completed_at: z.iso.datetime({ offset: true }).nullable(),
+  requires_reapproval: z.boolean()
+}));
+
 export const notificationCampaignFormSchema = z
   .object({
     kind: z.enum(["test", "worship_reminder", "schedule_change", "setlist_update"]),

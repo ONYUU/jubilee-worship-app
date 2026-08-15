@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/app-header";
+import { APP_INFO, WORSHIP_REMINDER_COPY } from "@/config/app-info";
 import { Screen } from "@/components/screen";
 import { ActionButton, Card, LoadingState } from "@/components/ui";
 import {
@@ -23,8 +24,8 @@ const options: {
 }[] = [
   {
     key: "worshipReminder",
-    title: "예배 하루 전",
-    description: "다가오는 예배를 하루 전에 알려드립니다.",
+    title: WORSHIP_REMINDER_COPY.title,
+    description: WORSHIP_REMINDER_COPY.description,
     icon: "calendar-outline"
   },
   {
@@ -174,7 +175,8 @@ export default function NotificationSettingsScreen() {
       </Card>
 
       <Text style={styles.privacy}>
-        선택한 예배 소식만 전송합니다. 알림에는 개인별 정보나 민감정보를 포함하지 않습니다.
+        {APP_INFO.operatorName}은 선택한 예배 소식만 전송합니다. 알림에는 개인별 정보나
+        민감정보를 포함하지 않습니다.
       </Text>
 
       {registered ? (

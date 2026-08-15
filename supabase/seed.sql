@@ -73,7 +73,7 @@ values (
   '인천광역시 서구 거북로109번길 10 (석남동 547-23)',
   '032-574-7221~5',
   '+82-32-574-7221',
-  'sundoomedia@naver.com',
+  'sundoojubileeworship@gmail.com',
   'https://map.naver.com/p/entry/place/12087641?placePath=%2Fhome',
   'https://place.map.kakao.com/9174591',
   '쥬빌리워십 | 인천 선두교회 예배사역팀',

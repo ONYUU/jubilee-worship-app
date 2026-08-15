@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/app-header";
+import { AppContactCard } from "@/components/app-contact-card";
 import { Screen } from "@/components/screen";
 import { ActionButton, Card, ErrorState, LoadingState, SectionHeading } from "@/components/ui";
 import { useContent } from "@/features/content/content-provider";
@@ -96,6 +97,9 @@ export default function GuideScreen() {
           onPress={() => router.push("/privacy")}
         />
       </Card>
+
+      <SectionHeading title="앱·문의" />
+      <AppContactCard />
     </Screen>
   );
 }

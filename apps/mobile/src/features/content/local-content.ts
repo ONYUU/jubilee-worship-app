@@ -1,9 +1,10 @@
 import type { MobilePublicContent } from "@jubilee/domain";
+import { APP_INFO } from "../../config/app-info";
 
 export function createLocalContent(now = new Date()): MobilePublicContent {
   return {
     site: {
-      name_ko: "쥬빌리워십",
+      name_ko: APP_INFO.appName,
       name_en: "JUBILEE WORSHIP",
       hero_title: "오직 예배를 세우는 일",
       hero_description:

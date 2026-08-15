@@ -187,6 +187,8 @@ publish_legal_document(target_document_id bigint) -> void
 withdraw_legal_document(target_document_id bigint) -> void
 ```
 
+`publish_legal_document`는 웹 화면을 우회한 직접 호출에도 동일한 공개 gate를 적용한다. 두 문서 모두 확정 운영주체·문의 이메일과 미해결 marker 부재가 필요하다. 개인정보처리방침은 보유·삭제·국외 처리 9개 항목, 이용약관은 준거법·관할·면책·미성년자 안내 4개 항목이 각각 정확히 한 번 존재하고 실제 값으로 채워져야 한다. `확인`, `검토`, `확정`, `완료`, `입력`, `기입`, `작성`, `미정`, `추후`, marker, `N/A`, `해당 없음` 같은 검토용 값은 공개할 수 없다.
+
 앱 설치용 Edge Function은 publishable key를 `apikey`로 보내며 JSON 계약은 다음과 같다.
 
 ```text
@@ -209,7 +211,24 @@ POST unregister-installation
 
 `dispatch-notifications`와 `process-push-receipts`는 secret key 요청만 허용하고 기본 `dryRun=true`다. 코드에 실제 Expo access token을 저장하지 않는다. 운영 외부 발송은 배포 secret과 `PUSH_EXTERNAL_SEND_ENABLED=true`를 별도 승인한 뒤에만 활성화한다.
 
-예배 하루 전 알림은 owner가 `schedule_worship_reminder_campaign(event_id, title, body)`로 먼저 건별 승인한다. 외부 scheduler가 service key로 `service_queue_due_worship_reminders(now())`를 호출하면 KST 기준 다음날인 공개 `scheduled|postponed` 예배의 승인된 캠페인만 idempotent하게 queue한다. migration은 cron을 자동 활성화하지 않는다.
+예배 알림은 owner가 아래 전용 RPC로 D-1 19:30 KST와 H-1 두 건을 한 번에 승인한다.
+
+```text
+schedule_worship_reminder_campaigns(
+  target_event_id,
+  target_day_before_title,
+  target_day_before_body,
+  target_one_hour_title,
+  target_one_hour_body
+)
+-> (reminder_slot, campaign_id, scheduled_for, status, requires_action) 2 rows
+```
+
+`reminder_slot`은 `day_before_1930|one_hour_before`다. 기존 단수 RPC는 같은 문구로 두 건을 생성하고 D-1 UUID를 돌려주는 호환 wrapper다. 처음 승인하거나 새 generation이 필요한 경우 두 슬롯 중 하나라도 `scheduled_for + 15 minutes`를 지났으면 전체 승인을 거부한다. 따라서 owner는 D-1 전에 승인해야 하며, D-1 이후 예배 시각을 변경하면 H-1만 별도로 다시 예약하지 않는다. 이 경우 owner가 일정변경 캠페인을 별도로 수동 승인·queue해 변경 사실을 안내한다.
+
+외부 scheduler는 5분마다 service key로 `service_queue_due_worship_reminders(now())`를 호출한다. worker는 공개 `scheduled|postponed` 예배와 현재 event snapshot만 대상으로 각 슬롯의 15분 grace window 안에서 idempotent하게 queue한다. grace가 지나면 미발송 캠페인과 pending outbox를 취소하며 늦게 몰아서 발송하지 않는다. event 시각·상태·공개 여부·제목·장소·주소·slug 또는 알림 문구가 바뀌면 미발송 승인을 재사용하지 않는다. 이미 `processing|completed|failed`인 동일 event start/slot은 새 generation을 만들 수 없고, 동일 문구 조회만 기존 ID와 실제 status를 반환한다.
+
+claim worker는 pending→processing 직전에 event와 schedule을 다시 검증하고 잠근다. event 변경 trigger는 아직 pending인 outbox를 취소하지만, provider 처리 단계에 들어간 알림은 회수할 수 없다. migration은 cron을 자동 활성화하지 않으므로 원격 운영 단계에서 5분 scheduler를 별도로 설정하고, 실제 push 활성화 전에 dry-run과 일정변경 대응 절차를 검증한다.
 
 ## 8. 원격 배포 순서
 
