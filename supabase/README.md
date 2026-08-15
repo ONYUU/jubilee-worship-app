@@ -187,7 +187,7 @@ publish_legal_document(target_document_id bigint) -> void
 withdraw_legal_document(target_document_id bigint) -> void
 ```
 
-`publish_legal_document`는 웹 화면을 우회한 직접 호출에도 동일한 공개 gate를 적용한다. 두 문서 모두 확정 운영주체·문의 이메일과 미해결 marker 부재가 필요하다. 개인정보처리방침은 보유·삭제·국외 처리 9개 항목, 이용약관은 준거법·관할·면책·미성년자 안내 4개 항목이 각각 정확히 한 번 존재하고 실제 값으로 채워져야 한다. `확인`, `검토`, `확정`, `완료`, `입력`, `기입`, `작성`, `미정`, `추후`, marker, `N/A`, `해당 없음` 같은 검토용 값은 공개할 수 없다.
+`publish_legal_document`는 웹 화면을 우회한 직접 호출에도 동일한 공개 gate를 적용한다. 두 문서 모두 확정 운영주체·문의 이메일과 미해결 marker 부재가 필요하다. 개인정보처리방침은 보유·삭제·국외 처리 9개 항목과 `종교적 관심`·비결합·알림 목적 제한 문구, 이용약관은 준거법·관할·면책·미성년자 안내 4개 항목이 각각 정확히 한 번 존재하고 실제 값으로 채워져야 한다. `확인`, `검토`, `확정`, `완료`, `입력`, `기입`, `작성`, `미정`, `추후`, marker, `N/A`, `해당 없음` 같은 검토용 값은 공개할 수 없다.
 
 앱 설치용 Edge Function은 publishable key를 `apikey`로 보내며 JSON 계약은 다음과 같다.
 
@@ -229,6 +229,20 @@ schedule_worship_reminder_campaigns(
 외부 scheduler는 5분마다 service key로 `service_queue_due_worship_reminders(now())`를 호출한다. worker는 공개 `scheduled|postponed` 예배와 현재 event snapshot만 대상으로 각 슬롯의 15분 grace window 안에서 idempotent하게 queue한다. grace가 지나면 미발송 캠페인과 pending outbox를 취소하며 늦게 몰아서 발송하지 않는다. event 시각·상태·공개 여부·제목·장소·주소·slug 또는 알림 문구가 바뀌면 미발송 승인을 재사용하지 않는다. 이미 `processing|completed|failed`인 동일 event start/slot은 새 generation을 만들 수 없고, 동일 문구 조회만 기존 ID와 실제 status를 반환한다.
 
 claim worker는 pending→processing 직전에 event와 schedule을 다시 검증하고 잠근다. event 변경 trigger는 아직 pending인 outbox를 취소하지만, provider 처리 단계에 들어간 알림은 회수할 수 없다. migration은 cron을 자동 활성화하지 않으므로 원격 운영 단계에서 5분 scheduler를 별도로 설정하고, 실제 push 활성화 전에 dry-run과 일정변경 대응 절차를 검증한다.
+
+### 알림 데이터 보유·정리 계약
+
+정확히 180·24·30·90일을 사용하라는 Apple·Google 일률 규정은 없다. 이 숫자는 월 1회 예배 알림 사용성과 최소수집 원칙을 반영한 쥬빌리워십의 보수적 운영 정책이다. 스토어 제출 전 게시 개인정보처리방침·Data safety 답변와 아래 계약을 일치시키고 최종 법률 검토한다.
+
+- 성공한 설정·토큰 갱신 시각인 `last_seen_at`이 180일 지나면 installation과 구독을 `stale_inactivity`로 비활성화한다. 올바른 secret과 새 token을 보내면 30일 유예 내에 재활성화할 수 있다.
+- endpoint가 비활성화되면 다음 일일 실행에서 Expo token 원문과 token hash를 함께 제거한다. 정상 cron 운영 기준 최대 24시간이며, 진행 중 FK로 endpoint 행이 더 남아도 token은 남지 않는다. endpoint 행은 24시간 경계와 terminal 조건을 모두 충족해야 삭제한다.
+- 비활성 installation은 30일 후 삭제하고 subscription은 FK cascade로 함께 삭제한다. terminal delivery·outbox·campaign 상세는 90일 후 삭제하되, 기기·token 값이 없는 dedupe tombstone만 남겨 중복 발송을 막는다.
+- 24시간 이상 멈춘 `processing` lease는 중복 재발송하지 않고 `failed`로 종료하며, 24시간 이상 확정되지 않은 Expo receipt도 `ReceiptExpired`로 종료한다.
+- 예배 알림 선택은 `종교적 관심`을 추론할 수 있다. DB 공개 gate는 이를 알림 제공에만 사용하고 이름·이메일·광고 식별자와 결합하지 않으며 광고·추적·프로파일링에 사용하지 않는다는 문구가 없으면 owner의 direct publish RPC도 거부한다.
+
+`service_cleanup_notification_data(target_now, target_batch_limit)`는 `service_role`만 실행할 수 있고 같은 cutoff으로 재실행해도 멱등이다. migration은 `pg_cron`의 `jubilee-notification-retention-daily`을 `17 18 * * *` UTC(매일 03:17 KST)로 등록하며 DB 함수를 직접 호출해 secret을 SQL·Git에 남기지 않는다. 운영에서는 `cron.job_run_details`를 매일 확인하고 실패 시 같은 RPC를 수동 재실행한다. 예배 알림용 5분 scheduler는 이 정리 cron과 별도다.
+
+근거: [Apple App Review Guidelines 5.1.1](https://developer.apple.com/app-store/review/guidelines/), [Google Play Data safety](https://support.google.com/googleplay/android-developer/answer/10787469), [개인정보 보호법 제21조](https://www.law.go.kr/LSW/lsLinkCommonInfo.do?ancYnChk=&chrClsCd=010202&lsJoLnkSeq=1020398651), [Expo push receipt](https://docs.expo.dev/push-notifications/sending-notifications/), [Supabase Cron](https://supabase.com/docs/guides/cron)
 
 ## 8. 원격 배포 순서
 

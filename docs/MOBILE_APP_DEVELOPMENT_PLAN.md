@@ -1,6 +1,6 @@
 # 쥬빌리워십 모바일 앱 개발 기획서
 
-- 문서 버전: 1.3
+- 문서 버전: 1.4
 - 최초 작성일: 2026-08-14 KST
 - 최종 결정 반영일: 2026-08-15 KST
 - 대상 플랫폼: iOS, Android
@@ -17,6 +17,8 @@
 4. 1차 송리스트 듣기 링크는 승인된 공식 YouTube 영상·재생목록만 허용한다.
 5. 앱 내부와 설치 아이콘에는 그래픽 로고·문자를 사용하지 않고 `Rose Haze` 추상 이미지를 사용한다.
 6. 1차 개발 완료 기준은 TestFlight와 Google Play 내부 테스트에서 설치 가능한 검증본 제공으로 한다.
+7. 알림 데이터는 최소수집 원칙에 따라 토큰 원문 24시간, 180일 미활동 설치 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 자동 정리 기준을 적용한다.
+8. Google Play 개인 개발자 계정은 2025년에 등록했으므로 정식 공개 전에 12명·14일 연속 비공개 테스트와 Production access 신청을 별도 출시 게이트로 둔다.
 
 ## 1. 개요
 
@@ -43,7 +45,7 @@
 | 웹 관리자 | 기존 관리 기능과 설교·송리스트·갤러리·안내·관리자 승인 기능 구현 | 법적 문서·푸시 발송 최종 연동과 운영 메일 검증 |
 | 데이터베이스 | 앱 공개 view, 설교·송리스트 승인 흐름, RLS·Storage 정책 구현 | 푸시·법적 문서 후속 정책 검증과 운영 프로젝트 적용 |
 | 공통 규칙 | 앱 DTO, 날짜·D-Day·YouTube·송리스트 검증 규칙 구현 | 푸시 요청·응답 계약 최종 검증 |
-| 운영 연결 | 로컬 검증만 완료 | 운영 Supabase, 웹 Preview, EAS, TestFlight·Play 내부 테스트 연결 |
+| 운영 연결 | Free `쥬빌리` Supabase 프로젝트 생성, 저장소 미연결 | 단일 원격 Supabase의 통합검수·초기 운영 연결, 웹 Preview, EAS, TestFlight·Play 테스트 연결 |
 
 현재 웹 개발본의 QA 통과는 확인됐으나, 운영 Supabase·Vercel·앱스토어에 연결된 공개 서비스는 아니다.
 
@@ -360,7 +362,10 @@ apps/mobile/
 - 지도는 외부 지도 링크를 열며 사용자 위치 권한을 요구하지 않는다.
 - 알림 동의 시 무작위 설치 ID, 기기 푸시 토큰, 플랫폼·앱 버전과 선택 설정만 저장하고 개인정보처리방침에 목적·보관·삭제 절차를 명시한다.
 - 앱과 홈페이지의 운영주체는 `쥬빌리 워십`, 문의·개인정보 이메일은 `sundoojubileeworship@gmail.com`으로 표시한다.
-- 알림 해제 시 토큰을 비활성화하고, 미등록 기기 receipt는 자동 정리한다.
+- 알림 해제·무효 판정 후 푸시 토큰 원문은 최대 24시간 이내 삭제한다.
+- 180일 동안 활동이 확인되지 않은 설치는 비활성화하고, 30일 동안 재등록하지 않으면 설치 식별정보를 삭제한다.
+- 발송 상세기록은 최대 90일만 보관하며 cleanup을 매일 1회 실행한다.
+- 예배 알림 선택은 종교적 관심을 추론할 수 있는 정보로 보수적으로 취급하고, 이름·이메일·광고 식별자와 결합하거나 광고·추적·프로파일링에 사용하지 않는다.
 - 관리자 인증·RLS·최소 GRANT·감사 trigger는 기존 원칙을 유지한다.
 - `owner`와 `editor`의 실제 권한 차이를 DB와 서버 양쪽에서 검사한다.
 - 관리자 권한은 사용자가 수정 가능한 `user_metadata`나 이메일 문자열만으로 판단하지 않고, `admin_users`의 활성 상태와 역할을 기준으로 판단한다.
@@ -393,6 +398,7 @@ apps/mobile/
 | 4. 웹 관리자 확장 | 1.75주 | 설교·송리스트·갤러리·안내·권한 관리 | 관리자 수정·공개 후 앱 반영 확인 |
 | 5. 알림·네이티브 기능 | 1주 | 푸시, 딥링크, 캘린더, 공유, 지도 | 테스트 단말 수신과 해당 화면 이동 확인 |
 | 6. 통합 QA·베타 | 1주 | 자동 테스트, 실기기 점검, TestFlight·Play 내부 테스트 | 출시 후보 체크리스트 통과 |
+| 7. Play 정식 공개 자격 | 외부 일정 | 12명 이상 비공개 테스트 14일 연속 운영, Production access 신청 | Google 승인 후 정식 공개 가능 |
 
 예상 개발 기간은 약 7~8주이며, 실제 기간은 운영 계정과 콘텐츠 제공 시점에 따라 조정한다.
 
@@ -442,7 +448,7 @@ apps/mobile/
 - DB 정책 테스트, 웹 테스트, 앱 테스트, 실기기 핵심 흐름 검증이 모두 통과한다.
 - TestFlight와 Google Play 내부 테스트 설치본을 제공한다.
 
-스토어 정식 공개는 위 개발 완료와 별도로 앱 아이콘, 스토어 설명·스크린샷, 개인정보 공개, 개발자 계정, 서명, 최종 사용자 승인이 필요하다.
+스토어 정식 공개는 위 개발 완료와 별도로 앱 아이콘, 스토어 설명·스크린샷, 개인정보 공개, 개발자 계정, 서명, 최종 사용자 승인이 필요하다. Google Play는 2025년에 만든 개인 개발자 계정이므로 12명 이상이 14일 연속 참여한 비공개 테스트와 Production access 승인을 추가로 완료해야 한다.
 
 ## 16. 1차 제외 범위
 
@@ -470,7 +476,8 @@ apps/mobile/
 
 ### 베타·출시 전
 
-- 운영 Supabase 프로젝트와 Preview/Production 환경 분리
+- 일상 개발·reset·seed·CI는 로컬 Supabase에서만 수행하고, 생성된 Free `쥬빌리` 원격 프로젝트 하나는 통합검수 후 초기 운영으로 승격
+- Vercel Preview에는 Supabase 서버 secret을 두지 않고, Production 서버에만 trusted 환경변수로 제공
 - 최초 관리자 계정과 복구 담당자
 - 운영 Supabase 공개 가입 차단, Site URL과 초대·복구 redirect URL 허용 목록
 - 개인정보처리방침·이용약관 최종 원문과 시행일 owner 승인
@@ -496,6 +503,7 @@ apps/mobile/
 - [YouTube Data API videos.list](https://developers.google.com/youtube/v3/docs/videos/list)
 - [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
 - [Google Play 내부 테스트](https://support.google.com/googleplay/android-developer/answer/9845334)
+- [Google Play 개인 계정 비공개 테스트·Production access](https://support.google.com/googleplay/android-developer/answer/14151465)
 - [Expo 내부 배포](https://docs.expo.dev/build/internal-distribution/)
 
 ## 19. 결론

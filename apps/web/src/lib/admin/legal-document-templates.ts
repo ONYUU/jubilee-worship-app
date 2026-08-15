@@ -23,12 +23,13 @@ const privacyPolicyBody = `개인정보처리방침
 
 4. 처리 목적
 위 정보는 예배 일정·일정 변경·송리스트 알림 제공, 알림 선택 유지, 중복 발송 방지와 배송 오류 처리에만 사용합니다. 예배 알림은 ${WORSHIP_REMINDER_SCHEDULE.dayBeforeLabel}과 ${WORSHIP_REMINDER_SCHEDULE.oneHourBeforeLabel}에 발송하는 것을 운영 기준으로 합니다.
+예배 알림 선택은 종교적 관심을 추론할 수 있는 정보로 보수적으로 보호합니다. 이름·이메일·전화번호·광고 식별자와 결합하지 않고, 광고·추적·이용자 프로파일링에 사용하지 않습니다.
 
 5. 보유·파기
-사용자가 알림 해제를 요청하면 알림 선택을 끄고 푸시 토큰과 설치 정보를 비활성화합니다.
-비활성 정보 보유 기간: ${LEGAL_REVIEW_MARKER}
-발송 기록 보유 기간: ${LEGAL_REVIEW_MARKER}
-정기 삭제 주기: ${LEGAL_REVIEW_MARKER}
+사용자가 알림 해제를 요청하거나 푸시 제공자가 무효 토큰으로 판정하면 알림 선택을 끄고 푸시 토큰 원문을 최대 24시간 이내에 삭제합니다. 180일 동안 활동이 확인되지 않은 설치는 비활성화하고, 그 후 30일 동안 재등록하지 않으면 설치 정보를 삭제합니다.
+비활성 정보 보유 기간: 비활성화 후 최대 30일
+발송 기록 보유 기간: 발송 상세기록 최대 90일
+정기 삭제 주기: 매일 1회
 
 6. 외부 서비스와 국외 처리
 앱은 콘텐츠·알림 제공을 위해 Supabase, Expo Push Service 등 외부 서비스를 사용할 수 있습니다.
@@ -96,7 +97,7 @@ export function hasConfirmedServiceIdentity(body: string): boolean {
 }
 
 export function hasRequiredAppPrivacyDisclosures(body: string): boolean {
-  return ["설치 식별자", "푸시 토큰", "알림 선택", "보유", "비활성화"].every((term) =>
+  return ["설치 식별자", "푸시 토큰", "알림 선택", "종교적 관심", "보유", "비활성화"].every((term) =>
     body.includes(term)
   );
 }

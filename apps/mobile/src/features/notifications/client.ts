@@ -5,6 +5,10 @@ import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { isInvalidInstallationError, NotificationSetupError } from "./errors";
+
+export { NotificationSetupError } from "./errors";
+
 const INSTALLATION_KEY = "jubilee.push-installation.v1";
 const PREFERENCES_KEY = "jubilee.push-preferences.v1";
 let tokenRefreshInFlight: Promise<void> | null = null;
@@ -25,8 +29,6 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   scheduleChanges: false,
   setlistUpdates: false
 };
-
-export class NotificationSetupError extends Error {}
 
 function isPreferences(value: unknown): value is NotificationPreferences {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -81,6 +83,11 @@ async function writeCredentials(value: InstallationCredentials): Promise<void> {
   });
 }
 
+async function clearCredentials(): Promise<void> {
+  if (Platform.OS === "web") return;
+  await SecureStore.deleteItemAsync(INSTALLATION_KEY);
+}
+
 function publicConfig(): { url: string; key: string } {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "");
   const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -122,6 +129,7 @@ async function functionRequest<T>(name: string, body: Record<string, unknown>): 
     });
     if (!response.ok) {
       let message = "알림 서버 요청을 완료하지 못했습니다.";
+      let code = "notification_request_failed";
       try {
         const payload: unknown = await response.json();
         if (
@@ -132,10 +140,18 @@ async function functionRequest<T>(name: string, body: Record<string, unknown>): 
         ) {
           message = payload.message;
         }
+        if (
+          payload &&
+          typeof payload === "object" &&
+          "error" in payload &&
+          typeof payload.error === "string"
+        ) {
+          code = payload.error;
+        }
       } catch {
         // Use the stable user-facing fallback when the server body is unavailable.
       }
-      throw new NotificationSetupError(message);
+      throw new NotificationSetupError(message, code, response.status);
     }
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
@@ -189,6 +205,35 @@ async function expoPushToken(
   return token.data;
 }
 
+async function registerInstallation(
+  preferences: NotificationPreferences,
+  token: string
+): Promise<void> {
+  const created = await functionRequest<InstallationCredentials>("register-installation", {
+    platform: Platform.OS,
+    appVersion: appVersion(),
+    expoPushToken: token,
+    subscriptions: preferences
+  });
+  if (!isCredentials(created)) {
+    throw new NotificationSetupError("알림 설치정보 응답이 올바르지 않습니다.");
+  }
+  await writeCredentials(created);
+}
+
+async function updateInstallation(
+  credentials: InstallationCredentials,
+  preferences: NotificationPreferences,
+  token: string | null
+): Promise<void> {
+  await functionRequest<void>("update-notification-settings", {
+    ...credentials,
+    appVersion: appVersion(),
+    expoPushToken: token,
+    subscriptions: preferences
+  });
+}
+
 export async function loadNotificationPreferences(): Promise<{
   preferences: NotificationPreferences;
   registered: boolean;
@@ -207,20 +252,24 @@ async function performRegisteredNotificationTokenRefresh(
   devicePushToken?: Notifications.DevicePushToken
 ): Promise<void> {
   if (Platform.OS !== "ios" && Platform.OS !== "android") return;
-  const credentials = await readCredentials();
-  if (!credentials) return;
   const preferences = await readPreferences();
   if (!Object.values(preferences).some(Boolean)) return;
   const permissions = await Notifications.getPermissionsAsync();
   if (permissions.status !== "granted") return;
 
   const token = await expoPushToken(devicePushToken);
-  await functionRequest<void>("update-notification-settings", {
-    ...credentials,
-    appVersion: appVersion(),
-    expoPushToken: token,
-    subscriptions: preferences
-  });
+  const credentials = await readCredentials();
+  if (!credentials) {
+    await registerInstallation(preferences, token);
+    return;
+  }
+  try {
+    await updateInstallation(credentials, preferences, token);
+  } catch (error) {
+    if (!isInvalidInstallationError(error)) throw error;
+    await clearCredentials();
+    await registerInstallation(preferences, token);
+  }
 }
 
 export function refreshRegisteredNotificationToken(
@@ -249,23 +298,19 @@ export async function syncNotificationPreferences(
   const token = wantsNotifications ? await expoPushToken() : null;
   if (!credentials) {
     if (!token) return { registered: false };
-    const created = await functionRequest<InstallationCredentials>("register-installation", {
-      platform: Platform.OS,
-      appVersion: appVersion(),
-      expoPushToken: token,
-      subscriptions: preferences
-    });
-    if (!isCredentials(created)) {
-      throw new NotificationSetupError("알림 설치정보 응답이 올바르지 않습니다.");
-    }
-    await writeCredentials(created);
+    await registerInstallation(preferences, token);
   } else {
-    await functionRequest<void>("update-notification-settings", {
-      ...credentials,
-      appVersion: appVersion(),
-      expoPushToken: token,
-      subscriptions: preferences
-    });
+    try {
+      await updateInstallation(credentials, preferences, token);
+    } catch (error) {
+      if (!isInvalidInstallationError(error)) throw error;
+      await clearCredentials();
+      if (!token) {
+        await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+        return { registered: false };
+      }
+      await registerInstallation(preferences, token);
+    }
   }
 
   await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
@@ -275,8 +320,12 @@ export async function syncNotificationPreferences(
 export async function unregisterNotifications(): Promise<void> {
   const credentials = await readCredentials();
   if (credentials) {
-    await functionRequest<void>("unregister-installation", credentials);
-    await SecureStore.deleteItemAsync(INSTALLATION_KEY);
+    try {
+      await functionRequest<void>("unregister-installation", credentials);
+    } catch (error) {
+      if (!isInvalidInstallationError(error)) throw error;
+    }
+    await clearCredentials();
   }
   await AsyncStorage.setItem(
     PREFERENCES_KEY,

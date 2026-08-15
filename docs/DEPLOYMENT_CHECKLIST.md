@@ -8,9 +8,9 @@
 
 - [x] Domain 단위 테스트 85/85 통과
 - [x] Web 단위 테스트 25/25 통과
-- [x] Mobile 단위 테스트 11/11 통과
-- [x] Supabase pgTAP 330/330 통과
-- [x] Edge Function 테스트 11/11 통과
+- [x] Mobile 단위 테스트 13/13 통과
+- [x] Supabase pgTAP 381/381 통과
+- [x] Edge Function 테스트 13/13 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
 - [x] DB lint warning/error 0
@@ -32,7 +32,9 @@
 - [x] `/privacy`에 owner가 공개한 앱 개인정보처리방침 연결과 미공개 스토어 제출 차단 안내
 - [ ] 최초 owner Auth 계정·이메일·복구 담당자 확정
 - [ ] 개인정보 처리방침·이용약관 원문과 시행일 승인
-- [ ] 개인정보 보유기간 확정 후 동일 기간의 cleanup RPC·cron·삭제 회귀 테스트 완료(완료 전 앱 정책 공개 금지)
+- [x] 보유 기준 확정: 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 정리
+- [x] 동일 기준의 cleanup RPC·일일 cron·삭제 회귀 테스트 로컬 구현 및 검증 완료
+- [ ] 원격 Supabase에 cleanup migration을 적용하고 cron 실행 이력·실제 삭제를 확인(완료 전 앱 정책 공개 금지)
 
 ## 3. Android
 
@@ -42,6 +44,9 @@
 - [ ] Android 실기기 설치·핵심 플로우·알림 검증
 - [ ] Store 서명 AAB 생성과 서명 정보 확인
 - [ ] Google Play Console 앱 생성·앱 서명·내부 테스트 트랙 업로드
+- [ ] 개인 개발자 계정 Android 실제 기기·개발자 연락처 검증 상태 확인
+- [ ] 비공개 테스트 12명 이상을 14일 연속 유지
+- [ ] 비공개 테스트 종료 후 Production access 신청·승인
 - [ ] 대상 API·16KB·데이터 안전·알림 권한 정책을 Play Console 최신 요구사항으로 재확인
 
 ## 4. iOS
@@ -59,9 +64,9 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 ## 5. Supabase remote·Push
 
-- [x] 기존 Supabase 프로젝트 정리 후 계정 프로젝트 0개 확인
-- [ ] 쥬빌리워십 신규 무료 프로젝트 생성
-- [ ] 신규 Supabase remote 프로젝트 link·migration dry-run·적용
+- [x] `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트를 Seoul 리전에 생성
+- [x] 단일 원격 프로젝트를 통합검수 후 초기 운영으로 사용하고 일상 reset·seed·CI는 로컬에서만 수행하는 기준 확정
+- [ ] Supabase remote 프로젝트 link·migration dry-run·적용
 - [ ] 6개 Edge Function 배포
 - [ ] `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
 - [ ] 등록 API에 분산 rate limit·gateway 적용
@@ -76,7 +81,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 ## 6. Vercel·도메인
 
-- [ ] Vercel Preview 프로젝트·환경 변수·Preview Supabase 연결
+- [ ] Vercel Preview 프로젝트·공개 환경 변수 설정(서버 secret 미제공, 관리자 변경 차단)
 - [ ] Preview에서 공개 DTO·관리자 CRUD·Storage·법적 문서·알림 회귀 검증
 - [ ] Preview Playwright·Lighthouse·Core Web Vitals·외부 링크 재검증
 - [ ] Production Vercel 프로젝트·환경 변수 설정
@@ -90,6 +95,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] iOS·Android 운영 서명 빌드 생성
 - [ ] TestFlight·Google Play 내부 테스트 배포
 - [ ] 내부 테스터 실기기 검수와 치명적 이슈 0건 확인
+- [ ] Google Play 비공개 테스트 12명·14일 연속 참여 및 Production access 승인
 - [ ] App Store Privacy·Google Play Data safety·알림 권한 설명 완성
 - [ ] 스크린샷·앱 설명·지원 URL·개인정보 URL·연령등급 확정
 - [ ] `/privacy`에 검토 마커·미정값이 없고, 확정 운영주체·이메일·보유·삭제·국외 처리 실제값을 포함한 owner 공개 앱 정책이 표시되는지 확인
@@ -105,7 +111,8 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] Supabase remote·Edge Function·실제 push 통합 검증
 - [ ] Vercel Preview·Production·DNS 검증
 - [ ] 법적 문서 원문·시행일·스토어 메타데이터 승인
-- [ ] 보유기간과 동일한 cleanup RPC·cron·테스트 완료
+- [x] 보유기간과 동일한 cleanup RPC·cron·테스트 로컬 완료
+- [ ] 원격 cleanup cron 적용·실행 이력·실제 삭제 확인
 - [ ] 사용자의 최종 배포·스토어 제출 승인
 
 승인 전에는 Production 배포, DNS 변경, 실제 push 활성화, SNS 게시, 관리자 초대, App Store·Google Play 제출을 실행하지 않는다.

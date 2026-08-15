@@ -2,6 +2,7 @@ import { assert, assertEquals, assertMatch } from "jsr:@std/assert@1";
 import { dispatchNotifications } from "../dispatch-notifications/index.ts";
 import { processPushReceipts } from "../process-push-receipts/index.ts";
 import { registerInstallation } from "../register-installation/index.ts";
+import { testPush } from "../test-push/index.ts";
 import { unregisterInstallation } from "../unregister-installation/index.ts";
 import { updateNotificationSettings } from "../update-notification-settings/index.ts";
 import type { RpcClient } from "./types.ts";
@@ -21,6 +22,34 @@ class MockRpcClient implements RpcClient {
   rpc(name: string, params?: Record<string, unknown>) {
     this.calls.push({ name, params });
     return Promise.resolve(this.respond(name, params));
+  }
+}
+
+class MockOwnerClient extends MockRpcClient {
+  constructor(
+    role: "owner" | "editor" | null,
+    respond: (
+      name: string,
+      params?: Record<string, unknown>,
+    ) => { data: unknown; error: { code?: string; message?: string } | null },
+  ) {
+    super(respond);
+    this.role = role;
+  }
+
+  private readonly role: "owner" | "editor" | null;
+
+  from(_table: string) {
+    const query = {
+      select: (_columns: string) => query,
+      eq: (_column: string, _value: unknown) => query,
+      maybeSingle: () =>
+        Promise.resolve({
+          data: this.role ? { role: this.role, is_active: true } : null,
+          error: null,
+        }),
+    };
+    return query;
   }
 }
 
@@ -122,6 +151,72 @@ Deno.test("unregister hashes a body secret before the service RPC", async () => 
   assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
   assert(params.target_secret_hash !== rawSecret);
   assert(!Object.values(params).includes(rawSecret));
+});
+
+Deno.test("test push requires an authenticated owner and queues through owner RPCs", async () => {
+  const endpointId = crypto.randomUUID();
+  const campaignId = crypto.randomUUID();
+  const ownerClient = new MockOwnerClient("owner", (name) => ({
+    data: name === "create_notification_campaign" ? campaignId : null,
+    error: null,
+  }));
+  const adminClient = new MockRpcClient((name) => ({
+    data: name === "service_resolve_push_endpoint" ? endpointId : null,
+    error: null,
+  }));
+
+  const response = await testPush(
+    jsonRequest({
+      installationId: crypto.randomUUID(),
+      installationSecret: "test-push-secret-that-is-never-sent-to-postgres",
+      title: "시험 알림",
+      body: "오너 기기에만 보내는 시험 알림입니다.",
+      deepLink: "jubileeworship://notifications",
+    }),
+    crypto.randomUUID(),
+    ownerClient,
+    adminClient,
+  );
+
+  assertEquals(response.status, 202);
+  assertEquals(
+    ownerClient.calls.map((call) => call.name),
+    [
+      "create_notification_campaign",
+      "approve_notification_campaign",
+      "queue_notification_campaign",
+    ],
+  );
+  const endpointCall = adminClient.calls[0];
+  assertEquals(endpointCall.name, "service_resolve_push_endpoint");
+  assertMatch(
+    String(endpointCall.params?.target_secret_hash),
+    /^[0-9a-f]{64}$/,
+  );
+});
+
+Deno.test("test push rejects an editor before resolving a private endpoint", async () => {
+  const editorClient = new MockOwnerClient("editor", () => ({
+    data: null,
+    error: null,
+  }));
+  const adminClient = new MockRpcClient(() => ({ data: null, error: null }));
+
+  const response = await testPush(
+    jsonRequest({
+      installationId: crypto.randomUUID(),
+      installationSecret: "editor-secret-that-must-not-be-resolved",
+      title: "시험 알림",
+      body: "오너만 발송할 수 있습니다.",
+    }),
+    crypto.randomUUID(),
+    editorClient,
+    adminClient,
+  );
+
+  assertEquals(response.status, 403);
+  assertEquals(editorClient.calls.length, 0);
+  assertEquals(adminClient.calls.length, 0);
 });
 
 Deno.test("dispatch dry-run records a synthetic ticket without an external request", async () => {

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(114);
+select plan(115);
 
 -- 1
 select ok(
@@ -120,8 +120,8 @@ select is(
       and grantee = 'service_role'
       and privilege_type = 'EXECUTE'
   ),
-  10::bigint,
-  'service_role can execute all ten Edge RPCs'
+  11::bigint,
+  'service_role can execute all eleven Edge and maintenance RPCs'
 );
 
 -- 11
@@ -341,7 +341,7 @@ select is(
       and procedure.prosecdef
       and 'search_path=""' = any (coalesce(procedure.proconfig, array[]::text[]))
   ),
-  10::bigint,
+  11::bigint,
   'all service RPCs are security definer functions with a fixed empty search path'
 );
 
@@ -409,7 +409,7 @@ select lives_ok(
       document_type, version, title, body, effective_on
     ) values (
       'privacy_policy', '1.0.0', '개인정보 처리방침',
-      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 첫 번째 공개 문서 본문\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매월 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 첫 번째 공개 문서 본문\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있습니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
       current_date
     )
   $$,
@@ -823,7 +823,7 @@ select lives_ok(
       document_type, version, title, body, effective_on
     ) values (
       'privacy_policy', '2.0.0', '개인정보 처리방침 개정',
-      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 두 번째 공개 문서 본문\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매월 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 두 번째 공개 문서 본문\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있습니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
       current_date
     )
   $$,
@@ -1517,6 +1517,35 @@ select throws_ok(
   '42501',
   null,
   'an editor cannot recreate a missing object at a consent-confirmed locator'
+);
+
+reset role;
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"81111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+set local role authenticated;
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'privacy_policy', 'sensitive-disclosure-bypass', '민감정보 공개 gate 검증',
+  E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n알림 제공에만 사용합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'sensitive-disclosure-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot publish a privacy policy without the religious-interest disclosure'
 );
 
 reset role;

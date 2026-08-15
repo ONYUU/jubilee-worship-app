@@ -10,19 +10,19 @@
 |---|---:|---:|
 | Domain 단위 테스트 | 85/85 | 통과 |
 | Web 단위 테스트 | 25/25 | 통과 |
-| Mobile 단위 테스트 | 11/11 | 통과 |
-| Supabase pgTAP | 330/330 | 통과 |
-| Edge Function 단위 테스트 | 11/11 | 통과 |
+| Mobile 단위 테스트 | 13/13 | 통과 |
+| Supabase pgTAP | 381/381 | 통과 |
+| Edge Function 단위 테스트 | 13/13 | 통과 |
 | Edge Function format·type check | 19개 파일 | 통과 |
 
-Domain·Web·Mobile 단위 테스트는 합계 121건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다.
+Domain·Web·Mobile 단위 테스트는 합계 123건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다.
 
 ## 2. 데이터베이스·보안
 
 | 검증 | 결과 |
 |---|---:|
 | 시드 포함 `supabase db reset` | 통과 |
-| RLS·GRANT·Storage·RPC pgTAP | 330/330 통과 |
+| RLS·GRANT·Storage·RPC pgTAP | 381/381 통과 |
 | Supabase DB lint | warning/error 0 |
 | Security Advisor | 보고 이슈 0 |
 | Performance Advisor | 보고 이슈 0 |
@@ -37,6 +37,7 @@ Domain·Web·Mobile 단위 테스트는 합계 121건이며 모두 통과했다.
 - 앱 갤러리는 private `gallery-staging` 경로에서 owner 동의 확인 후 `public-media/app-gallery/`로 옮긴 객체만 공개할 수 있다.
 - 앱 설치 secret은 원문 열을 두지 않고 SHA-256 hash만 저장하며, 알림 private table에 대한 anon·authenticated 직접 권한은 없다.
 - 예배 알림은 owner가 미리 승인한 공개 `scheduled|postponed` 예배에 대해 `전날 19:30 KST`와 `당일 1시간 전` 두 예약을 중복 없이 생성하고, 예배·문구 기준 변경 시 재승인을 요구하도록 구현했다. 실제 queue는 예약 시각부터 15분 안에 운영 scheduler가 실행해야 한다.
+- 알림 데이터 cleanup은 토큰 원문 최대 24시간, 180일 미활동 설치 비활성화, 비활성 설치정보 30일, 발송 상세 90일 기준으로 구현했다. 일일 cron, 멱등 실행, 직접 권한 차단, 경계값 삭제를 로컬 DB에서 검증했다.
 
 ## 3. Android 검증
 
@@ -47,6 +48,7 @@ Domain·Web·Mobile 단위 테스트는 합계 121건이며 모두 통과했다.
 | Android 15 16KB page-size 에뮬레이터 앱 실행 | 성공 | 기본 기동 확인 |
 | Android 실기기 테스트 | 미완료 | 외부 기기 필요 |
 | Store 서명 AAB·Play 내부 테스트 | 미완료 | Google Play 연결 필요 |
+| Play 비공개 테스트 12명·14일·Production access | 미완료 | 2025년 생성 개인 개발자 계정 필수 게이트 |
 
 생성된 파일은 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`에 있다. 이 APK 생성과 에뮬레이터 기동 성공은 Google Play 업로드, 스토어 서명, 실기기 검증 또는 스토어 승인을 의미하지 않는다.
 
@@ -77,15 +79,15 @@ iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없�
 
 다음은 로컬 코드 완료와 별개의 배포·운영 게이트다.
 
-1. Preview·Production Supabase remote 프로젝트 연결, migration 적용, Edge Function 배포
+1. 생성된 Free `쥬빌리` Supabase 단일 원격 프로젝트 link, migration 적용, Edge Function 배포
 2. 운영 secret, 최초 owner Auth 계정, SMTP·인증 설정
 3. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
 4. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-5. Vercel Preview·Production 배포, 운영 연결 QA, 도메인·DNS
-6. EAS 프로젝트, Apple Developer, Google Play Console, 서명·내부 테스트 트랙
+5. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
+6. EAS 프로젝트, Apple Developer, Google Play Console, 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
 7. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
 8. 개인정보처리방침·이용약관 최종 원문과 시행일 승인(운영주체 `쥬빌리 워십`, 문의·개인정보 `sundoojubileeworship@gmail.com`은 확정·반영 완료)
-9. 비활성 정보·발송 기록의 보유기간 확정 → 동일 기간을 적용한 cleanup RPC·cron 구현 → 삭제 회귀 테스트 통과. 이 순서가 완료되기 전에는 앱 정책 공개·스토어 개인정보 URL 사용 금지
+9. 로컬 검증을 마친 cleanup migration을 원격에 적용하고 cron 실행 이력·실제 만료정보 삭제를 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
 10. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
 
 ## 7. 최종 판정

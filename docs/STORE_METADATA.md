@@ -14,6 +14,11 @@
 | 예배 알림 2 | 예배 당일 시작 1시간 전 |
 | 알림 지연 처리 | 예약 시각부터 15분 이내만 발송, 이후 만료 |
 | Apple 개발자 계정 유형 | 개인 |
+| Google Play 개발자 계정 유형 | 개인, 2025년 등록 |
+| 푸시 토큰 원문 | 알림 해제·무효 판정 후 최대 24시간 |
+| 비활성 설치 정보 | 180일 미활동 시 비활성화, 이후 최대 30일 |
+| 발송 상세기록 | 최대 90일 |
+| 자동 정리 | 매일 1회 |
 
 두 예배 알림은 사용자가 예배 알림을 직접 켠 경우에만 발송한다. 오너가
 문구와 대상을 수동 승인한 뒤 scheduler와 발송 worker가 처리한다.
@@ -34,14 +39,31 @@
 - Apple 개인 계정 개발자명 기준: https://developer.apple.com/help/app-store-connect/create-an-app-record/set-your-developer-name/
 - Apple App Review Guidelines: https://developer.apple.com/app-store/review/guidelines/
 - Google Play 스토어 등록 권장사항: https://support.google.com/googleplay/android-developer/answer/13393723
+- Google Play 개인 계정 테스트 요건: https://support.google.com/googleplay/android-developer/answer/14151465
+
+## 스토어 개인정보 공개 초안
+
+- 공통: 일반 이용자 계정, 이름, 이메일, 전화번호, 위치, 광고 식별자는 수집하지 않는다. 알림은 선택 기능이며 광고·추적·프로파일링에 사용하지 않는다.
+- Apple App Privacy: 무작위 설치 ID와 푸시 토큰은 `Identifiers > Device ID`, 목적은 `App Functionality`, 추적은 `아니요`로 신고하는 보수안을 사용한다. 예배 알림 선택은 종교적 관심을 추론할 여지가 있으므로 `Sensitive Info` 해당 여부도 App Store Connect 최신 문항에서 보수적으로 재확인한다.
+- Google Play Data safety: `Device or other IDs`, 선택적 수집, 목적은 `App functionality`와 알림 제공을 위한 `Developer communications`, 광고·추적 목적은 없음으로 준비한다. 예배 알림 선택의 종교 관련 민감정보 분류와 Expo·Supabase의 서비스 제공자 예외는 제출 직전 최신 문항과 계약 기준으로 재확인한다.
+- 알림 해제와 토큰 무효 판정 시 원문 토큰을 최대 24시간 이내 삭제하고, 앱 안에서 알림 종류별 해제와 전체 등록 해제를 제공한다.
+
+공식 참고:
+
+- Apple App Privacy Details: https://developer.apple.com/app-store/app-privacy-details/
+- Google Play Data safety: https://support.google.com/googleplay/android-developer/answer/10787469
+- Firebase 토큰 관리: https://firebase.google.com/docs/cloud-messaging/manage-tokens
 
 ## 계정·인프라 준비 상태
 
 - Apple 개발자 계정: 개인 계정으로 준비 완료
-- Google Play Console 계정: 사용자 준비 완료
+- Apple 스토어 판매자·개발자명: 개인 계정 소유자의 법적 이름으로 표시
+- Google Play Console 계정: 개인 계정, 2025년 등록
+- Google Play 정식 공개 게이트: 12명 이상이 14일 연속 참여하는 비공개 테스트 후 Production access 신청 필요
+- Google Play 공개 개발자명: `쥬빌리 워십` 예정, Console 검토 필요
 - iOS·Android 실제 테스트 기기: 사용자 준비 완료
-- Supabase 계정: 기존 프로젝트 정리 완료, 현재 프로젝트 0개
-- 이 저장소의 Supabase 원격 연결: 미설정, 신규 무료 프로젝트 생성·link 필요
+- Supabase: `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트, Seoul 리전으로 생성 확인
+- 이 저장소의 Supabase 원격 연결: 미설정, project link·migration·Edge Function 적용 필요
 - Vercel 프로젝트와 홈페이지 주소: 미연결
 - 최초 오너 이메일: 운영 DB 연결 시 사용자에게 요청
 
@@ -56,10 +78,11 @@ Vercel Hobby는 개인·비상업용으로 제한되므로 공식 운영 전 실
 ## 정식 공개 전 남은 확정사항
 
 1. Apple 개인 계정의 스토어 개발자명은 법적 이름으로 표시되므로 실제 표시명을 App Store Connect에서 확인
-2. 개인정보처리방침의 보유 기간·국외 처리 내용 검토 및 오너 공개 승인
-3. 쥬빌리워십 신규 Supabase 프로젝트를 생성한 뒤 link·migration 사전검증
-4. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
-5. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
+2. 로컬에서 검증한 보유·삭제 cleanup을 원격에 적용하고 정기 실행·실제 삭제를 확인한 뒤 국외 처리 내용까지 오너 승인
+3. 생성된 `쥬빌리` Supabase 프로젝트에 link·migration 사전검증·적용
+4. Google Play 비공개 테스터 12명 확보 및 14일 연속 테스트·Production access 신청
+5. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
+6. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
 
 비밀번호, Supabase secret key, Apple·Google 인증서와 서명키는 문서·채팅·
 공개 GitHub에 기록하지 않는다. 각 서비스의 보안 저장소와 환경변수에만 둔다.

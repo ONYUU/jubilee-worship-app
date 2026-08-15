@@ -115,6 +115,8 @@ pnpm test:e2e
 
 Supabase 정책 테스트는 `supabase/tests/`를 확인하세요. 실제 개발 프로젝트 연결 후 Security Advisor·Performance Advisor도 별도로 확인해야 합니다.
 
+원격은 `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트 하나를 통합검수와 초기 운영에 사용합니다. 일상 개발·`db reset`·seed·CI는 로컬 Supabase에서만 실행하고, 원격에는 `db reset --linked`나 `--include-seed`를 사용하지 않습니다. Vercel Preview에는 Supabase 서버 secret을 제공하지 않고, Production 서버에만 신뢰할 수 있는 환경변수로 설정합니다.
+
 ## 저장소 구조
 
 ```text
@@ -128,12 +130,13 @@ reference/          전달 패키지·초기 starter의 로컬 참고 사본(배
 
 ## 공개 전 외부 입력
 
-- 운영 Supabase 프로젝트 URL·publishable key
+- 생성된 Supabase `쥬빌리` 프로젝트의 저장소 link·migration·Edge Function 적용
 - 최초 관리자 이메일과 생성된 Auth 사용자 UUID
 - 2026년 9월 4일 예배 일정의 공개 직전 재확인
 - Vercel Preview 프로젝트·무료 주소와 사용자의 공개 승인
-- 개인정보처리방침 보유 기간·국외 처리 항목의 오너 검토
+- 확정 보유·자동 삭제 기준의 운영 cron 검증과 국외 처리 항목의 오너 검토
 - Apple Team ID·Android 앱 서명값과 실제 기기 푸시 검증
+- Google Play 비공개 테스터 12명·14일 연속 테스트와 Production access 신청
 - 정식 운영용 `.com` 또는 `.org` 도메인 선택
 
 개발·검수에는 Supabase Free와 Vercel `*.vercel.app` 주소를 사용하고,

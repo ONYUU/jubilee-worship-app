@@ -20,6 +20,13 @@ describe("legal document templates", () => {
       expect(hasConfirmedServiceIdentity(template.body)).toBe(true);
       if (documentType === "privacy_policy") {
         expect(hasRequiredAppPrivacyDisclosures(template.body)).toBe(true);
+        expect(template.body).toContain("푸시 토큰 원문을 최대 24시간 이내에 삭제");
+        expect(template.body).toContain("180일 동안 활동이 확인되지 않은 설치");
+        expect(template.body).toContain("비활성화 후 최대 30일");
+        expect(template.body).toContain("발송 상세기록 최대 90일");
+        expect(template.body).toContain("정기 삭제 주기: 매일 1회");
+        expect(template.body).toContain("종교적 관심");
+        expect(template.body).toContain("광고·추적·이용자 프로파일링에 사용하지 않습니다");
       }
       expect(hasUnresolvedLegalReview(template.body)).toBe(true);
     }
