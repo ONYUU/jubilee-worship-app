@@ -63,7 +63,8 @@
 - Google Play 공개 개발자명: `쥬빌리 워십` 예정, Console 검토 필요
 - iOS·Android 실제 테스트 기기: 사용자 준비 완료
 - Supabase: `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트, Seoul 리전으로 생성 확인
-- 이 저장소의 Supabase 원격 연결: 미설정, project link·migration·Edge Function 적용 필요
+- 이 저장소의 Supabase 원격 연결: 완료, migration 8개 적용·Edge Function 6개 활성·retention cron 활성
+- 실제 push 외부 발송: 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`), 실기기 통합검증 후 별도 승인 필요
 - Vercel 프로젝트와 홈페이지 주소: 미연결
 - 최초 오너 이메일: 운영 DB 연결 시 사용자에게 요청
 
@@ -78,11 +79,10 @@ Vercel Hobby는 개인·비상업용으로 제한되므로 공식 운영 전 실
 ## 정식 공개 전 남은 확정사항
 
 1. Apple 개인 계정의 스토어 개발자명은 법적 이름으로 표시되므로 실제 표시명을 App Store Connect에서 확인
-2. 로컬에서 검증한 보유·삭제 cleanup을 원격에 적용하고 정기 실행·실제 삭제를 확인한 뒤 국외 처리 내용까지 오너 승인
-3. 생성된 `쥬빌리` Supabase 프로젝트에 link·migration 사전검증·적용
-4. Google Play 비공개 테스터 12명 확보 및 14일 연속 테스트·Production access 신청
-5. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
-6. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
+2. 원격 cleanup cron의 첫 실행 이력·실제 만료정보 삭제를 확인한 뒤 국외 처리 내용까지 오너 승인
+3. Google Play 비공개 테스터 12명 확보 및 14일 연속 테스트·Production access 신청
+4. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
+5. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
 
 비밀번호, Supabase secret key, Apple·Google 인증서와 서명키는 문서·채팅·
 공개 GitHub에 기록하지 않는다. 각 서비스의 보안 저장소와 환경변수에만 둔다.

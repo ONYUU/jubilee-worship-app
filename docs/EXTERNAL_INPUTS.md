@@ -4,10 +4,9 @@
 
 | 우선순위 | 입력 | 필요한 이유 | 현재 상태 |
 |---|---|---|---|
-| 1 | Supabase `쥬빌리` 프로젝트 link | 실제 콘텐츠·Auth·Storage 연결 | Free·Seoul 프로젝트 생성 확인, 저장소 link·migration 미적용 |
 | 1 | 최초 관리자 이메일 | 공개 가입 없이 Auth 사용자 생성 | 미제공 |
 | 1 | 최초 Auth 사용자 UUID | `admin_users` owner 등록 | 계정 생성 후 확인 |
-| 1 | 2026-09-04 예배 최종 확인 | 공개 직전 일정 오류 방지 | 2026-08-11 공지까지 확인, 공개 직전 재확인 필요 |
+| 1 | 2026-09-04 예배 최종 확인 | 공개 직전 일정 오류 방지 | 2026-08-15 공식 Instagram·교회 페이지 재확인, 공개 직전 한 번 더 확인 필요 |
 | 2 | Vercel 개발 프로젝트와 무료 주소 | 웹 관리자·개인정보 URL Preview | 미연결 |
 | 2 | 유료 `.com` 또는 `.org` 도메인 선택 | 정식 운영 URL 확정 | 완성 후 구매 예정 |
 | 2 | DNS 담당자 | 승인 후 레코드 생성 | 확인 필요 |
@@ -22,6 +21,8 @@
 - 프로젝트 요청자(쥬빌리워십 팀원)가 공식 로고와 선두교회 소개 사진의 홈페이지·앱 사용 권한을 확인
 - 앱명 `쥬빌리워십`, 앱 내부 운영주체 `쥬빌리 워십`
 - 문의·개인정보 이메일 `sundoojubileeworship@gmail.com`
+- `Jubilee Worship` 조직의 Free `쥬빌리` Supabase 프로젝트(Seoul), 저장소 link, 원격 migration 8개, Edge Function 6개
+- 원격 retention cron 활성화와 외부 push 발송 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`)
 - 예배 전날 19:30 KST 및 예배 당일 1시간 전 알림 일정
 - 알림은 예약 시각부터 15분 이내만 발송하고 이후 만료하는 운영 기준
 - Apple 개발자 계정 유형은 개인

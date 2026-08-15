@@ -246,17 +246,17 @@ claim worker는 pending→processing 직전에 event와 schedule을 다시 검�
 
 ## 8. 원격 배포 순서
 
-개발/검수 프로젝트와 production 프로젝트를 분리한다.
+일상 개발·reset·seed·CI는 로컬 Supabase에서 수행하고, Free 원격 `쥬빌리` 프로젝트는 통합검수 후 초기 운영으로 승격한다. Free 단계에서는 별도 hosted staging 프로젝트를 두지 않으므로 원격 reset과 `--include-seed`를 금지한다.
 
 1. 최신 main에서 migration-only reset/test와 일반 `db reset`, pgTAP, lint, advisor를 모두 통과시킨다.
-2. 개발 또는 staging 프로젝트에 연결한다.
+2. 대상 원격 프로젝트 ref를 재확인한 뒤 연결한다.
 3. `supabase migration list --linked`로 이력을 확인한다.
 4. `supabase db push --linked --dry-run`으로 적용 내용을 검토한다.
 5. `supabase db push --linked`로 migration만 적용한다.
 6. 네 역할(anon, 일반 authenticated, 활성 admin, 비활성 admin)과 Storage를 실제 API로 재검증한다.
-7. production 백업·복구 가능 여부와 대상 project ref를 재확인한다.
-8. 승인 담당자 한 명이 production에 동일 migration을 적용한다.
-9. 적용 후 migration list, Security Advisor, Performance Advisor를 다시 확인한다.
+7. 초기 운영으로 승격하기 전 백업·복구 가능 여부와 대상 project ref를 재확인한다.
+8. 승인 담당자 한 명이 검토된 migration만 적용한다.
+9. 적용 후 migration list, DB lint, Security Advisor, Performance Advisor를 다시 확인한다.
 
 `seed.sql`은 로컬·개발 테스트 데이터다. production에 `--include-seed`를 사용하지 않는다. 위 공식 초기 기준행은 migration으로 생성되며, 이후 운영 콘텐츠는 검토된 별도 migration 또는 허용 범위의 관리자 UI로 입력한다.
 

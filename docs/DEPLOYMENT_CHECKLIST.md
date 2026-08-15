@@ -9,12 +9,12 @@
 - [x] Domain 단위 테스트 85/85 통과
 - [x] Web 단위 테스트 25/25 통과
 - [x] Mobile 단위 테스트 13/13 통과
-- [x] Supabase pgTAP 381/381 통과
+- [x] Supabase pgTAP 382/382 통과
 - [x] Edge Function 테스트 13/13 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
 - [x] DB lint warning/error 0
-- [x] Security Advisor 보고 이슈 0
+- [x] 원격 Security Advisor 오류 0, 관리자 전용 `SECURITY DEFINER` RPC 정적 경고 27건 권한 검토 완료
 - [x] Performance Advisor 보고 이슈 0
 - [x] `public`, `private`, `storage` schema diff 불일치 0
 
@@ -34,7 +34,8 @@
 - [ ] 개인정보 처리방침·이용약관 원문과 시행일 승인
 - [x] 보유 기준 확정: 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 정리
 - [x] 동일 기준의 cleanup RPC·일일 cron·삭제 회귀 테스트 로컬 구현 및 검증 완료
-- [ ] 원격 Supabase에 cleanup migration을 적용하고 cron 실행 이력·실제 삭제를 확인(완료 전 앱 정책 공개 금지)
+- [x] 원격 Supabase에 cleanup migration·일일 cron 적용
+- [ ] cron 첫 실행 이력·실제 만료정보 삭제 확인(완료 전 앱 정책 공개 금지)
 
 ## 3. Android
 
@@ -66,9 +67,11 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 - [x] `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트를 Seoul 리전에 생성
 - [x] 단일 원격 프로젝트를 통합검수 후 초기 운영으로 사용하고 일상 reset·seed·CI는 로컬에서만 수행하는 기준 확정
-- [ ] Supabase remote 프로젝트 link·migration dry-run·적용
-- [ ] 6개 Edge Function 배포
-- [ ] `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
+- [x] Supabase remote 프로젝트 link·dry-run·migration 8개 적용
+- [x] 6개 Edge Function 배포와 인증 없는 요청 차단 smoke test
+- [x] 공개 DTO 조회·원본 비공개 열 차단·함수 method/auth 원격 smoke test
+- [x] 외부 push 비활성 상태로 `PUSH_EXTERNAL_SEND_ENABLED=false` 설정
+- [ ] Vercel 서버 전용 `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
 - [ ] 등록 API에 분산 rate limit·gateway 적용
 - [ ] 실제 iOS·Android Expo push token 등록
 - [ ] owner 시험 발송, Expo ticket, receipt, `DeviceNotRegistered` 처리 실기기 확인
@@ -77,7 +80,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] 두 예약을 예약 시각부터 15분 안에 queue하고 이후 만료하는 운영 scheduler·worker 활성화 및 재승인 흐름 실기기 확인
 - [ ] 실제 발송 전 `PUSH_EXTERNAL_SEND_ENABLED=true` 변경 승인
 
-로컬 Edge Function은 기본 `dryRun=true`이며, 실제 push 발송은 현재 활성화되지 않았다.
+원격 Edge Function은 배포됐지만 `PUSH_EXTERNAL_SEND_ENABLED=false`이며, 실제 push 발송은 현재 활성화되지 않았다.
 
 ## 6. Vercel·도메인
 
@@ -108,11 +111,13 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 다음 중 하나라도 완료되지 않으면 Production 공개나 스토어 제출을 진행하지 않는다.
 
 - [ ] iOS Release·Android 실기기·스토어 서명 검증
-- [ ] Supabase remote·Edge Function·실제 push 통합 검증
+- [x] Supabase remote schema·RLS·Edge Function 배포와 비발송 smoke test
+- [ ] 실제 iOS·Android push 통합 검증
 - [ ] Vercel Preview·Production·DNS 검증
 - [ ] 법적 문서 원문·시행일·스토어 메타데이터 승인
 - [x] 보유기간과 동일한 cleanup RPC·cron·테스트 로컬 완료
-- [ ] 원격 cleanup cron 적용·실행 이력·실제 삭제 확인
+- [x] 원격 cleanup cron 적용
+- [ ] cron 실행 이력·실제 삭제 확인
 - [ ] 사용자의 최종 배포·스토어 제출 승인
 
 승인 전에는 Production 배포, DNS 변경, 실제 push 활성화, SNS 게시, 관리자 초대, App Store·Google Play 제출을 실행하지 않는다.
