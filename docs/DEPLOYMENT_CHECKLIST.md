@@ -46,6 +46,7 @@
 
 ## 4. iOS
 
+- [x] Apple 개발자 계정 유형 `개인` 확인
 - [x] iOS Simulator Debug 빌드 기존 성공 기록
 - [x] iOS Simulator Release 빌드·Metro 없는 단독 실행
 - [x] 앱 종료 후 `jubileeworship://notifications` 콜드 딥링크 확인
@@ -58,14 +59,16 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 ## 5. Supabase remote·Push
 
-- [ ] Preview Supabase remote 프로젝트 생성·link·migration 적용
-- [ ] Production Supabase remote 프로젝트 생성·link·migration 적용
+- [x] 계정 내 서울 리전 `SUNDOO`, `YUBIN` 프로젝트 존재 확인(둘 다 현재 비활성)
+- [ ] 기존 프로젝트 중 쥬빌리워십 대상 확정·복구·현재 schema 읽기 전용 감사
+- [ ] 선택한 Supabase remote 프로젝트 link·migration dry-run·적용
 - [ ] 6개 Edge Function 배포
 - [ ] `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
 - [ ] 등록 API에 분산 rate limit·gateway 적용
 - [ ] 실제 iOS·Android Expo push token 등록
 - [ ] owner 시험 발송, Expo ticket, receipt, `DeviceNotRegistered` 처리 실기기 확인
 - [x] 예배 알림 시각 `전날 19:30 KST` + `당일 1시간 전` 확정
+- [x] 각 예약은 예약 시각부터 15분 이내만 발송하고 이후 만료하는 기준 확정
 - [ ] 두 예약을 예약 시각부터 15분 안에 queue하고 이후 만료하는 운영 scheduler·worker 활성화 및 재승인 흐름 실기기 확인
 - [ ] 실제 발송 전 `PUSH_EXTERNAL_SEND_ENABLED=true` 변경 승인
 
