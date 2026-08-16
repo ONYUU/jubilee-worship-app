@@ -42,7 +42,9 @@
 - [x] Android Release APK 생성
 - [x] Android 15 16KB page-size 에뮬레이터 설치
 - [x] Android 15 16KB page-size 에뮬레이터 앱 기동
-- [ ] Android 실기기 설치·핵심 플로우·알림 검증
+- [x] Samsung SM-G991N(Android 15)에 최신 EAS development APK 설치·4개 탭·송리스트·캘린더 선택기·길찾기 선택창·공유 시트 확인
+- [x] 송리스트에서 화면 버튼·시스템 Back·가장자리 제스처로 예배 화면 복귀 확인
+- [ ] Android 실기기 알림 권한·FCM token·실제 push·receipt 검증
 - [ ] Store 서명 AAB 생성과 서명 정보 확인
 - [ ] Google Play Console 앱 생성·앱 서명·내부 테스트 트랙 업로드
 - [ ] 개인 개발자 계정 Android 실제 기기·개발자 연락처 검증 상태 확인
@@ -114,7 +116,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 다음 중 하나라도 완료되지 않으면 Production 공개나 스토어 제출을 진행하지 않는다.
 
-- [ ] iOS Release·Android 실기기·스토어 서명 검증
+- [ ] iOS Release·Android 운영 AAB·스토어 서명 검증
 - [x] Supabase remote schema·RLS·Edge Function 배포와 비발송 smoke test
 - [ ] 실제 iOS·Android push 통합 검증
 - [ ] Vercel Preview·Production·DNS 검증

@@ -1,8 +1,8 @@
 # 출시 후보 개발본 QA 보고서
 
 - 기준일: 2026-08-16 KST
-- 범위: 로컬 코드·Supabase·Edge Function 검증, Android Release 및 EAS development APK, iOS Release 및 EAS development Simulator, 모바일 Web export
-- 결론: 로컬 출시 후보 개발본의 주요 자동 검증과 Android·iOS 시뮬레이터 실행은 통과했다. 다만 운영 배포·실기기·스토어 검증은 아직 완료되지 않았다.
+- 범위: 로컬 코드·Supabase·Edge Function 검증, Android Release 및 EAS development APK 실기기, iOS Release 및 EAS development Simulator, 모바일 Web export
+- 결론: 로컬 출시 후보 개발본의 주요 자동 검증, Android 실기기 핵심 화면, Android·iOS 시뮬레이터 실행은 통과했다. 다만 실제 원격 알림, iOS 실기기, 운영 서명·스토어 검증은 아직 완료되지 않았다.
 
 ## 1. 최신 자동 검증
 
@@ -48,14 +48,17 @@ Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다.
 | Android 15 16KB page-size 에뮬레이터 설치 | 성공 | 로컬 에뮬레이터 |
 | Android 15 16KB page-size 에뮬레이터 앱 실행 | 성공 | 기본 기동 확인 |
 | EAS development APK 생성 | 성공 | `org.sundoo.jubileeworship.dev`, target API 36, APK v2 서명 확인 |
-| EAS development APK 실기기 설치 | 미완료 | 현재 ADB 연결 기기 없음 |
-| Android 실기기 테스트 | 미완료 | 외부 기기 필요 |
+| EAS development APK 실기기 설치 | 성공 | Samsung SM-G991N, Android 15 |
+| Android 실기기 핵심 화면 | 성공 | 홈·예배·미디어·안내·송리스트 |
+| Android 실기기 이동·공유 | 성공 | 캘린더 선택기·길찾기 선택창·공유 시트 확인, 외부 전송 없음 |
+| Android 뒤로가기 회귀 | 성공 | 화면 버튼·시스템 Back·가장자리 제스처 모두 송리스트에서 예배로 복귀 |
+| Android FCM 원격 알림 | 미완료 | Firebase/FCM 자격 증명 및 새 알림 빌드 필요 |
 | Store 서명 AAB·Play 내부 테스트 | 미완료 | Google Play 연결 필요 |
 | Play 비공개 테스트 12명·14일·Production access | 미완료 | 2025년 생성 개인 개발자 계정 필수 게이트 |
 
 생성된 파일은 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`에 있다. 이 APK 생성과 에뮬레이터 기동 성공은 Google Play 업로드, 스토어 서명, 실기기 검증 또는 스토어 승인을 의미하지 않는다.
 
-2026-08-16 EAS development APK는 Android 기기가 연결되지 않아 메타데이터와 서명만 확인했다. 이 EAS 결과물은 UI 개발 검수용이며, 이후 추가한 빌드 환경별 푸시 분리 코드는 자동 테스트와 원격 DB·Edge에 반영됐지만 아직 새 실기기 바이너리로 검증하지 않았다. APNs·FCM 설정 후 최신 커밋에서 다시 빌드한다.
+2026-08-16 EAS development build `9d6ba4af-ad4c-419b-9319-7506100f0160`(commit `9159518`)을 Samsung SM-G991N(Android 15)에 설치했다. 4개 탭과 송리스트를 확인했고, 이전 빌드에서 시스템 Back이 앱을 종료하던 문제를 `predictiveBackGestureEnabled=false`로 수정한 뒤 화면 버튼·시스템 Back·가장자리 제스처가 모두 예배 화면으로 복귀함을 확인했다. 캘린더 선택기, 길찾기 선택창, Android 공유 시트도 열렸으며 저장·지도 선택·외부 공유 전송은 수행하지 않았다. Fatal·Unhandled JS 오류는 없었다. 이 결과물은 development client이므로 운영 서명 AAB와 실제 FCM 알림 검증을 대체하지 않는다.
 
 ## 4. iOS 검증
 
@@ -101,6 +104,7 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 - 로컬 DB·Edge·자동 테스트: **통과**
 - Android Release APK·16KB Android 15 에뮬레이터: **통과**
+- Android 15 실기기 development APK·핵심 화면·뒤로가기: **통과**
 - iOS Release Simulator·custom-scheme 콜드 딥링크: **통과**
 - iOS 실기기·서명·스토어 배포: **미완료**
 - Expo/EAS 개발 프로젝트·iOS Simulator development build·Android development APK: **완료**
