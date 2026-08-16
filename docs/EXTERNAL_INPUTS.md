@@ -10,7 +10,7 @@
 | 2 | Vercel 개발 프로젝트와 무료 주소 | 웹 관리자·개인정보 URL Preview | 미연결 |
 | 2 | 유료 `.com` 또는 `.org` 도메인 선택 | 정식 운영 URL 확정 | 완성 후 구매 예정 |
 | 2 | DNS 담당자 | 승인 후 레코드 생성 | 확인 필요 |
-| 2 | Apple Team ID와 Android 앱 서명 인증서 SHA-256 | 공식 웹 주소의 Universal Link·App Link 검증 파일 생성 | Apple 개인 계정 준비 완료, 식별자·서명값 확인 필요 |
+| 2 | Apple Team ID와 Android 앱 서명 인증서 SHA-256 | 공식 웹 주소의 Universal Link·App Link 검증 파일 생성 | Apple Team·등록 iPhone 확인, Android 운영 서명값은 미확정 |
 | 2 | APNs·FCM 자격 증명 | 실제 기기 푸시 토큰과 원격 알림 검증 | EAS 프로젝트 연결 완료, 알림 자격 증명은 미설정 |
 | 2 | Google Play 비공개 테스터 12명 | 2025년 생성 개인 개발자 계정의 Production access 조건 | 14일 연속 참여자 확보 필요 |
 | 2 | Play Console Android 기기·연락처 검증 상태 | 신규 개인 개발자 계정 필수 절차 여부 확인 | Console Dashboard에서 확인 필요 |

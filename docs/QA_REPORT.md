@@ -55,6 +55,8 @@ Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다.
 
 생성된 파일은 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`에 있다. 이 APK 생성과 에뮬레이터 기동 성공은 Google Play 업로드, 스토어 서명, 실기기 검증 또는 스토어 승인을 의미하지 않는다.
 
+2026-08-16 EAS development APK는 Android 기기가 연결되지 않아 메타데이터와 서명만 확인했다. 이 EAS 결과물은 UI 개발 검수용이며, 이후 추가한 빌드 환경별 푸시 분리 코드는 자동 테스트와 원격 DB·Edge에 반영됐지만 아직 새 실기기 바이너리로 검증하지 않았다. APNs·FCM 설정 후 최신 커밋에서 다시 빌드한다.
+
 ## 4. iOS 검증
 
 | 항목 | 결과 | 판정 |
@@ -67,6 +69,8 @@ Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다.
 | iOS 실기기·Archive·TestFlight | 미완료 | Apple 계정·서명 필요 |
 
 iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없이 홈을 실행했다. 앱을 종료한 후 `jubileeworship://notifications`로 다시 열어 알림함 도착을 확인했고, Fatal·Unhandled·bundle URL 오류와 크래시 보고서는 없었다. 2026-08-16에는 별도의 EAS Simulator development build를 iPhone 17 Simulator에 설치하고 Metro에 연결해 홈·예배·미디어 화면을 확인했다. development build는 개발 검수용이며 독립 Release·실기기·스토어 빌드를 대체하지 않는다. 무서명 Simulator 빌드의 알림 Keychain entitlement는 실제 서명된 EAS 실기기 빌드에서 재검증해야 한다.
+
+Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내부 빌드는 Apple 서명 자격 증명 입력 단계에서 중단했다. Apple 비밀번호·2단계 인증값은 저장소나 채팅에 남기지 않고 사용자가 로컬 터미널에 직접 입력한 뒤 재개한다.
 
 ## 5. 웹 화면·접근성 기존 QA 기록
 
