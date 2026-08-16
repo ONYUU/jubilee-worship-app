@@ -54,9 +54,13 @@ apps/mobile/android/
 .easignore
 credentials.json
 google-services.json
+**/google-services*.json
 GoogleService-Info.plist
 *service-account*.json
+**/*firebase*service-account*.json
 *-firebase-adminsdk-*.json
+**/*firebase-adminsdk*.json
+apps/mobile/.credentials/
 
 # Local databases and dumps
 *.sqlite

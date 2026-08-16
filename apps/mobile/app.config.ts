@@ -61,6 +61,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       package: identifier,
       versionCode: 1,
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       predictiveBackGestureEnabled: false,
       adaptiveIcon: {
         foregroundImage: "./assets/images/jubilee/app-icon-rose-haze.png",
