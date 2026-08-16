@@ -61,7 +61,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       package: identifier,
       versionCode: 1,
-      predictiveBackGestureEnabled: true,
+      predictiveBackGestureEnabled: false,
       adaptiveIcon: {
         foregroundImage: "./assets/images/jubilee/app-icon-rose-haze.png",
         backgroundColor: "#E5D8D9"
