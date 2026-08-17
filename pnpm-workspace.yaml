@@ -2,6 +2,9 @@ packages:
   - "apps/*"
   - "packages/*"
 
+overrides:
+  "xcode@3.0.1>uuid": "11.1.1"
+
 allowBuilds:
   # ESLint's resolver ships prebuilt binaries; do not execute its install script.
   unrs-resolver: false

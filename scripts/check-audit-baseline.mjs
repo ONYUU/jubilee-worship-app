@@ -2,8 +2,7 @@ import { spawnSync } from "node:child_process";
 
 const allowedAdvisories = new Set([
   "GHSA-w3rx-r6r6-pgpr",
-  "GHSA-5p2g-fcmc-qvqq",
-  "GHSA-w5hq-g745-h8pq"
+  "GHSA-5p2g-fcmc-qvqq"
 ]);
 
 const result = spawnSync("pnpm", ["audit", "--prod", "--json"], {
