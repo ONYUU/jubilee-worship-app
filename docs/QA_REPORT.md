@@ -1,7 +1,7 @@
 # 출시 후보 개발본 QA 보고서
 
-- 기준일: 2026-08-16 KST
-- 범위: 로컬 코드·Supabase·Edge Function 검증, Android Release 및 EAS development APK 실기기, iOS Release 및 EAS development Simulator, 모바일 Web export
+- 기준일: 2026-08-17 KST
+- 범위: 로컬 코드·Supabase·Edge Function 검증, Android Release 및 EAS development APK 실기기, iOS Release·EAS development·EAS Preview Simulator, 모바일 Web export
 - 결론: 로컬 출시 후보 개발본의 주요 자동 검증, Android 실기기 핵심 화면, Android·iOS 시뮬레이터 실행은 통과했다. 다만 실제 원격 알림, iOS 실기기, 운영 서명·스토어 검증은 아직 완료되지 않았다.
 
 ## 1. 최신 자동 검증
@@ -9,20 +9,20 @@
 | 영역 | 결과 | 판정 |
 |---|---:|---:|
 | Domain 단위 테스트 | 85/85 | 통과 |
-| Web 단위 테스트 | 25/25 | 통과 |
-| Mobile 단위 테스트 | 21/21 | 통과 |
-| Supabase pgTAP | 413/413 | 통과 |
-| Edge Function 단위 테스트 | 15/15 | 통과 |
-| Edge Function format·type check | 19개 파일 | 통과 |
+| Web 단위 테스트 | 27/27 | 통과 |
+| Mobile 단위 테스트 | 24/24 | 통과 |
+| Supabase pgTAP | 543/543 | 통과 |
+| Edge Function 단위 테스트 | 31/31 | 통과 |
+| Edge Function format·type check | 24개 파일 | 통과 |
 
-Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다.
+Domain·Web·Mobile 단위 테스트는 합계 136건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다.
 
 ## 2. 데이터베이스·보안
 
 | 검증 | 결과 |
 |---|---:|
 | 시드 포함 `supabase db reset` | 통과 |
-| RLS·GRANT·Storage·RPC pgTAP | 413/413 통과 |
+| RLS·GRANT·Storage·RPC pgTAP | 543/543 통과 |
 | Supabase DB lint | warning/error 0 |
 | 원격 Security Advisor | 오류 0, 관리자 전용 RPC 정적 경고 27건 검토 완료 |
 | Performance Advisor | 보고 이슈 0 |
@@ -37,6 +37,7 @@ Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다.
 - 앱 갤러리는 private `gallery-staging` 경로에서 owner 동의 확인 후 `public-media/app-gallery/`로 옮긴 객체만 공개할 수 있다.
 - 앱 설치 secret은 원문 열을 두지 않고 SHA-256 hash만 저장하며, 알림 private table에 대한 anon·authenticated 직접 권한은 없다.
 - development·preview·production 설치정보를 분리하고, 일반·예배 알림은 production 설치에만 발송한다. owner가 특정 기기로 보내는 시험 알림은 development·preview에서도 허용한다.
+- 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용한다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다.
 - 예배 알림은 owner가 미리 승인한 공개 `scheduled|postponed` 예배에 대해 `전날 19:30 KST`와 `당일 1시간 전` 두 예약을 중복 없이 생성하고, 예배·문구 기준 변경 시 재승인을 요구하도록 구현했다. 실제 queue는 예약 시각부터 15분 안에 운영 scheduler가 실행해야 한다.
 - 알림 데이터 cleanup은 토큰 원문 최대 24시간, 180일 미활동 설치 비활성화, 비활성 설치정보 30일, 발송 상세 90일 기준으로 구현했다. 일일 cron, 멱등 실행, 직접 권한 차단, 경계값 삭제를 로컬 DB에서 검증했고 원격 cron을 활성화했다. 첫 실행 이력과 실제 만료정보 삭제는 아직 확인 전이다.
 
@@ -69,9 +70,13 @@ Domain·Web·Mobile 단위 테스트는 합계 131건이며 모두 통과했다.
 | Metro 없는 Release 단독 실행 | 성공 | 통과 |
 | 앱 종료 후 알림함 custom-scheme 콜드 딥링크 | 성공 | 통과 |
 | EAS Simulator development build | 생성·설치·실행 성공 | 홈·예배·미디어 화면 확인 |
+| EAS Preview Simulator 원격 콘텐츠 | 생성·설치·실행 성공 | 원격 Supabase 예배 데이터 표시 확인 |
+| Preview 알림함·알림설정 딥링크 | 성공 | 각 화면 진입 후 이전 버튼으로 홈 복귀 |
 | iOS 실기기·Archive·TestFlight | 미완료 | Apple 계정·서명 필요 |
 
 iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없이 홈을 실행했다. 앱을 종료한 후 `jubileeworship://notifications`로 다시 열어 알림함 도착을 확인했고, Fatal·Unhandled·bundle URL 오류와 크래시 보고서는 없었다. 2026-08-16에는 별도의 EAS Simulator development build를 iPhone 17 Simulator에 설치하고 Metro에 연결해 홈·예배·미디어 화면을 확인했다. development build는 개발 검수용이며 독립 Release·실기기·스토어 빌드를 대체하지 않는다. 무서명 Simulator 빌드의 알림 Keychain entitlement는 실제 서명된 EAS 실기기 빌드에서 재검증해야 한다.
+
+2026-08-17에는 EAS Preview Simulator build `870d1615-ac38-4353-a4fa-c73913266d52`(commit `09c84da`)를 iPhone 17 Simulator(iOS 26.5)에 단독 설치했다. 원격 Supabase에서 2026-09-04 예배와 최근 영상을 읽어 홈에 표시했으며, 앱을 종료한 뒤 `jubileeworship://notifications`로 콜드 진입하고 화면의 이전 버튼으로 홈에 복귀했다. `jubileeworship://notification-settings` 진입·복귀도 성공했고, 시뮬레이터에는 실기기에서만 사용하는 시험 알림 연결 코드가 노출되지 않았다. 최근 실행 로그의 Fatal·Unhandled·exception·bundle URL 오류는 0건이었다.
 
 Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내부 빌드는 Apple 서명 자격 증명 입력 단계에서 중단했다. Apple 비밀번호·2단계 인증값은 저장소나 채팅에 남기지 않고 사용자가 로컬 터미널에 직접 입력한 뒤 재개한다.
 
@@ -90,25 +95,27 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 다음은 로컬 코드 완료와 별개의 배포·운영 게이트다.
 
-1. Vercel에 원격 Supabase 공개 환경변수를 연결하고 최초 owner Auth 계정·SMTP를 설정
-2. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
-3. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-4. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
-5. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
-6. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
-7. 개인정보처리방침·이용약관 최종 원문과 시행일 승인(운영주체 `쥬빌리 워십`, 문의·개인정보 `sundoojubileeworship@gmail.com`은 확정·반영 완료)
-8. 원격 cleanup cron의 첫 실행 이력·실제 만료정보 삭제 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
-9. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
+1. 신규 시험 알림 연결 migration·Edge Function 2개와 `TEST_PUSH_PAIRING_PEPPER`를 원격 Supabase에 안전 순서로 적용하고 최초 owner Auth 계정·SMTP를 설정
+2. Firebase Android 앱 3종 등록 완료, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결
+3. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
+4. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
+5. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
+6. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
+7. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
+8. 개인정보처리방침·이용약관 최종 원문과 시행일 승인(운영주체 `쥬빌리 워십`, 문의·개인정보 `sundoojubileeworship@gmail.com`은 확정·반영 완료)
+9. 원격 cleanup cron의 첫 실행 이력·실제 만료정보 삭제 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
+10. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
 
 ## 7. 최종 판정
 
 - 로컬 DB·Edge·자동 테스트: **통과**
 - Android Release APK·16KB Android 15 에뮬레이터: **통과**
 - Android 15 실기기 development APK·핵심 화면·뒤로가기: **통과**
-- iOS Release Simulator·custom-scheme 콜드 딥링크: **통과**
+- iOS Release·EAS Preview Simulator, 원격 콘텐츠·custom-scheme 콜드 딥링크: **통과**
 - iOS 실기기·서명·스토어 배포: **미완료**
 - Expo/EAS 개발 프로젝트·iOS Simulator development build·Android development APK: **완료**
-- Supabase remote schema·Edge Function·retention cron: **적용 완료, 실제 push·첫 cron 실행 검증 전**
+- Supabase 기존 remote schema·Edge Function·retention cron: **적용 완료, 실제 push·첫 cron 실행 검증 전**
+- 시험 알림 연결 migration·Edge Function 2개·server pepper: **로컬 검증 완료, 원격 미적용**
 - Vercel·DNS·실제 push: **미완료**
 
 따라서 현재 상태는 **로컬 출시 후보 개발본**이며, **스토어 출시 또는 운영 배포 완료 상태는 아니다**.
