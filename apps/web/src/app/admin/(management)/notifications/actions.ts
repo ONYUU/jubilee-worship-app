@@ -16,7 +16,10 @@ import type { ActionState } from "@/lib/auth/types";
 import {
   notificationCampaignFormSchema,
   notificationCampaignIdSchema,
+  testPushEdgeRequestBody,
   testPushFormSchema,
+  testPushPairingApprovalEdgeRequestBody,
+  testPushPairingApprovalFormSchema,
   worshipReminderScheduleFormSchema,
   worshipReminderScheduleResultSchema
 } from "@/lib/admin/mobile-content-schemas";
@@ -231,10 +234,12 @@ export async function scheduleWorshipRemindersAction(_state: ActionState, formDa
 }
 
 const queuedTestPushResponseSchema = z.object({
-  campaignId: z.uuid(),
-  status: z.literal("queued"),
-  externalSend: z.literal(false)
-});
+  campaignId: z.uuid()
+}).strict();
+
+const approvedTestPushPairingResponseSchema = z.object({
+  status: z.literal("approved")
+}).strict();
 
 function edgeErrorStatus(error: unknown): number | null {
   if (!error || typeof error !== "object" || !("context" in error)) return null;
@@ -246,8 +251,8 @@ export async function sendTestPushAction(_state: ActionState, formData: FormData
   noStore();
   const { supabase } = await requireOwner();
   const parsed = testPushFormSchema.safeParse({
-    installation_id: requiredString(formData.get("installation_id")),
-    installation_secret: requiredString(formData.get("installation_secret")),
+    request_id: requiredString(formData.get("request_id")),
+    target: requiredString(formData.get("target")),
     title: requiredString(formData.get("title")),
     body: requiredString(formData.get("body")),
     deep_link: optionalString(formData.get("deep_link"))
@@ -255,26 +260,71 @@ export async function sendTestPushAction(_state: ActionState, formData: FormData
   if (!parsed.success) return zodActionError(parsed.error);
 
   const { data, error } = await supabase.functions.invoke("test-push", {
-    body: {
-      installationId: parsed.data.installation_id,
-      installationSecret: parsed.data.installation_secret,
-      title: parsed.data.title,
-      body: parsed.data.body,
-      deepLink: parsed.data.deep_link
-    }
+    body: testPushEdgeRequestBody(parsed.data)
   });
   if (error) {
     const status = edgeErrorStatus(error);
     if (status === 404) return actionError("시험 발송 서버가 아직 연결되지 않았습니다. test-push Edge Function 배포를 확인해 주세요.");
-    if (status === 401) return actionError("시험 기기 ID·비밀값이 일치하지 않거나 관리자 세션이 만료됐습니다.");
+    if (status === 401) return actionError("관리자 세션이 만료됐습니다. 다시 로그인해 주세요.");
     if (status === 403) return actionError("시험 발송은 활성 오너만 수행할 수 있습니다.");
+    if (status === 409) return actionError("시험 기기 상태가 바뀌었거나 같은 요청 식별값의 내용이 충돌합니다. 캠페인 이력을 확인한 뒤 목록을 새로고침해 주세요.");
     if (status === 400) return actionError("시험 발송 입력값을 확인해 주세요.");
-    return actionError("시험 발송 준비가 완료되지 않았습니다. Edge Function·DB·서버 secret 설정을 확인해 주세요. 입력한 기기 비밀값은 화면이나 로그에 표시하지 않습니다.");
+    return actionError("시험 발송 준비가 완료되지 않았습니다. Edge Function과 DB 연결 상태를 확인해 주세요.");
   }
 
   const response = queuedTestPushResponseSchema.safeParse(data);
-  if (!response.success) return actionError("시험 발송 서버의 응답을 확인하지 못했습니다. 외부 발송은 시작하지 않았다고 간주하세요.");
+  if (!response.success) return actionError("시험 발송 서버의 응답을 확인하지 못했습니다. 중복 등록하지 말고 캠페인 이력을 먼저 확인해 주세요.");
 
   revalidateNotificationPaths();
-  return actionSuccess("시험 캠페인을 승인하고 큐에 넣었습니다. 현재 단계는 큐 등록이며, 실제 발송은 dispatch worker 설정을 따릅니다.");
+  return actionSuccess("시험 캠페인 요청을 확인했습니다. 실제 상태는 캠페인 이력과 dispatch worker 처리 결과를 확인해 주세요.");
+}
+
+export async function approveTestPushPairingAction(
+  _state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  noStore();
+  const { supabase } = await requireOwner();
+  const parsed = testPushPairingApprovalFormSchema.safeParse({
+    pairing_code: requiredString(formData.get("pairing_code"))
+  });
+  if (!parsed.success) return zodActionError(parsed.error);
+
+  const { data, error } = await supabase.functions.invoke("approve-test-push-pairing", {
+    body: testPushPairingApprovalEdgeRequestBody(parsed.data)
+  });
+  if (error) {
+    const status = edgeErrorStatus(error);
+    if (status === 404) return actionError("시험 기기 연결 승인 서버가 아직 배포되지 않았습니다.");
+    if (status === 401) return actionError("관리자 세션이 만료됐습니다. 다시 로그인해 주세요.");
+    if (status === 403) return actionError("시험 기기 연결 승인은 활성 오너만 수행할 수 있습니다.");
+    if (status === 409) return actionError("연결 코드가 만료됐거나 이미 사용됐습니다. 앱에서 새 코드를 만들어 주세요.");
+    if (status === 503) return actionError("시험 기기 연결 서버 secret이 아직 설정되지 않았습니다.");
+    if (status === 400) return actionError("앱에 표시된 12자리 연결 코드를 확인해 주세요.");
+    return actionError("시험 기기 연결 승인을 완료하지 못했습니다. Edge Function과 DB 상태를 확인해 주세요.");
+  }
+
+  const response = approvedTestPushPairingResponseSchema.safeParse(data);
+  if (!response.success) return actionError("시험 기기 연결 승인 응답을 확인하지 못했습니다. 승인 기기 목록을 먼저 확인해 주세요.");
+
+  revalidateNotificationPaths();
+  return actionSuccess("시험 기기 연결을 승인했습니다. 승인 목록에서 기기를 확인해 주세요.");
+}
+
+export async function revokeTestPushTargetAction(
+  _state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  noStore();
+  const { supabase } = await requireOwner();
+  const endpointId = z.uuid().safeParse(requiredString(formData.get("id")));
+  if (!endpointId.success) return zodActionError(endpointId.error);
+
+  const { error } = await supabase.rpc("revoke_owner_test_push_target", {
+    target_push_endpoint_id: endpointId.data
+  });
+  if (error) return actionError("시험 기기 승인을 해제하지 못했습니다. 이미 해제됐는지 확인해 주세요.");
+
+  revalidateNotificationPaths();
+  return actionSuccess("시험 기기 승인을 해제하고 아직 처리되지 않은 시험 큐를 취소했습니다.");
 }

@@ -7,7 +7,11 @@ import {
   notificationCampaignFormSchema,
   sermonRevisionFormSchema,
   setlistItemFormSchema,
+  testPushEdgeRequestBody,
   testPushFormSchema,
+  testPushPairingApprovalEdgeRequestBody,
+  testPushPairingApprovalFormSchema,
+  testPushTargetListSchema,
   worshipReminderScheduleFormSchema,
   worshipReminderScheduleListSchema,
   worshipReminderScheduleResultSchema
@@ -140,16 +144,82 @@ describe("mobile admin content schemas", () => {
     ).toBe(false);
   });
 
-  it("requires a private installation secret for test push", () => {
-    expect(
-      testPushFormSchema.safeParse({
-        installation_id: "550e8400-e29b-41d4-a716-446655440000",
-        installation_secret: "private-installation-secret",
+  it("accepts only an explicit development or preview test target without a secret", () => {
+    const parsed = testPushFormSchema.safeParse({
+      request_id: "56d6d48f-c70a-4b80-87d4-bc366de8788d",
+      target: "development:550e8400-e29b-41d4-a716-446655440000",
+      title: "시험 알림",
+      body: "시험 기기에만 보냅니다.",
+      deep_link: null
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      const requestBody = testPushEdgeRequestBody(parsed.data);
+      expect(requestBody).toEqual({
+        requestId: "56d6d48f-c70a-4b80-87d4-bc366de8788d",
+        pushEndpointId: "550e8400-e29b-41d4-a716-446655440000",
+        appVariant: "development",
         title: "시험 알림",
         body: "시험 기기에만 보냅니다.",
+        deepLink: null
+      });
+      expect(Object.keys(requestBody).some((key) => /secret|token|installation/i.test(key))).toBe(false);
+    }
+    expect(
+      testPushFormSchema.safeParse({
+        request_id: "56d6d48f-c70a-4b80-87d4-bc366de8788d",
+        target: "production:550e8400-e29b-41d4-a716-446655440000",
+        title: "시험 알림",
+        body: "운영 기기는 시험 대상에서 제외합니다.",
         deep_link: null
       }).success
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      testPushFormSchema.safeParse({
+        request_id: "56d6d48f-c70a-4b80-87d4-bc366de8788d",
+        target: "preview:not-a-uuid",
+        title: "시험 알림",
+        body: "잘못된 대상을 거부합니다.",
+        deep_link: null
+      }).success
+    ).toBe(false);
+    expect(
+      testPushFormSchema.safeParse({
+        request_id: "not-a-uuid",
+        target: "preview:550e8400-e29b-41d4-a716-446655440000",
+        title: "시험 알림",
+        body: "재시도 멱등성 식별값이 필요합니다.",
+        deep_link: null
+      }).success
+    ).toBe(false);
+  });
+
+  it("normalizes a one-time pairing code without exposing a digest or installation secret", () => {
+    const parsed = testPushPairingApprovalFormSchema.safeParse({
+      pairing_code: "2h7k-9m4q-wx3d"
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      const requestBody = testPushPairingApprovalEdgeRequestBody(parsed.data);
+      expect(requestBody).toEqual({ pairingCode: "2H7K9M4QWX3D" });
+      expect(Object.keys(requestBody).some((key) => /digest|hash|secret|token|installation/i.test(key))).toBe(false);
+    }
+    expect(testPushPairingApprovalFormSchema.safeParse({ pairing_code: "1234" }).success).toBe(false);
+  });
+
+  it("accepts only the masked minimum metadata returned for test targets", () => {
+    const target = {
+      push_endpoint_id: "550e8400-e29b-41d4-a716-446655440000",
+      app_variant: "preview",
+      display_label: "미리보기 · Android · 기기 …440000 · 앱 0.1.0"
+    };
+    expect(testPushTargetListSchema.safeParse([target]).success).toBe(true);
+    expect(
+      testPushTargetListSchema.safeParse([{
+        ...target,
+        expo_push_token: "ExpoPushToken[must_not_reach_the_browser]"
+      }]).success
+    ).toBe(false);
   });
 
   it("validates both approved worship reminder messages", () => {

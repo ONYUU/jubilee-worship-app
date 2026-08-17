@@ -369,6 +369,18 @@ select
 from private.push_endpoints as endpoint
 where endpoint.installation_id = '71000000-0000-4000-8000-000000000002';
 
+-- Public registration is not test authorization.  This fixture represents the
+-- separate owner-pairing approval whose detailed contract is tested in the
+-- owner test-push suite.
+insert into private.owner_test_push_targets (
+  push_endpoint_id, app_variant_snapshot, approved_by, approved_at
+)
+select
+  endpoint.id, 'preview',
+  '71111111-1111-4111-8111-111111111111', statement_timestamp()
+from private.push_endpoints as endpoint
+where endpoint.installation_id = '71000000-0000-4000-8000-000000000002';
+
 insert into private.notification_outbox (campaign_id, dedupe_key)
 values (
   '72000000-0000-4000-8000-000000000003',

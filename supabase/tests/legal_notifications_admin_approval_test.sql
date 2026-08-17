@@ -120,8 +120,8 @@ select is(
       and grantee = 'service_role'
       and privilege_type = 'EXECUTE'
   ),
-  11::bigint,
-  'service_role can execute all eleven Edge and maintenance RPCs'
+  13::bigint,
+  'service_role can execute all thirteen Edge and maintenance RPCs'
 );
 
 -- 11
@@ -341,7 +341,7 @@ select is(
       and procedure.prosecdef
       and 'search_path=""' = any (coalesce(procedure.proconfig, array[]::text[]))
   ),
-  11::bigint,
+  13::bigint,
   'all service RPCs are security definer functions with a fixed empty search path'
 );
 

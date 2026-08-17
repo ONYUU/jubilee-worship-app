@@ -143,6 +143,7 @@ export function requiredPlatform(value: unknown): "ios" | "android" {
 }
 
 export type AppVariant = "development" | "preview" | "production";
+export type TestAppVariant = Exclude<AppVariant, "production">;
 
 export function requiredAppVariant(value: unknown): AppVariant {
   if (
@@ -152,6 +153,17 @@ export function requiredAppVariant(value: unknown): AppVariant {
       400,
       "invalid_input",
       "appVariant는 development, preview 또는 production이어야 합니다.",
+    );
+  }
+  return value;
+}
+
+export function requiredTestAppVariant(value: unknown): TestAppVariant {
+  if (value !== "development" && value !== "preview") {
+    throw new HttpError(
+      400,
+      "invalid_app_variant",
+      "시험 알림 환경은 development 또는 preview여야 합니다.",
     );
   }
   return value;

@@ -7,8 +7,15 @@ import { Platform } from "react-native";
 
 import { resolveNotificationAppVariant } from "./app-variant";
 import { isInvalidInstallationError, NotificationSetupError } from "./errors";
+import {
+  isTestPushPairingVariant,
+  parseTestPushPairingCode,
+  type TestPushPairingCode
+} from "./test-push-pairing";
 
 export { NotificationSetupError } from "./errors";
+export { testPushPairingRemainingMs } from "./test-push-pairing";
+export type { TestPushPairingCode } from "./test-push-pairing";
 
 const INSTALLATION_KEY = "jubilee.push-installation.v1";
 const PREFERENCES_KEY = "jubilee.push-preferences.v1";
@@ -115,6 +122,10 @@ function appVersion(): string {
 
 function appVariant() {
   return resolveNotificationAppVariant(Constants.expoConfig?.extra);
+}
+
+export function testPushPairingAvailable(): boolean {
+  return isTestPushPairingVariant(appVariant());
 }
 
 async function functionRequest<T>(name: string, body: Record<string, unknown>): Promise<T> {
@@ -338,4 +349,31 @@ export async function unregisterNotifications(): Promise<void> {
     PREFERENCES_KEY,
     JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
   );
+}
+
+export async function createTestPushPairingCode(): Promise<TestPushPairingCode> {
+  const variant = appVariant();
+  if (!isTestPushPairingVariant(variant)) {
+    throw new NotificationSetupError("운영 앱은 시험 기기로 연결할 수 없습니다.");
+  }
+
+  const credentials = await readCredentials();
+  if (!credentials) {
+    throw new NotificationSetupError("알림을 먼저 허용해 이 기기를 등록해 주세요.");
+  }
+
+  try {
+    const response = await functionRequest<unknown>("create-test-push-pairing", {
+      ...credentials,
+      appVariant: variant
+    });
+    const pairing = parseTestPushPairingCode(response, variant);
+    if (!pairing) {
+      throw new NotificationSetupError("시험 기기 연결정보 응답이 올바르지 않습니다.");
+    }
+    return pairing;
+  } catch (error) {
+    if (isInvalidInstallationError(error)) await clearCredentials();
+    throw error;
+  }
 }

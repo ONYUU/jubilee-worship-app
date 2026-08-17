@@ -72,7 +72,18 @@
 4. 예배 시각·공개 상태·승인 문구 기준이 바뀐 예약은 `재승인 필요`로 표시됩니다. 기존 예약이 자동 이동하는 것으로 간주하지 말고 두 문구를 다시 승인합니다.
 5. 승인·예약은 발송 완료가 아닙니다. 운영 scheduler가 `scheduled_for`부터 15분 안에 queue하고, `dispatch-notifications` worker와 외부 발송 설정이 활성화되어야 실제 기기로 발송됩니다. 15분을 넘긴 예약은 늦게 발송하지 않고 만료 처리합니다.
 
-## 9. 관리자 비활성화
+## 9. 시험 기기 푸시 확인
+
+1. 알림을 허용하고 서버 등록을 마친 `development`·`preview` 실기기의 알림 설정에서 `연결 코드 만들기`를 누릅니다. `production` 앱에는 이 기능이 표시되지 않습니다.
+2. 앱에 표시된 12자리 코드를 10분 안에 활성 `owner`가 `/admin/notifications`에 직접 입력합니다. 코드는 1회용이며 새 코드 발급·승인 또는 만료 감지 시 서버의 HMAC digest도 제거됩니다. 미사용 만료 코드는 5분 cleanup 주기 안에 제거됩니다.
+3. 공개 설치 등록만으로 시험 대상이 되지 않습니다. 오너가 코드를 승인한 active endpoint만 마스킹된 목록에 표시됩니다.
+4. 화면에는 환경·플랫폼·앱 버전·endpoint 끝 6자리만 표시합니다. 설치 UUID, 설치 secret, Expo token, token hash, 코드 digest를 표시·로그 기록하지 않습니다.
+5. 승인 목록에서 대상 1대와 제목·본문·딥링크를 확인한 뒤 `시험 캠페인 큐 등록`을 실행합니다. Server Action, Edge Function, DB RPC가 owner·승인 상태·활성 상태·비운영 variant를 다시 검증합니다.
+6. 같은 화면 요청은 숨은 request UUID로 멱등 처리됩니다. 동일 UUID의 내용이 달라지면 실패하고, 동일하면 기존 캠페인만 반환합니다.
+7. 필요하면 `승인 해제`를 누릅니다. 아직 pending인 시험 큐는 취소되지만 worker가 이미 `processing`으로 claim한 작업은 회수할 수 없습니다.
+8. 큐 등록은 실기기 도착을 의미하지 않습니다. 실제 수신 확인은 별도로 `dispatch-notifications`, FCM/APNs 자격 증명, 앱 알림 권한을 준비한 뒤 수행합니다.
+
+## 10. 관리자 비활성화
 
 1. 오너가 `/admin/admins`에서 대상 계정을 비활성화합니다. 서버는 DB `is_active=false`를 먼저 적용합니다.
 2. DB 권한은 기존 JWT가 남아 있어도 즉시 차단됩니다. 이후 서버 전용 Auth Admin API가 해당 Auth 계정을 장기 ban합니다.
@@ -80,7 +91,7 @@
 4. 자기 자신 비활성화, 마지막 활성 owner 비활성화·강등은 DB와 화면 모두에서 차단됩니다.
 5. 일반 authenticated 사용자와 비활성 관리자의 직접 Data API 읽기·쓰기 시도가 거부되는지 확인합니다.
 
-## 10. 장애 시 확인 순서
+## 11. 장애 시 확인 순서
 
 1. `/admin`에 “설정 필요”가 표시되면 Supabase URL과 publishable key를 확인합니다.
 2. 로그인 후 권한 없음이면 Auth UUID와 `admin_users.user_id`, `is_active`를 확인합니다.

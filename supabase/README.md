@@ -193,11 +193,11 @@ withdraw_legal_document(target_document_id bigint) -> void
 
 ```text
 POST register-installation
-{ platform, appVersion, expoPushToken, subscriptions }
+{ platform, appVersion, appVariant, expoPushToken, subscriptions }
 -> 201 { installationId, installationSecret }
 
 POST update-notification-settings
-{ installationId, installationSecret, appVersion, expoPushToken?, subscriptions }
+{ installationId, installationSecret, appVersion, appVariant, expoPushToken?, subscriptions }
 -> 204
 
 POST unregister-installation
@@ -207,7 +207,15 @@ POST unregister-installation
 
 `subscriptions`는 `worshipReminder`, `scheduleChanges`, `setlistUpdates` boolean 세 필드를 모두 포함한다. 설치 secret 원문은 앱의 SecureStore에만 보관하며 Edge Function은 즉시 hash로 바꿔 service-role RPC에 전달한다. 등록 함수의 메모리 요청 제한은 1차 abuse guard이므로 운영 배포에서는 API gateway의 분산 rate limit도 추가한다.
 
-시험 발송은 active owner 세션으로 `test-push`에 `{ installationId, installationSecret, title, body, deepLink? }`를 전송한다. 성공 응답 `202 { campaignId, status: 'queued', externalSend: false }`는 큐 생성 완료이지 외부 발송 완료가 아니다.
+시험 기기 연결은 공개 등록과 분리한다. `development|preview` 앱이 설치 UUID·secret·명시적 variant로 `create-test-push-pairing`을 호출하면 Edge Function이 12자리 Crockford 코드를 생성하고 서버 전용 `TEST_PUSH_PAIRING_PEPPER`로 HMAC-SHA256 digest를 계산한다. DB에는 10분 동안 digest만 저장하고 raw 코드는 앱에 한 번만 반환한다. 발급은 endpoint별 30초 cooldown·시간당 10회 제한이며, 새 발급·승인·만료 시 이전 digest를 즉시 제거한다.
+
+active owner는 raw 코드를 `approve-test-push-pairing`에 입력한다. Edge Function이 같은 HMAC digest로 바꿔 사용자 JWT RPC를 호출하며, DB가 pending·미만료·active·variant 일치를 확인한 뒤 endpoint allowlist를 원자적으로 갱신한다. `list_owner_test_push_targets()`는 승인된 active endpoint의 `{ push_endpoint_id, app_variant, display_label }`만 반환한다. `display_label`은 서버에서 마스킹되며 설치 UUID·secret·Expo token·token hash·code digest는 브라우저로 반환하지 않는다. 같은 endpoint 행의 token refresh는 승인을 유지하지만 새 endpoint ID는 다시 연결해야 한다.
+
+이 절차는 오너가 보고 있는 실기기와 서버 endpoint를 사람의 확인으로 연결하는 장치이며 앱 package 자체를 암호학적으로 증명하지는 않는다. 오너는 직접 확인한 development/preview 화면의 코드만 승인한다. 악성 변조 앱까지 자동 판별해야 하는 단계에서는 Play Integrity·App Attest와 환경별 서명 검증을 별도 도입한다.
+
+`test-push` 요청은 `{ requestId, pushEndpointId, appVariant, title, body, deepLink? }`이다. Edge Function과 `queue_owner_test_push(...)`가 active owner·allowlist·활성 endpoint·명시된 비운영 variant를 다시 검증한다. owner 범위 request UUID는 payload와 결합되어 동일 재시도에는 기존 campaign ID를 반환하고 내용이 다르면 실패한다. 성공 응답 `202 { campaignId }`는 요청이 DB에 반영됐다는 뜻이며 실기기 도착 증거가 아니다. 일반 캠페인 RPC와 production 설치는 이 전용 경로에서 제외된다.
+
+worker claim wrapper는 test outbox를 처리하기 직전에 allowlist·variant·endpoint·installation 상태를 다시 검증하고 부적격 legacy/pending 행을 취소한다. delivery insert 경계도 같은 행들을 `FOR UPDATE`로 잠가 revoke·disable과 직렬화한다. 단, provider 단계로 claim된 뒤의 발송은 승인 해제로 회수할 수 없다.
 
 `dispatch-notifications`와 `process-push-receipts`는 secret key 요청만 허용하고 기본 `dryRun=true`다. 코드에 실제 Expo access token을 저장하지 않는다. 운영 외부 발송은 배포 secret과 `PUSH_EXTERNAL_SEND_ENABLED=true`를 별도 승인한 뒤에만 활성화한다.
 

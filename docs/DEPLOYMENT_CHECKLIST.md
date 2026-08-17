@@ -1,16 +1,16 @@
 # 배포·스토어 출시 체크리스트
 
-- 기준일: 2026-08-15 KST
+- 기준일: 2026-08-17 KST
 - `[x]`: 현재 checkout에서 검증 완료
 - `[ ]`: 미완료, 외부 연결 필요 또는 결과 미확인
 
 ## 1. 로컬 코드·데이터베이스 QA
 
 - [x] Domain 단위 테스트 85/85 통과
-- [x] Web 단위 테스트 25/25 통과
-- [x] Mobile 단위 테스트 13/13 통과
-- [x] Supabase pgTAP 382/382 통과
-- [x] Edge Function 테스트 13/13 통과
+- [x] Web 단위 테스트 27/27 통과
+- [x] Mobile 단위 테스트 24/24 통과
+- [x] Supabase pgTAP 543/543 통과
+- [x] Edge Function 테스트 31/31 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
 - [x] DB lint warning/error 0
@@ -76,6 +76,10 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] Vercel 서버 전용 `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
 - [ ] 등록 API에 분산 rate limit·gateway 적용
 - [ ] 실제 iOS·Android Expo push token 등록
+- [x] owner-pairing allowlist·10분 1회용 HMAC 코드·request UUID 멱등성·production 배제 로컬 구현 및 회귀 테스트
+- [ ] 서버 전용 `TEST_PUSH_PAIRING_PEPPER` 생성·Edge secret 설정(저장소·브라우저·로그 금지)
+- [ ] pairing migration과 `create-test-push-pairing`·`approve-test-push-pairing`·`test-push` Edge Function 원격 배포
+- [ ] development/preview 실기기 코드 발급 → owner 승인 → 단일 큐 등록 검증
 - [ ] owner 시험 발송, Expo ticket, receipt, `DeviceNotRegistered` 처리 실기기 확인
 - [x] 예배 알림 시각 `전날 19:30 KST` + `당일 1시간 전` 확정
 - [x] 각 예약은 예약 시각부터 15분 이내만 발송하고 이후 만료하는 기준 확정
@@ -83,6 +87,15 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] 실제 발송 전 `PUSH_EXTERNAL_SEND_ENABLED=true` 변경 승인
 
 원격 Edge Function은 배포됐지만 `PUSH_EXTERNAL_SEND_ENABLED=false`이며, 실제 push 발송은 현재 활성화되지 않았다.
+
+시험 기기 pairing migration 배포 순서는 고정한다.
+
+1. `PUSH_EXTERNAL_SEND_ENABLED=false`를 재확인하고 scheduler·dispatch worker를 중지한다.
+2. DB에서 `processing` notification outbox가 0건인지 확인한다. 0건이 아니면 migration을 적용하지 않는다.
+3. migration을 적용하고 production test campaign/outbox 0건, 공개·anon pairing 권한 0건을 검증한다.
+4. `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 설정한 뒤 두 pairing Edge Function, `test-push`, 웹, 앱 순으로 배포한다.
+5. 외부 발송을 계속 비활성화한 상태에서 development/preview 실기기 연결 승인과 단일 큐 생성만 검증한다.
+6. worker를 재개하되 실제 외부 발송 활성화와 최초 실기기 전송은 사용자 별도 승인 후 진행한다.
 
 ## 6. Vercel·도메인
 

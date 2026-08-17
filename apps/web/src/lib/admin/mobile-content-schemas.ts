@@ -71,6 +71,30 @@ export const legalDocumentFormSchema = z.object({
 });
 
 export const notificationCampaignIdSchema = z.uuid("알림 캠페인 식별값을 확인해 주세요.");
+export const testPushAppVariantSchema = z.enum(["development", "preview"]);
+
+const normalizedTestPushPairingCodeSchema = z
+  .string()
+  .trim()
+  .min(1, "앱에 표시된 연결 코드를 입력해 주세요.")
+  .max(20)
+  .transform((value) => value
+    .toUpperCase()
+    .replaceAll("-", "")
+    .replaceAll(" ", "")
+    .replaceAll("O", "0")
+    .replace(/[IL]/g, "1"))
+  .pipe(z.string().regex(/^[0-9A-HJKMNP-TV-Z]{12}$/, "연결 코드 형식을 확인해 주세요."));
+
+export const testPushPairingApprovalFormSchema = z.object({
+  pairing_code: normalizedTestPushPairingCodeSchema
+});
+
+export const testPushTargetListSchema = z.array(z.object({
+  push_endpoint_id: z.uuid(),
+  app_variant: testPushAppVariantSchema,
+  display_label: z.string().trim().min(1).max(200)
+}).strict()).max(100);
 
 export const worshipReminderScheduleFormSchema = z.object({
   event_id: adminRecordIdSchema,
@@ -139,9 +163,26 @@ export const notificationCampaignFormSchema = z
     }
   });
 
+const testPushTargetSelectionSchema = z
+  .string()
+  .trim()
+  .min(1, "시험 기기를 선택해 주세요.")
+  .max(64)
+  .transform((value) => {
+    const separator = value.indexOf(":");
+    return {
+      app_variant: separator < 0 ? "" : value.slice(0, separator),
+      push_endpoint_id: separator < 0 ? "" : value.slice(separator + 1)
+    };
+  })
+  .pipe(z.object({
+    app_variant: testPushAppVariantSchema,
+    push_endpoint_id: z.uuid("시험 기기 식별값을 확인해 주세요.")
+  }));
+
 export const testPushFormSchema = z.object({
-  installation_id: z.uuid("시험 기기 ID를 확인해 주세요."),
-  installation_secret: z.string().trim().min(1).max(128),
+  request_id: z.uuid("시험 요청 식별값을 확인해 주세요."),
+  target: testPushTargetSelectionSchema,
   title: z.string().trim().min(1).max(120),
   body: z.string().trim().min(1).max(500),
   deep_link: z
@@ -151,3 +192,20 @@ export const testPushFormSchema = z.object({
     .max(1_000)
     .nullable()
 });
+
+export function testPushEdgeRequestBody(input: z.infer<typeof testPushFormSchema>) {
+  return {
+    requestId: input.request_id,
+    pushEndpointId: input.target.push_endpoint_id,
+    appVariant: input.target.app_variant,
+    title: input.title,
+    body: input.body,
+    deepLink: input.deep_link
+  };
+}
+
+export function testPushPairingApprovalEdgeRequestBody(
+  input: z.infer<typeof testPushPairingApprovalFormSchema>
+) {
+  return { pairingCode: input.pairing_code };
+}

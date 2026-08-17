@@ -135,7 +135,7 @@ select ok(
   position(
     'for update of event, schedule, campaign, outbox skip locked'
     in lower(pg_get_functiondef(
-      'public.service_claim_notification_outbox(text,integer)'::regprocedure
+      'private.claim_notification_outbox_core(text,integer)'::regprocedure
     ))
   ) > 0,
   'the claim worker locks event and schedule state before processing'

@@ -3,6 +3,7 @@ import {
   HttpError,
   readJsonObject,
   requiredExpoPushToken,
+  requiredTestAppVariant,
   sha256Hex,
 } from "./http.ts";
 import { enforceRegistrationRateLimit } from "./rate-limit.ts";
@@ -24,6 +25,21 @@ Deno.test("Expo token validation accepts current and legacy prefixes", () => {
     requiredExpoPushToken("ExponentPushToken[legacy_123]"),
     "ExponentPushToken[legacy_123]",
   );
+});
+
+Deno.test("test app variant validation accepts only development and preview", () => {
+  assertEquals(requiredTestAppVariant("development"), "development");
+  assertEquals(requiredTestAppVariant("preview"), "preview");
+  for (const value of ["production", "staging", null]) {
+    try {
+      requiredTestAppVariant(value);
+      throw new Error("expected requiredTestAppVariant to reject the value");
+    } catch (error) {
+      assert(error instanceof HttpError);
+      assertEquals(error.status, 400);
+      assertEquals(error.code, "invalid_app_variant");
+    }
+  }
 });
 
 Deno.test("SHA-256 helper returns a lowercase hash and never the raw secret", async () => {

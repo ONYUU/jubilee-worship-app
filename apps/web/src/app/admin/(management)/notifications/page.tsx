@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { AdminActionButton } from "@/components/admin/admin-action-button";
@@ -5,12 +6,17 @@ import { AdminForm } from "@/components/admin/admin-form";
 import { FormSection, SelectField, TextAreaField, TextField } from "@/components/admin/admin-fields";
 import { AdminDataNotice, AdminPageHeader, StatusPill } from "@/components/admin/admin-page";
 import { requireActiveAdmin } from "@/lib/auth/admin";
-import { worshipReminderScheduleListSchema } from "@/lib/admin/mobile-content-schemas";
+import {
+  testPushTargetListSchema,
+  worshipReminderScheduleListSchema
+} from "@/lib/admin/mobile-content-schemas";
 import { WORSHIP_REMINDER_SCHEDULE } from "@/lib/site-identity";
 import {
   approveNotificationCampaignAction,
+  approveTestPushPairingAction,
   deleteNotificationCampaignAction,
   queueNotificationCampaignAction,
+  revokeTestPushTargetAction,
   scheduleWorshipRemindersAction,
   saveNotificationCampaignAction,
   sendTestPushAction
@@ -90,11 +96,17 @@ export default async function NotificationsAdminPage({
       .limit(100),
     supabase.rpc("list_worship_reminder_schedules")
   ]);
+  const testTargetResult = admin.role === "owner"
+    ? await supabase.rpc("list_owner_test_push_targets")
+    : { data: [], error: null };
   const campaigns = campaignRows(campaignResult.data);
   const events = eventResult.data ?? [];
   const reminderSchedules = worshipReminderScheduleListSchema.safeParse(reminderScheduleResult.data);
   const schedules = reminderSchedules.success ? reminderSchedules.data : [];
   const reminderContractAvailable = !reminderScheduleResult.error && reminderSchedules.success;
+  const parsedTestTargets = testPushTargetListSchema.safeParse(testTargetResult.data);
+  const testTargets = parsedTestTargets.success ? parsedTestTargets.data : [];
+  const testTargetContractAvailable = !testTargetResult.error && parsedTestTargets.success;
   const eligibleEvents = events.filter(
     (event) => event.published
       && (event.status === "scheduled" || event.status === "postponed")
@@ -103,6 +115,7 @@ export default async function NotificationsAdminPage({
   const eventNames = new Map(events.map((event) => [event.id, event.title]));
   const hasError = Boolean(
     campaignResult.error || eventResult.error || reminderScheduleResult.error || !reminderSchedules.success
+      || (admin.role === "owner" && !testTargetContractAvailable)
   );
 
   return (
@@ -278,18 +291,79 @@ export default async function NotificationsAdminPage({
         <section className="rounded-2xl border border-brand-sky/30 bg-brand-sky/5 p-5">
           <h2 className="text-xl font-bold">시험 기기로 푸시 확인</h2>
           <p className="mt-2 text-sm text-stone-300">
-            등록된 시험 기기의 ID와 비밀값으로 `test-push` Edge Function을 호출합니다. 비밀값은 DB에 저장하거나 응답·로그에 표시하지 않습니다.
+            개발·미리보기 앱에 표시된 일회용 연결 코드를 오너가 직접 승인한 기기만 시험 대상으로 사용할 수 있습니다. 설치 비밀값과 Expo token은 관리자 화면·로그·응답에 노출하지 않습니다.
           </p>
-          <AdminForm action={sendTestPushAction} submitLabel="시험 캠페인 큐 등록" className="mt-5 max-w-3xl">
-            <FormSection title="시험 기기 인증" description="Edge Function이 미배포되었거나 서버 secret·DB 설정이 없으면 발송하지 않고 안전한 오류 안내만 표시합니다.">
-              <TextField label="Installation ID" name="installation_id" required />
-              <TextField label="Installation secret" name="installation_secret" type="password" required />
-              <TextField label="제목" name="title" required defaultValue="주빌리워십 시험 알림" />
-              <TextAreaField label="본문" name="body" required rows={4} defaultValue="시험 기기 알림을 확인해 주세요." />
-              <TextField label="앱 딥링크(선택)" name="deep_link" hint="jubileeworship://... 형식만 허용" />
+
+          <AdminForm
+            action={approveTestPushPairingAction}
+            submitLabel="시험 기기 연결 승인"
+            className="mt-5 max-w-3xl"
+            confirmMessage="앱 화면과 관리자 화면을 직접 대조했고 이 개발·미리보기 기기를 시험 대상으로 승인합니까?"
+          >
+            <FormSection
+              title="새 시험 기기 연결"
+              description="실기기 알림 설정에서 생성한 12자리 코드를 10분 안에 입력하세요. 코드는 한 번만 사용할 수 있으며 서버와 브라우저에 저장하지 않습니다."
+            >
+              <TextField
+                label="연결 코드"
+                name="pairing_code"
+                required
+                hint="예: 2H7K-9M4Q-WX3D"
+              />
             </FormSection>
           </AdminForm>
-          <p className="mt-4 text-xs text-stone-400">성공 202는 큐 등록을 의미합니다. 실제 Expo 발송은 `dispatch-notifications` worker와 외부 발송 설정이 따로 필요합니다.</p>
+
+          <div className="mt-7">
+            <h3 className="font-bold">승인된 시험 기기</h3>
+            {!testTargetContractAvailable ? (
+              <AdminDataNotice message="시험 기기 승인 목록 RPC가 아직 연결되지 않았습니다. migration과 오너 권한을 확인해 주세요." />
+            ) : testTargets.length === 0 ? (
+              <AdminDataNotice message="승인된 개발·미리보기 시험 기기가 없습니다. 실기기에서 연결 코드를 만든 뒤 오너가 위에서 승인해 주세요." />
+            ) : (
+              <ul className="mt-3 divide-y divide-white/10">
+                {testTargets.map((target) => (
+                  <li
+                    key={target.push_endpoint_id}
+                    className="flex flex-wrap items-center justify-between gap-3 py-3"
+                  >
+                    <span className="text-sm text-stone-200">{target.display_label}</span>
+                    <AdminActionButton
+                      action={revokeTestPushTargetAction}
+                      id={target.push_endpoint_id}
+                      label="승인 해제"
+                      tone="danger"
+                      confirmMessage="이 시험 기기 승인을 해제할까요? 아직 처리되지 않은 해당 기기의 시험 큐도 취소됩니다."
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {testTargetContractAvailable && testTargets.length > 0 ? (
+            <AdminForm
+              action={sendTestPushAction}
+              submitLabel="시험 캠페인 큐 등록"
+              className="mt-5 max-w-3xl"
+              confirmMessage="선택한 비운영 시험 기기 1대에 보낼 알림 내용과 앱 환경을 확인했습니까?"
+            >
+              <input type="hidden" name="request_id" value={randomUUID()} />
+              <FormSection title="시험 기기 선택" description="오너가 연결 승인한 기기만 표시됩니다. 운영 앱은 목록과 시험 발송 경로에서 모두 제외됩니다.">
+                <SelectField
+                  label="대상 기기"
+                  name="target"
+                  options={testTargets.map((target) => ({
+                    value: `${target.app_variant}:${target.push_endpoint_id}`,
+                    label: target.display_label
+                  }))}
+                />
+                <TextField label="제목" name="title" required defaultValue="쥬빌리워십 시험 알림" />
+                <TextAreaField label="본문" name="body" required rows={4} defaultValue="시험 기기 알림을 확인해 주세요." />
+                <TextField label="앱 딥링크(선택)" name="deep_link" hint="jubileeworship://... 형식만 허용" />
+              </FormSection>
+            </AdminForm>
+          ) : null}
+          <p className="mt-4 text-xs text-stone-400">큐 등록은 실제 기기 도착을 의미하지 않습니다. 실제 Expo 발송은 `dispatch-notifications` worker와 외부 발송 설정이 따로 필요하며, worker가 대상을 claim한 뒤에는 승인 해제로 회수할 수 없습니다.</p>
         </section>
       ) : null}
     </div>

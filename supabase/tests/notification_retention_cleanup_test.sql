@@ -224,7 +224,7 @@ values
   ),
   (
     '10000000-0000-4000-8000-000000000006', repeat('6', 64),
-    'android', '1.0.0', 'production', current_setting('jubilee.cleanup_now')::timestamptz,
+    'android', '1.0.0', 'preview', current_setting('jubilee.cleanup_now')::timestamptz,
     null, null
   ),
   (
@@ -423,6 +423,11 @@ set status = 'completed',
     completed_at = current_setting('jubilee.cleanup_now')::timestamptz - interval '90 days'
 where id = '30000000-0000-4000-8000-000000000005';
 
+-- Simulate a legacy disabled test row that predates the owner-pairing guard so
+-- the retention cleanup can still prove it is cancelled and detached safely.
+alter table private.notification_outbox
+disable trigger notification_outbox_test_target_guard;
+
 insert into private.notification_outbox (
   campaign_id, dedupe_key, status, available_at
 )
@@ -452,6 +457,9 @@ values
     'retention:worker-recent', 'processing',
     current_setting('jubilee.cleanup_now')::timestamptz - interval '23 hours'
   );
+
+alter table private.notification_outbox
+enable trigger notification_outbox_test_target_guard;
 
 update private.notification_outbox
 set locked_at = case dedupe_key

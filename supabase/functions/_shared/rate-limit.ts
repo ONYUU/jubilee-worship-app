@@ -12,12 +12,13 @@ export async function enforceRegistrationRateLimit(
   request: Request,
   limit = 10,
   windowMs = 60_000,
+  scope = "installation-registration",
 ): Promise<void> {
   const forwardedFor =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const userAgent = request.headers.get("user-agent")?.slice(0, 200) ??
     "unknown";
-  const key = await sha256Hex(`${forwardedFor}\n${userAgent}`);
+  const key = await sha256Hex(`${scope}\n${forwardedFor}\n${userAgent}`);
   const now = Date.now();
   const current = windows.get(key);
 
