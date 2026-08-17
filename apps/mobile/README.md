@@ -33,6 +33,9 @@ pnpm dlx eas-cli build --platform android --profile development
 
 # Apple 서명 없이 iOS Simulator에서 실행하는 development build
 pnpm dlx eas-cli build --platform ios --profile development-simulator
+
+# Metro 없이 원격 Supabase까지 확인하는 독립형 iOS Simulator build
+pnpm dlx eas-cli build --platform ios --profile preview-simulator
 ```
 
 iOS 실기기용 development build는 테스트 기기 UDID 등록과 Apple 개발자
