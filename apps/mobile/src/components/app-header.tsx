@@ -12,6 +12,15 @@ type Props = {
 
 export function AppHeader({ eyebrow, title, back = false, notifications = false }: Props) {
   const router = useRouter();
+  const goBackOrHome = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/");
+  };
+
   return (
     <View style={styles.header}>
       {back ? (
@@ -19,7 +28,7 @@ export function AppHeader({ eyebrow, title, back = false, notifications = false 
           accessibilityRole="button"
           accessibilityLabel="이전 화면"
           hitSlop={8}
-          onPress={() => router.back()}
+          onPress={goBackOrHome}
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
         >
           <Ionicons name="chevron-back" size={23} color={colors.text} />
