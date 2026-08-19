@@ -1,4 +1,5 @@
 import { safeNotificationLink } from "./notification-links";
+import type { AppVariant } from "./app-variant";
 
 export const NOTIFICATION_HISTORY_LIMIT = 50;
 export const NOTIFICATION_HISTORY_RETENTION_MS = 90 * 24 * 60 * 60 * 1_000;
@@ -11,10 +12,13 @@ export type ReceivedNotificationHistoryItem = {
   url: string | null;
 };
 
-function isHistoryItem(value: unknown): value is ReceivedNotificationHistoryItem {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+function normalizeHistoryItem(
+  value: unknown,
+  variant: AppVariant
+): ReceivedNotificationHistoryItem | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;
-  return (
+  const valid = (
     typeof candidate.id === "string" &&
     candidate.id.length > 0 &&
     candidate.id.length <= 200 &&
@@ -25,18 +29,32 @@ function isHistoryItem(value: unknown): value is ReceivedNotificationHistoryItem
       (typeof candidate.body === "string" && candidate.body.length <= 2_000)) &&
     typeof candidate.receivedAt === "string" &&
     Number.isFinite(Date.parse(candidate.receivedAt)) &&
-    (candidate.url === null || safeNotificationLink(candidate.url) === candidate.url)
+    (candidate.url === null || typeof candidate.url === "string")
   );
+  if (!valid) return null;
+  const url = candidate.url === null
+    ? null
+    : safeNotificationLink(candidate.url, variant);
+  if (candidate.url !== null && !url) return null;
+  return {
+    id: candidate.id as string,
+    title: candidate.title as string,
+    body: candidate.body as string | null,
+    receivedAt: candidate.receivedAt as string,
+    url
+  };
 }
 
 export function parseNotificationHistory(
   value: unknown,
-  now = new Date()
+  now = new Date(),
+  variant: AppVariant = "production"
 ): ReceivedNotificationHistoryItem[] {
   if (!Array.isArray(value)) return [];
   const cutoff = now.getTime() - NOTIFICATION_HISTORY_RETENTION_MS;
   return value
-    .filter(isHistoryItem)
+    .map((item) => normalizeHistoryItem(item, variant))
+    .filter((item): item is ReceivedNotificationHistoryItem => item !== null)
     .filter((item) => Date.parse(item.receivedAt) >= cutoff)
     .sort((left, right) => Date.parse(right.receivedAt) - Date.parse(left.receivedAt))
     .slice(0, NOTIFICATION_HISTORY_LIMIT);
@@ -45,10 +63,12 @@ export function parseNotificationHistory(
 export function mergeNotificationHistory(
   current: readonly ReceivedNotificationHistoryItem[],
   received: ReceivedNotificationHistoryItem,
-  now = new Date()
+  now = new Date(),
+  variant: AppVariant = "production"
 ): ReceivedNotificationHistoryItem[] {
   return parseNotificationHistory(
     [received, ...current.filter((item) => item.id !== received.id)],
-    now
+    now,
+    variant
   );
 }

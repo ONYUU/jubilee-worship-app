@@ -6,6 +6,7 @@ import {
   type ReceivedNotificationHistoryItem
 } from "./notification-history-data";
 import { safeNotificationLink } from "./notification-links";
+import { currentAppVariant } from "../links/current-app-deep-link";
 
 const HISTORY_KEY = "jubilee.notifications.received.v1";
 const listeners = new Set<(items: ReceivedNotificationHistoryItem[]) => void>();
@@ -15,7 +16,11 @@ async function readStoredHistory(): Promise<ReceivedNotificationHistoryItem[]> {
   try {
     const raw = await AsyncStorage.getItem(HISTORY_KEY);
     if (!raw) return [];
-    return parseNotificationHistory(JSON.parse(raw) as unknown);
+    return parseNotificationHistory(
+      JSON.parse(raw) as unknown,
+      new Date(),
+      currentAppVariant() ?? "production"
+    );
   } catch {
     return [];
   }
@@ -44,15 +49,16 @@ export function recordReceivedNotification(
     const deliveredAt = Number.isFinite(notification.date) && notification.date > 0
       ? new Date(notification.date)
       : new Date();
+    const variant = currentAppVariant() ?? "production";
     const received: ReceivedNotificationHistoryItem = {
       id: notification.request.identifier.slice(0, 200) || `${deliveredAt.getTime()}`,
       title,
       body,
       receivedAt: deliveredAt.toISOString(),
-      url: safeNotificationLink(content.data?.url)
+      url: safeNotificationLink(content.data?.url, variant)
     };
     const current = await readStoredHistory();
-    const next = mergeNotificationHistory(current, received);
+    const next = mergeNotificationHistory(current, received, new Date(), variant);
     await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(next));
     for (const listener of listeners) listener(next);
   });

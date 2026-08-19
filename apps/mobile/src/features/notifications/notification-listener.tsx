@@ -6,6 +6,7 @@ import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 import { Platform } from "react-native";
+import { currentAppVariant } from "../links/current-app-deep-link";
 
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
@@ -20,7 +21,10 @@ if (Platform.OS !== "web") {
 
 async function openResponse(response: Notifications.NotificationResponse | null) {
   if (response) await recordReceivedNotification(response.notification).catch(() => undefined);
-  const link = safeNotificationLink(response?.notification.request.content.data?.url);
+  const variant = currentAppVariant();
+  const link = variant
+    ? safeNotificationLink(response?.notification.request.content.data?.url, variant)
+    : null;
   try {
     if (link) await Linking.openURL(link).catch(() => undefined);
   } finally {

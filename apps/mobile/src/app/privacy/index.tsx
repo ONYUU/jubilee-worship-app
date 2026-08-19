@@ -4,11 +4,13 @@ import { Screen } from "@/components/screen";
 import { Card, EmptyState, ErrorState, LoadingState } from "@/components/ui";
 import { useContent } from "@/features/content/content-provider";
 import { APP_INFO } from "@/config/app-info";
-import { colors, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { StyleSheet, Text } from "react-native";
 
 export default function PrivacyScreen() {
   const { content, error, loading, refresh } = useContent();
+  const { styles } = useAppThemeStyles(createStyles);
   if (loading && !content) return <Screen><LoadingState /></Screen>;
   if (error && !content) return <Screen><ErrorState message={error} retry={() => void refresh()} /></Screen>;
 
@@ -36,8 +38,10 @@ export default function PrivacyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   title: { ...typography.heading, color: colors.text },
   meta: { ...typography.caption, color: colors.muted },
   body: { ...typography.body, color: colors.text, marginTop: spacing.sm }
-});
+  });
+}

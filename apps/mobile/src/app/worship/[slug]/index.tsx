@@ -24,7 +24,7 @@ export default function WorshipDetailScreen() {
 
   return (
     <Screen>
-      <AppHeader eyebrow="Worship Detail" title="예배 상세" back notifications />
+      <AppHeader title="예배 상세" back notifications />
       <EventCard
         event={event}
         setlist={selectSetlistForEvent(content.setlists, event.id)}

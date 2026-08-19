@@ -4,11 +4,19 @@ type AppVariant = "development" | "preview" | "production";
 
 const VARIANTS: Record<
   AppVariant,
-  { nameSuffix: string; identifierSuffix: string }
+  { nameSuffix: string; identifierSuffix: string; scheme: string }
 > = {
-  development: { nameSuffix: " Dev", identifierSuffix: ".dev" },
-  preview: { nameSuffix: " Preview", identifierSuffix: ".preview" },
-  production: { nameSuffix: "", identifierSuffix: "" }
+  development: {
+    nameSuffix: " Dev",
+    identifierSuffix: ".dev",
+    scheme: "jubileeworship-dev"
+  },
+  preview: {
+    nameSuffix: " Preview",
+    identifierSuffix: ".preview",
+    scheme: "jubileeworship-preview"
+  },
+  production: { nameSuffix: "", identifierSuffix: "", scheme: "jubileeworship" }
 };
 
 function resolveVariant(value: string | undefined): AppVariant {
@@ -37,11 +45,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: `쥬빌리워십${settings.nameSuffix}`,
     slug: "jubilee-worship",
     description: "쥬빌리 워십 공식 예배 안내 앱",
-    scheme: "jubileeworship",
+    scheme: settings.scheme,
     version: "0.1.0",
     orientation: "portrait",
-    userInterfaceStyle: "light",
-    icon: "./assets/images/jubilee/app-icon-rose-haze.png",
+    userInterfaceStyle: "automatic",
+    icon: "./assets/images/jubilee/app-icon-sky.png",
     ios: {
       bundleIdentifier: identifier,
       buildNumber: "1",
@@ -64,8 +72,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       predictiveBackGestureEnabled: false,
       adaptiveIcon: {
-        foregroundImage: "./assets/images/jubilee/app-icon-rose-haze.png",
-        backgroundColor: "#E5D8D9"
+        foregroundImage: "./assets/images/jubilee/app-icon-sky.png",
+        backgroundColor: "#E7F3FB"
       },
       intentFilters: webHost
         ? [
@@ -93,7 +101,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     web: {
       output: "static",
-      favicon: "./assets/images/jubilee/app-icon-rose-haze.png"
+      favicon: "./assets/images/jubilee/app-icon-sky.png"
     },
     plugins: [
       "expo-router",
@@ -117,10 +125,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-splash-screen",
         {
-          image: "./assets/images/jubilee/rose-haze-background.png",
-          imageWidth: 390,
-          resizeMode: "cover",
-          backgroundColor: "#E5D8D9"
+          image: "./assets/images/jubilee/app-icon-sky.png",
+          imageWidth: 120,
+          resizeMode: "contain",
+          backgroundColor: "#E7F3FB",
+          dark: {
+            image: "./assets/images/jubilee/app-icon-sky.png",
+            backgroundColor: "#0B0E12"
+          }
         }
       ]
     ],

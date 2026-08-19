@@ -3,6 +3,8 @@ import * as Calendar from "expo-calendar/legacy";
 import * as Linking from "expo-linking";
 import { Alert, Platform, Share } from "react-native";
 
+import { createAppDeepLink } from "@/features/links/current-app-deep-link";
+
 async function openExternalUrl(url: string): Promise<void> {
   try {
     const supported = await Linking.canOpenURL(url);
@@ -53,9 +55,10 @@ export async function shareEvent(event: MobilePublicEvent): Promise<void> {
     }).format(new Date(event.starts_at));
     const webOrigin = process.env.EXPO_PUBLIC_WEB_ORIGIN?.replace(/\/$/, "");
     const webUrl = webOrigin ? `${webOrigin}/worship` : null;
+    const appUrl = createAppDeepLink(`worship/${event.slug}`);
     await Share.share({
       title: event.title,
-      message: [event.title, formattedDate, event.venue_name, webUrl, `jubileeworship://worship/${event.slug}`]
+      message: [event.title, formattedDate, event.venue_name, webUrl, appUrl]
         .filter(Boolean)
         .join("\n")
     });

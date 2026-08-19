@@ -13,7 +13,8 @@ import {
   type TestPushPairingCode,
   unregisterNotifications
 } from "@/features/notifications/client";
-import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import type * as Notifications from "expo-notifications";
@@ -47,6 +48,7 @@ const options: {
 ];
 
 export default function NotificationSettingsScreen() {
+  const { colors, styles } = useAppThemeStyles(createStyles);
   const [preferences, setPreferences] = useState(DEFAULT_NOTIFICATION_PREFERENCES);
   const [registered, setRegistered] = useState(false);
   const [permission, setPermission] = useState<
@@ -295,7 +297,8 @@ export default function NotificationSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   statusIcon: {
     width: 46,
@@ -340,4 +343,5 @@ const styles = StyleSheet.create({
     letterSpacing: 2
   },
   privacy: { ...typography.caption, color: colors.muted, textAlign: "center", paddingHorizontal: spacing.md }
-});
+  });
+}

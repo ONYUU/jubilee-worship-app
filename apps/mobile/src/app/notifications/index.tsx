@@ -7,7 +7,8 @@ import {
   subscribeReceivedNotificationHistory
 } from "@/features/notifications/notification-history";
 import type { ReceivedNotificationHistoryItem } from "@/features/notifications/notification-history-data";
-import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Linking from "expo-linking";
@@ -37,6 +38,7 @@ function formatReceivedAt(value: string): string {
 export default function NotificationsScreen() {
   const { content, error, loading, refresh } = useContent();
   const router = useRouter();
+  const { colors, styles } = useAppThemeStyles(createStyles);
   const [readIds, setReadIds] = useState<Set<number>>(() => new Set());
   const [received, setReceived] = useState<ReceivedNotificationHistoryItem[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
@@ -114,7 +116,11 @@ export default function NotificationsScreen() {
             <Pressable
               key={item.id}
               accessibilityRole={item.url ? "button" : undefined}
-              accessibilityLabel={`${item.title}, ${formatReceivedAt(item.receivedAt)}`}
+              accessibilityLabel={[
+                item.title,
+                item.body,
+                formatReceivedAt(item.receivedAt)
+              ].filter(Boolean).join(", ")}
               disabled={!item.url}
               onPress={() => void openReceivedNotification(item.url)}
               style={({ pressed }) => pressed && styles.pressed}
@@ -146,7 +152,7 @@ export default function NotificationsScreen() {
           <Pressable
             key={notice.id}
             accessibilityRole="button"
-            accessibilityLabel={`${readIds.has(notice.id) ? "읽음" : "읽지 않음"} 알림, ${notice.title}`}
+            accessibilityLabel={`${readIds.has(notice.id) ? "읽음" : "읽지 않음"} 알림, ${notice.title}, ${notice.body}`}
             onPress={() => openNotice(notice.id, notice.event_id)}
             style={({ pressed }) => pressed && styles.pressed}
           >
@@ -180,7 +186,8 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   noticeRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
   icon: { width: 40, height: 40, borderRadius: radii.pill, alignItems: "center", justifyContent: "center", backgroundColor: colors.activeSoft },
   dangerIcon: { backgroundColor: colors.dangerSoft },
@@ -191,4 +198,5 @@ const styles = StyleSheet.create({
   body: { ...typography.body, color: colors.muted },
   receivedAt: { ...typography.caption, color: colors.muted, marginTop: spacing.xxs },
   pressed: { opacity: 0.68 }
-});
+  });
+}

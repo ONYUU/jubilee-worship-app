@@ -1,10 +1,12 @@
 import { AppHeader } from "@/components/app-header";
 import { Screen } from "@/components/screen";
-import { ActionButton, Card, EmptyState, ErrorState, LoadingState } from "@/components/ui";
+import { ActionButton, EmptyState, ErrorState, LoadingState } from "@/components/ui";
 import { useContent } from "@/features/content/content-provider";
 import { formatEventDate, selectSetlistForEvent } from "@/features/content/selectors";
+import { createAppDeepLink } from "@/features/links/current-app-deep-link";
 import { openExternalUrl } from "@/features/links/open-external-url";
-import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
@@ -12,6 +14,8 @@ import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
 export default function SonglistScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { content, error, loading, refresh } = useContent();
+  const { colors, styles } = useAppThemeStyles(createStyles);
+
   if (loading && !content) return <Screen><LoadingState /></Screen>;
   if (error && !content) return <Screen><ErrorState message={error} retry={() => void refresh()} /></Screen>;
 
@@ -26,7 +30,7 @@ export default function SonglistScreen() {
         message: [
           `${event?.title ?? "예배"} 워십 송리스트`,
           webOrigin ? `${webOrigin}/worship` : null,
-          event ? `jubileeworship://worship/${event.slug}/songlist` : null
+          event ? createAppDeepLink(`worship/${event.slug}/songlist`) : null
         ]
           .filter(Boolean)
           .join("\n")
@@ -39,7 +43,7 @@ export default function SonglistScreen() {
   if (!event) {
     return (
       <Screen>
-        <AppHeader title="워십 송리스트" back />
+        <AppHeader title="이번 주 송리스트" back />
         <EmptyState title="예배를 찾을 수 없습니다" description="공개 상태가 변경됐거나 잘못된 링크입니다." />
       </Screen>
     );
@@ -47,21 +51,36 @@ export default function SonglistScreen() {
 
   return (
     <Screen>
-      <AppHeader eyebrow="This Week" title="워십 송리스트" back />
-      <Card>
-        <View style={styles.eventHeader}>
-          <View style={styles.musicIcon}>
-            <Ionicons name="musical-notes" size={23} color={colors.active} />
+      <AppHeader
+        title="이번 주 송리스트"
+        back
+        actionIcon="share-outline"
+        actionLabel="송리스트 공유"
+        onActionPress={() => void shareSonglist()}
+      />
+
+      <View style={styles.eventMeta}>
+        <Text style={styles.eventDate}>{formatEventDate(event.starts_at)}</Text>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+        {setlist ? (
+          <View style={styles.publishRow}>
+            <Text style={styles.publishMeta}>
+              {new Intl.DateTimeFormat("ko-KR", {
+                timeZone: "Asia/Seoul",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+              }).format(new Date(setlist.published_at))} 공개
+            </Text>
+            {setlist.is_changed ? (
+              <View style={styles.changedBadge}>
+                <Text style={styles.changedText}>변경됨</Text>
+              </View>
+            ) : null}
           </View>
-          <View style={styles.headerCopy}>
-            <Text style={styles.eventTitle}>{event.title}</Text>
-            <Text style={styles.eventDate}>{formatEventDate(event.starts_at)}</Text>
-          </View>
-          {setlist?.is_changed ? (
-            <View style={styles.changedPill}><Text style={styles.changedText}>변경</Text></View>
-          ) : null}
-        </View>
-      </Card>
+        ) : null}
+      </View>
 
       {!setlist || setlist.items.length === 0 ? (
         <EmptyState
@@ -69,28 +88,20 @@ export default function SonglistScreen() {
           description="관리자가 확인하고 공개한 곡만 이곳에 표시됩니다."
         />
       ) : (
-        <Card>
-          <Text style={styles.publishMeta}>
-            {new Intl.DateTimeFormat("ko-KR", {
-              timeZone: "Asia/Seoul",
-              month: "long",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit"
-            }).format(new Date(setlist.published_at))} 공개
-          </Text>
+        <View style={styles.songList}>
           {setlist.items.map((item, index) => (
             <View key={item.id} style={[styles.songRow, index > 0 && styles.songDivider]}>
-              <View style={styles.position}><Text style={styles.positionText}>{item.position}</Text></View>
+              <Text style={styles.position}>{String(item.position).padStart(2, "0")}</Text>
               <View style={styles.songCopy}>
                 <Text style={styles.songTitle}>{item.title}</Text>
-                {item.artist ? <Text style={styles.artist}>{item.artist}</Text> : null}
+                {item.artist || item.musical_key ? (
+                  <Text style={styles.songMeta}>
+                    {[item.artist, item.musical_key ? `Key ${item.musical_key}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </Text>
+                ) : null}
               </View>
-              {item.musical_key ? (
-                <View style={styles.keyPill} accessibilityLabel={`KEY ${item.musical_key}`}>
-                  <Text style={styles.keyText}>KEY {item.musical_key}</Text>
-                </View>
-              ) : null}
               {item.youtube_url ? (
                 <Pressable
                   accessibilityRole="link"
@@ -98,67 +109,86 @@ export default function SonglistScreen() {
                   onPress={() => void openExternalUrl(item.youtube_url!)}
                   style={({ pressed }) => [styles.listenButton, pressed && styles.pressed]}
                 >
-                  <Ionicons name="play" size={17} color={colors.active} />
+                  <Ionicons name="play" size={17} color={colors.text} />
                 </Pressable>
               ) : null}
             </View>
           ))}
-          {setlist.is_changed ? (
-            <Text style={styles.changeNotice}>현장 사정에 따라 곡 순서가 변경될 수 있습니다.</Text>
-          ) : null}
-        </Card>
+        </View>
       )}
 
+      <Text style={styles.notice}>
+        송리스트는 예배팀의 준비와 현장 상황에 따라 사전 안내 없이 변경될 수 있습니다.
+      </Text>
+
       {setlist?.playlist_url ? (
-        <ActionButton label="전체 듣기" icon="play-circle-outline" primary onPress={() => void openExternalUrl(setlist.playlist_url!)} />
+        <ActionButton
+          label="전체 듣기"
+          icon="play-circle-outline"
+          primary
+          onPress={() => void openExternalUrl(setlist.playlist_url!)}
+        />
       ) : null}
-      <ActionButton
-        label="송리스트 공유"
-        icon="share-outline"
-        onPress={() => void shareSonglist()}
-      />
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  eventHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  musicIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.activeSoft
-  },
-  headerCopy: { flex: 1, gap: 3 },
-  eventTitle: { ...typography.label, color: colors.text },
-  eventDate: { ...typography.caption, color: colors.muted },
-  changedPill: { paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.cta },
-  changedText: { ...typography.caption, color: colors.text },
-  songRow: { minHeight: 68, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  songDivider: { borderTopWidth: 1, borderTopColor: colors.line },
-  position: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.activeSoft },
-  positionText: { ...typography.label, color: colors.active },
-  songCopy: { flex: 1, gap: 2 },
-  songTitle: { ...typography.label, color: colors.text },
-  artist: { ...typography.caption, color: colors.muted },
-  publishMeta: { ...typography.caption, color: colors.muted },
-  changeNotice: {
-    ...typography.caption,
-    color: colors.muted,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    paddingTop: spacing.sm,
-    marginTop: spacing.xs
-  },
-  keyPill: {
-    borderRadius: radii.pill,
-    backgroundColor: colors.activeSoft,
-    paddingHorizontal: 9,
-    paddingVertical: 6
-  },
-  keyText: { ...typography.caption, color: colors.active },
-  listenButton: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.controlBorder },
-  pressed: { opacity: 0.68 }
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    eventMeta: {
+      gap: 3,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+      paddingBottom: spacing.md
+    },
+    eventDate: { ...typography.caption, color: colors.muted },
+    eventTitle: { ...typography.label, color: colors.text },
+    publishRow: {
+      marginTop: spacing.xxs,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    publishMeta: { ...typography.caption, color: colors.muted },
+    changedBadge: {
+      borderRadius: radii.sm,
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 4,
+      backgroundColor: colors.cta,
+      borderWidth: 1,
+      borderColor: colors.ctaBorder
+    },
+    changedText: { ...typography.caption, color: colors.onCta },
+    songList: { borderBottomWidth: 1, borderBottomColor: colors.line },
+    songRow: {
+      minHeight: 72,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.xs
+    },
+    songDivider: { borderTopWidth: 1, borderTopColor: colors.line },
+    position: { ...typography.label, color: colors.active, width: 30 },
+    songCopy: { flex: 1, gap: 3 },
+    songTitle: { ...typography.label, color: colors.text },
+    songMeta: { ...typography.caption, color: colors.muted },
+    listenButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.controlBorder
+    },
+    notice: {
+      ...typography.caption,
+      color: colors.muted,
+      textAlign: "center",
+      marginTop: "auto",
+      paddingVertical: spacing.xl
+    },
+    pressed: { opacity: 0.68 }
+  });
+}

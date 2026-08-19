@@ -1,7 +1,19 @@
-const APP_LINK_PATTERN =
-  /^jubileeworship:\/\/(?:notifications|privacy|worship\/[A-Za-z0-9][A-Za-z0-9_-]*(?:\/songlist)?)(?:\?[A-Za-z0-9_%=&.-]+)?$/;
+import {
+  normalizeAppDeepLinkForVariant
+} from "../links/app-deep-link";
 
-export function safeNotificationLink(value: unknown): string | null {
-  if (typeof value !== "string" || value.length > 1_000) return null;
-  return APP_LINK_PATTERN.test(value) ? value : null;
+import type { AppVariant } from "./app-variant";
+
+export function safeNotificationLink(
+  value: unknown,
+  variant: AppVariant = "production"
+): string | null {
+  return normalizeAppDeepLinkForVariant(value, variant);
+}
+
+export function safeNotificationLinkForVariant(
+  value: unknown,
+  variant: AppVariant
+): string | null {
+  return safeNotificationLink(value, variant);
 }
