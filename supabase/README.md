@@ -215,6 +215,8 @@ active owner는 raw 코드를 `approve-test-push-pairing`에 입력한다. Edge 
 
 `test-push` 요청은 `{ requestId, pushEndpointId, appVariant, title, body, deepLink? }`이다. Edge Function과 `queue_owner_test_push(...)`가 active owner·allowlist·활성 endpoint·명시된 비운영 variant를 다시 검증한다. owner 범위 request UUID는 payload와 결합되어 동일 재시도에는 기존 campaign ID를 반환하고 내용이 다르면 실패한다. 성공 응답 `202 { campaignId }`는 요청이 DB에 반영됐다는 뜻이며 실기기 도착 증거가 아니다. 일반 캠페인 RPC와 production 설치는 이 전용 경로에서 제외된다.
 
+알림 `deepLink`는 production 스킴 `jubileeworship://`과 앱에 구현된 고정 화면(`notifications`, `notification-settings`, `privacy`, `worship`, `media`, `guide`) 또는 안전한 예배 상세·송리스트 경로만 허용한다. 웹 검증과 별개로 DB check constraint가 직접 table·RPC 호출도 같은 allowlist로 제한하며, 이전의 비허용 저장값은 migration에서 링크 없음(`NULL`)으로 정리한다.
+
 worker claim wrapper는 test outbox를 처리하기 직전에 allowlist·variant·endpoint·installation 상태를 다시 검증하고 부적격 legacy/pending 행을 취소한다. delivery insert 경계도 같은 행들을 `FOR UPDATE`로 잠가 revoke·disable과 직렬화한다. 단, provider 단계로 claim된 뒤의 발송은 승인 해제로 회수할 수 없다.
 
 `dispatch-notifications`와 `process-push-receipts`는 secret key 요청만 허용하고 기본 `dryRun=true`다. 코드에 실제 Expo access token을 저장하지 않는다. 운영 외부 발송은 배포 secret과 `PUSH_EXTERNAL_SEND_ENABLED=true`를 별도 승인한 뒤에만 활성화한다.

@@ -1,4 +1,9 @@
-import { mediaPathSchema, slugSchema, youtubeListeningUrlSchema } from "@jubilee/domain";
+import {
+  mediaPathSchema,
+  mobileAppDeepLinkSchema,
+  slugSchema,
+  youtubeListeningUrlSchema
+} from "@jubilee/domain";
 import { z } from "zod";
 
 export const adminRecordIdSchema = z.number().int().positive().safe();
@@ -135,12 +140,7 @@ export const notificationCampaignFormSchema = z
     kind: z.enum(["test", "worship_reminder", "schedule_change", "setlist_update"]),
     title: z.string().trim().min(1).max(120),
     body: z.string().trim().min(1).max(500),
-    deep_link: z
-      .string()
-      .trim()
-      .regex(/^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/)
-      .max(1_000)
-      .nullable(),
+    deep_link: mobileAppDeepLinkSchema.nullable(),
     audience_kind: z.enum([
       "test_endpoint",
       "worship_reminder",
@@ -185,12 +185,7 @@ export const testPushFormSchema = z.object({
   target: testPushTargetSelectionSchema,
   title: z.string().trim().min(1).max(120),
   body: z.string().trim().min(1).max(500),
-  deep_link: z
-    .string()
-    .trim()
-    .regex(/^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/)
-    .max(1_000)
-    .nullable()
+  deep_link: mobileAppDeepLinkSchema.nullable()
 });
 
 export function testPushEdgeRequestBody(input: z.infer<typeof testPushFormSchema>) {

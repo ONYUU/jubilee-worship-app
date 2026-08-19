@@ -257,7 +257,7 @@ export default async function NotificationsAdminPage({
               />
               <TextField label="제목" name="title" required defaultValue={selected?.title ?? null} />
               <TextAreaField label="본문" name="body" required defaultValue={selected?.body ?? null} rows={5} />
-              <TextField label="앱 딥링크(선택)" name="deep_link" defaultValue={selected?.deep_link ?? null} hint="jubileeworship://... 형식만 허용" />
+              <TextField label="앱 딥링크(선택)" name="deep_link" defaultValue={selected?.deep_link ?? null} hint="예: jubileeworship://worship 또는 jubileeworship://worship/&lt;slug&gt;/songlist" />
             </FormSection>
             <FormSection title="발송 대상">
               <SelectField
@@ -359,7 +359,7 @@ export default async function NotificationsAdminPage({
                 />
                 <TextField label="제목" name="title" required defaultValue="쥬빌리워십 시험 알림" />
                 <TextAreaField label="본문" name="body" required rows={4} defaultValue="시험 기기 알림을 확인해 주세요." />
-                <TextField label="앱 딥링크(선택)" name="deep_link" hint="jubileeworship://... 형식만 허용" />
+                <TextField label="앱 딥링크(선택)" name="deep_link" hint="예: jubileeworship://worship 또는 jubileeworship://worship/&lt;slug&gt;/songlist" />
               </FormSection>
             </AdminForm>
           ) : null}

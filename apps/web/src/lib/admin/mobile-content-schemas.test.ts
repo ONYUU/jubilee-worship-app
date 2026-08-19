@@ -140,6 +140,12 @@ describe("mobile admin content schemas", () => {
     };
     expect(notificationCampaignFormSchema.safeParse(campaign).success).toBe(true);
     expect(
+      notificationCampaignFormSchema.safeParse({
+        ...campaign,
+        deep_link: "jubileeworship://notificaitons"
+      }).success
+    ).toBe(false);
+    expect(
       notificationCampaignFormSchema.safeParse({ ...campaign, kind: "test" }).success
     ).toBe(false);
   });

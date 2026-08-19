@@ -1,22 +1,22 @@
 # 배포·스토어 출시 체크리스트
 
-- 기준일: 2026-08-17 KST
-- `[x]`: 현재 checkout에서 검증 완료
+- 기준일: 2026-08-19 KST
+- `[x]`: 현재 checkout에서 검증 완료하거나 날짜·빌드가 명시된 기존 검증 증거 확인
 - `[ ]`: 미완료, 외부 연결 필요 또는 결과 미확인
 
 ## 1. 로컬 코드·데이터베이스 QA
 
-- [x] Domain 단위 테스트 85/85 통과
+- [x] Domain 단위 테스트 98/98 통과
 - [x] Web 단위 테스트 27/27 통과
-- [x] Mobile 단위 테스트 24/24 통과
-- [x] Supabase pgTAP 543/543 통과
+- [x] Mobile 단위 테스트 61/61 통과
+- [x] Supabase pgTAP 567/567 통과
 - [x] Edge Function 테스트 31/31 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
 - [x] DB lint warning/error 0
 - [x] 원격 Security Advisor 오류 0, 관리자 전용 `SECURITY DEFINER` RPC 정적 경고 27건 권한 검토 완료
 - [x] Performance Advisor 보고 이슈 0
-- [x] `public`, `private`, `storage` schema diff 불일치 0
+- [x] 로컬 migration 재현 schema와 현재 로컬 `public`, `private`, `storage` schema diff 불일치 0
 
 ## 2. 관리자·콘텐츠 보안
 
@@ -35,15 +35,17 @@
 - [x] 보유 기준 확정: 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 정리
 - [x] 동일 기준의 cleanup RPC·일일 cron·삭제 회귀 테스트 로컬 구현 및 검증 완료
 - [x] 원격 Supabase에 cleanup migration·일일 cron 적용
-- [ ] cron 첫 실행 이력·실제 만료정보 삭제 확인(완료 전 앱 정책 공개 금지)
+- [x] 원격 cleanup cron 실행 이력 4회 성공 확인
+- [ ] 실제 만료정보 삭제 확인(완료 전 앱 정책 공개 금지)
 
 ## 3. Android
 
 - [x] Android Release APK 생성
 - [x] Android 15 16KB page-size 에뮬레이터 설치
 - [x] Android 15 16KB page-size 에뮬레이터 앱 기동
-- [x] Samsung SM-G991N(Android 15)에 최신 EAS development APK 설치·4개 탭·송리스트·캘린더 선택기·길찾기 선택창·공유 시트 확인
-- [x] 송리스트에서 화면 버튼·시스템 Back·가장자리 제스처로 예배 화면 복귀 확인
+- [x] Samsung SM-G991N(Android 15)에 2026-08-16 EAS development APK(commit `9159518`) 설치·4개 탭·송리스트·캘린더 선택기·길찾기 선택창·공유 시트 확인
+- [x] 같은 기존 실기기 빌드의 송리스트에서 화면 버튼·시스템 Back·가장자리 제스처로 예배 화면 복귀 확인
+- [ ] 최신 v9 APK를 Samsung SM-G991N에서 재설치·핵심 화면·뒤로가기 검증
 - [ ] Android 실기기 알림 권한·FCM token·실제 push·receipt 검증
 - [ ] Store 서명 AAB 생성과 서명 정보 확인
 - [ ] Google Play Console 앱 생성·앱 서명·내부 테스트 트랙 업로드
@@ -77,8 +79,9 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] 등록 API에 분산 rate limit·gateway 적용
 - [ ] 실제 iOS·Android Expo push token 등록
 - [x] owner-pairing allowlist·10분 1회용 HMAC 코드·request UUID 멱등성·production 배제 로컬 구현 및 회귀 테스트
+- [x] 앱·웹·DB의 푸시 딥링크를 구현된 허용 경로로 제한하고 직접 DB·RPC 우회를 차단하는 로컬 회귀 테스트
 - [ ] 서버 전용 `TEST_PUSH_PAIRING_PEPPER` 생성·Edge secret 설정(저장소·브라우저·로그 금지)
-- [ ] pairing migration과 `create-test-push-pairing`·`approve-test-push-pairing`·`test-push` Edge Function 원격 배포
+- [ ] pairing·딥링크 허용 경로 migration과 `create-test-push-pairing`·`approve-test-push-pairing`·변경된 `test-push` Edge Function 원격 배포
 - [ ] development/preview 실기기 코드 발급 → owner 승인 → 단일 큐 등록 검증
 - [ ] owner 시험 발송, Expo ticket, receipt, `DeviceNotRegistered` 처리 실기기 확인
 - [x] 예배 알림 시각 `전날 19:30 KST` + `당일 1시간 전` 확정
@@ -130,13 +133,14 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 다음 중 하나라도 완료되지 않으면 Production 공개나 스토어 제출을 진행하지 않는다.
 
 - [ ] iOS Release·Android 운영 AAB·스토어 서명 검증
-- [x] Supabase remote schema·RLS·Edge Function 배포와 비발송 smoke test
+- [ ] 최신 로컬 migration 2개·Edge Function 2개·변경된 `test-push`까지 Supabase remote에 배포하고 비발송 smoke test
 - [ ] 실제 iOS·Android push 통합 검증
 - [ ] Vercel Preview·Production·DNS 검증
 - [ ] 법적 문서 원문·시행일·스토어 메타데이터 승인
 - [x] 보유기간과 동일한 cleanup RPC·cron·테스트 로컬 완료
 - [x] 원격 cleanup cron 적용
-- [ ] cron 실행 이력·실제 삭제 확인
+- [x] 원격 cleanup cron 실행 이력 4회 성공 확인
+- [ ] 실제 만료정보 삭제 확인
 - [ ] 사용자의 최종 배포·스토어 제출 승인
 
 승인 전에는 Production 배포, DNS 변경, 실제 push 활성화, SNS 게시, 관리자 초대, App Store·Google Play 제출을 실행하지 않는다.
