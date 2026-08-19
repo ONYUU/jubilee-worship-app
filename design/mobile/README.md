@@ -50,7 +50,8 @@
 - 송리스트 기능 명세: `SONGLIST_SPEC.md`
 - 설교·말씀 기능 명세: `SERMON_SPEC.md`
 - GPT 생성 배경: `assets/app-worship-light-v1.png`, `assets/app-worship-light-v2.png`, `assets/app-worship-balanced-v3.png`, `assets/app-worship-rose-v4.png`
-- 실제 앱용 GPT 자산: `apps/mobile/assets/images/jubilee/app-icon-sky.png`, `splash-light-title.png`, `splash-dark-title.png`
+- 실제 앱용 GPT 시작 화면 자산: `apps/mobile/assets/images/jubilee/app-icon-sky.png`, `splash-light-title.png`, `splash-dark-title.png`
+- 설치 아이콘: 공식 로고 잠금본 기반 `apps/mobile/assets/images/jubilee/app-icon-official.png`, `app-icon-official-foreground.png`, `app-icon-official-monochrome.png`
 
 ## GPT 이미지 생성 프롬프트
 

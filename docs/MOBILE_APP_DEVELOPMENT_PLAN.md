@@ -470,7 +470,7 @@ apps/mobile/
 ### 개발 착수 전
 
 - 앱 표시 이름, iOS bundle ID, Android package name
-- 문자·그래픽 로고가 없는 하늘색·연노랑 추상 설치 아이콘 `app-icon-sky.png`와 Android 적응형 아이콘 안전영역
+- 공식 쥬빌리워십 로고 설치 아이콘 `app-icon-official.png`와 Android 적응형·단색 아이콘 안전영역
 - Expo/EAS 프로젝트와 Apple·Google 개발자 계정 담당자
 - 송리스트 공식 YouTube 링크를 확인할 담당 `owner`
 - 설교 주제와 말씀 구절을 확인·공개할 담당 `owner`

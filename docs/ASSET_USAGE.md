@@ -18,7 +18,9 @@
 
 ## 모바일 라이트·다크 자산
 
-- `apps/mobile/assets/images/jubilee/app-icon-sky.png`, `splash-light-title.png`, `splash-dark-title.png`는 2026-08-19 OpenAI 이미지 생성 도구로 이 프로젝트를 위해 만든 추상 자산이다. 타사 로고·인물·사진을 포함하지 않으며, 스플래시에는 일반 한글 제목 `쥬빌리워십`만 사용한다.
+- `apps/mobile/assets/images/jubilee/app-icon-sky.png`, `splash-light-title.png`, `splash-dark-title.png`는 2026-08-19 OpenAI 이미지 생성 도구로 이 프로젝트를 위해 만든 시작 화면용 추상 자산이다. 타사 로고·인물·사진을 포함하지 않으며, 스플래시에는 일반 한글 제목 `쥬빌리워십`만 사용한다.
+- 설치 아이콘은 검수된 공식 로고를 사용한다. `app-icon-official.png`는 공식 1024px 잠금본을 그대로 복사한 불투명 원본이고, `app-icon-official-foreground.png`와 `app-icon-official-monochrome.png`는 Android 마스크 안전영역에 맞춰 로고 모양을 바꾸지 않고 투명 여백과 단색 표현만 적용한 파생본이다.
 - 앱 화면은 Instagram의 사진 중심 정보 계층을 참고했지만 Instagram 로고·상표·고유 아이콘·화면 캡처를 복제하지 않는다.
 - `gallery-worship-01.webp`, `guide-community-02.webp`는 위 사용 권한이 확인된 선두교회 소개 사진의 앱 최적화본이다. 생성형 이미지로 인물이나 배경을 바꾸지 않았다.
+- 2026-08-20 프로젝트 요청자는 `gallery-worship-01.webp`를 앱 홈 첫 화면에 공개 사용하는 안을 선택하고 공개 적용에 동의했다. 앱은 원본 장면을 재생성하거나 인물을 변형하지 않고 `cover` 크롭과 가독성용 오버레이만 사용한다.
 - 목업 보드 안의 합성 사진·문자·아이콘은 방향 확인에만 사용하고 앱 자산으로 추출하지 않는다.

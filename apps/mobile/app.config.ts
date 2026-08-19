@@ -49,10 +49,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     version: "0.1.0",
     orientation: "portrait",
     userInterfaceStyle: "automatic",
-    icon: "./assets/images/jubilee/app-icon-sky.png",
+    icon: "./assets/images/jubilee/app-icon-official.png",
     ios: {
       bundleIdentifier: identifier,
       buildNumber: "1",
+      icon: "./assets/images/jubilee/app-icon-official.png",
       supportsTablet: false,
       associatedDomains: webHost ? [`applinks:${webHost}`] : undefined,
       infoPlist: {
@@ -69,11 +70,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       package: identifier,
       versionCode: 1,
+      icon: "./assets/images/jubilee/app-icon-official.png",
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       predictiveBackGestureEnabled: false,
       adaptiveIcon: {
-        foregroundImage: "./assets/images/jubilee/app-icon-sky.png",
-        backgroundColor: "#E7F3FB"
+        foregroundImage: "./assets/images/jubilee/app-icon-official-foreground.png",
+        monochromeImage: "./assets/images/jubilee/app-icon-official-monochrome.png",
+        backgroundColor: "#FFF5AE"
       },
       intentFilters: webHost
         ? [
@@ -101,7 +104,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     web: {
       output: "static",
-      favicon: "./assets/images/jubilee/app-icon-sky.png"
+      favicon: "./assets/images/jubilee/app-icon-official.png"
     },
     plugins: [
       "expo-router",

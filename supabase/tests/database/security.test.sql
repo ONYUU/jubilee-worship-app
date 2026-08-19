@@ -1085,12 +1085,12 @@ select results_eq(
   $$
     values (
       '/images/hero/hero-home-group-07-desktop-1920x1080.webp'::text,
-      '/images/hero/hero-home-group-07-mobile-1080x1350.webp'::text,
-      '선두교회 본당 무대에서 자유롭게 포즈를 취한 쥬빌리워십 공동체'::text,
+      '/images/gallery/sundoo-jubilee-01.webp'::text,
+      '선두교회 본당에 함께한 쥬빌리워십 공동체'::text,
       '/images/social/og-home-group-07-1200x630.png'::text
     )
   $$,
-  'site settings use the approved group-photo hero and cache-busting asset paths'
+  'site settings keep the desktop group hero and use the approved worship photo on mobile'
 );
 
 select * from finish();

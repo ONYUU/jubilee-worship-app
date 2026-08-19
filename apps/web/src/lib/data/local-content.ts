@@ -74,7 +74,7 @@ export const SITE = {
   heroTitle: "오직 예배를 세우는 일",
   heroDescription:
     "개인의 예배를 넘어 공동체의 예배로, 인천의 다음 세대와 함께 하나님을 예배합니다.",
-  heroImageAlt: "선두교회 본당 무대에서 자유롭게 포즈를 취한 쥬빌리워십 공동체",
+  heroImageAlt: "선두교회 본당에 함께한 쥬빌리워십 공동체",
   aboutTitle: "예배가 삶이 되고, 세대가 함께 서는 자리",
   aboutBody:
     "쥬빌리워십은 2024년 선두교회 50주년을 기념해 시작된 예배사역팀입니다. 청소년과 청년을 중심으로 개인의 예배와 공동체의 예배를 세우고, 인천 지역의 다음 세대를 섬기는 예배를 꿈꾸며 걸어가고 있습니다.",
@@ -97,7 +97,7 @@ export const SITE = {
   logoPath: "/images/brand/logo-official-web-pwa-app-1024-source-locked.png",
   logoInversePath: "/images/brand/logo-official-web-pwa-app-1024-source-locked.png",
   heroDesktopPath: "/images/hero/hero-home-group-07-desktop-1920x1080.webp",
-  heroMobilePath: "/images/hero/hero-home-group-07-mobile-1080x1350.webp",
+  heroMobilePath: "/images/gallery/sundoo-jubilee-01.webp",
   aboutImagePath: "/images/hero/about-community-960x610.webp",
   aboutImageAlt: "선두교회 본당에서 함께 찬양하는 쥬빌리워십 공동체",
   worshipImagePath: "/images/hero/worship-community-960x610.webp",
