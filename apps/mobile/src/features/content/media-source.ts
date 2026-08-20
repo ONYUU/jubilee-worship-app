@@ -1,6 +1,9 @@
 import type { ImageSource } from "expo-image";
 
 const bundledMedia: Record<string, ImageSource> = {
+  "/images/hero/hero-home-stage-20260820-desktop-1280x720.webp": require(
+    "../../../assets/images/jubilee/home-stage-20260820.webp"
+  ),
   "/images/hero/hero-home-group-07-mobile-1080x1350.webp": require("../../../assets/images/jubilee/home-community.webp"),
   "/images/hero/worship-community-960x610.webp": require("../../../assets/images/jubilee/worship-community.webp"),
   "/images/media/youtube-featured-E5mD29x_-dM-1280x720.webp": require("../../../assets/images/jubilee/gallery-worship-03.webp"),

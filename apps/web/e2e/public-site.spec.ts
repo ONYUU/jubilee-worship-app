@@ -1,12 +1,20 @@
 import { expect, test } from "@playwright/test";
 
-test("home shows the next worship and defers the video iframe", async ({ page }) => {
+test("home shows the next worship and defers the video iframe", async ({ page, isMobile }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "오직 예배를 세우는 일" })).toBeVisible();
-  await expect(page.locator("section").first().locator("picture img")).toHaveAttribute(
+  const heroImage = page.locator("section").first().locator("picture img");
+  await expect(heroImage).toHaveAttribute(
     "src",
-    /hero-home-group-07-desktop-1920x1080/
+    /hero-home-stage-20260820-desktop-1280x720/
   );
+  await expect
+    .poll(() => heroImage.evaluate((image: HTMLImageElement) => image.currentSrc))
+    .toMatch(
+      isMobile
+        ? /hero-home-stage-20260820-mobile-672x840/
+        : /hero-home-stage-20260820-desktop-1280x720/
+    );
   await expect(page.locator('img[src*="sundoo-jubilee-05"]')).toHaveCount(0);
   await expect(page.getByText("쥬빌리워십 찬양집회").first()).toBeVisible();
   await expect(page.locator("iframe")).toHaveCount(0);

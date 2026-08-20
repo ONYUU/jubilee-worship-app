@@ -6,6 +6,7 @@ import { resolveMediaSource } from "@/features/content/media-source";
 import {
   formatDday,
   formatEventDate,
+  selectHomeHeroMediaPath,
   selectNextMobileEvent,
   selectSetlistForEvent
 } from "@/features/content/selectors";
@@ -28,9 +29,7 @@ export default function HomeScreen() {
   if (!content) return null;
 
   const nextEvent = selectNextMobileEvent(content.events);
-  const nextEventImage = resolveMediaSource(
-    content.site.hero_media_mobile_path ?? content.site.hero_media_path
-  );
+  const nextEventImage = resolveMediaSource(selectHomeHeroMediaPath(content.site));
   const setlist = nextEvent ? selectSetlistForEvent(content.setlists, nextEvent.id) : null;
   const notice = content.announcements[0] ?? null;
   const songlistHref = nextEvent

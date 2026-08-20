@@ -27,6 +27,12 @@ export function selectSetlistForEvent(
   return setlists.find((setlist) => setlist.event_id === eventId) ?? null;
 }
 
+export function selectHomeHeroMediaPath(
+  site: Pick<MobilePublicContent["site"], "hero_media_path" | "hero_media_mobile_path">
+): string | null {
+  return site.hero_media_path ?? site.hero_media_mobile_path;
+}
+
 export function partitionMobileEvents(
   events: readonly MobilePublicEvent[],
   now = new Date()
