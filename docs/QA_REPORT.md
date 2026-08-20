@@ -1,8 +1,8 @@
 # 출시 후보 개발본 QA 보고서
 
 - 기준일: 2026-08-20 KST
-- 범위: 로컬 코드·Supabase·Edge Function, 알림 별도 동의·direct v2 등록 악용 방지, v9 라이트·다크 모바일 Web, Android 16KB Release, iOS Simulator Release, 기존 EAS·Android 실기기 검증 기록
-- 결론: 알림 설정의 별도 동의·증명값 분리, 등록 요청 제한, 중단 스위치를 포함한 최신 migration이 로컬 reset·pgTAP·lint를 통과했다. v9 시작 자산·화면·라이트·다크·접근성·딥링크도 기존 자동 검증과 Android 16KB 에뮬레이터·iOS Simulator Release 회귀를 통과했다. 다만 최신 알림 변경의 원격 배포·보안 canary, Android 물리 기기, iPhone 실기기, 실제 APNs·FCM, 운영 서명·스토어 검증은 완료되지 않았다.
+- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b`의 로컬 코드·GitHub CI, Supabase remote migration·8개 Edge Function·fail-closed canary, Vercel Production, iOS EAS Preview Simulator 및 Android EAS Preview·Samsung 실기기 검증
+- 결론: Domain 98/98, Web 29/29, Mobile 99/99, Supabase pgTAP 695/695, Edge Function 29/29와 전체 lint·typecheck·build·export가 통과했고, PR #11 CI도 모두 통과했다. Supabase remote migration은 15/15 일치하고 8개 Edge Function을 배포했으며, `registration_enabled=false`, 정책 미공개, legacy 등록 API 410, direct v2 canary `REGISTRATION_DISABLED`, 관련 원격 행 0건으로 fail-closed 상태를 확인했다. Vercel Production의 홈·지원·개인정보 페이지, iOS EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`, Android EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`의 Samsung SM-G991N 실기기 검증을 완료했다. 다만 Android Preview에는 Firebase 설정이 없어 FCM token 생성 전 단계에서 중단됐고, 실제 APNs·FCM 발송, iPhone 실기기, 운영 서명·스토어 트랙·심사 제출은 완료되지 않았다.
 
 ## 1. 최신 자동 검증
 
@@ -24,7 +24,7 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 | 최신 migration 포함 `supabase db reset --local --no-seed` | 통과 |
 | RLS·GRANT·Storage·RPC pgTAP | 695/695 통과 |
 | Supabase DB lint | warning/error 0 |
-| 원격 Security Advisor | 오류 0, 관리자 전용 RPC 정적 경고 27건 검토 완료 |
+| 원격 Security Advisor | `SECURITY DEFINER` 실행 RPC 경고 존재; 내부 인증·HMAC·rate-limit gate 검토 완료(경고 0으로 간주하지 않음) |
 | Performance Advisor | 보고 이슈 0 |
 | 로컬 migration 재현 schema와 현재 로컬 `public`, `private`, `storage` schema diff | 불일치 0 |
 
@@ -40,9 +40,11 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 - 요청 출처는 IP 원문 대신 프로젝트 비밀키 HMAC 가명값으로 제한한다. 등록은 1분 제한과 별도로 하루 같은 출처 100회·전체 500회를 상한으로 두며, 잘못된 형식의 Expo token도 카운트한다. 101번째·501번째 차단, 등록 중단 스위치의 typed denial·미생성, anon·authenticated·service_role의 abuse-control table 직접 권한 없음을 pgTAP으로 확인했다.
 - 일일 HMAC rate row는 요청이 이어지는 동안 다음 창으로 갱신될 수 있다. 마지막으로 시작된 일일 창에 추가 요청이 없으면 창 시작 25시간 후 만료하며, 5분 cleanup cron 지연을 포함하면 약 25시간 5분 뒤 삭제된다. 이 기준은 개인정보처리방침 초안과 공개 gate에 반영됐지만, 최종 정책 공개는 법률·실무 결정 후에만 가능하다.
 - development·preview·production 설치정보를 분리하고, 일반·예배 알림은 production 설치에만 발송한다. owner가 특정 기기로 보내는 시험 알림은 development·preview에서도 허용한다.
-- 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용하도록 로컬 구현·검증했다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다. 신규 migration·Edge Function 2개와 변경된 `test-push`는 아직 원격에 적용하지 않았다.
+- 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용하도록 구현·검증했으며, 관련 migration과 Edge Function을 원격에 적용했다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다. 다만 `TEST_PUSH_PAIRING_PEPPER`와 최초 owner가 없고 등록 중단 상태이므로 실제 연결 승인·시험 push는 수행하지 않았다.
 - 예배 알림은 owner가 미리 승인한 공개 `scheduled|postponed` 예배에 대해 `전날 19:30 KST`와 `당일 1시간 전` 두 예약을 중복 없이 생성하고, 예배·문구 기준 변경 시 재승인을 요구하도록 구현했다. 실제 queue는 예약 시각부터 15분 안에 운영 scheduler가 실행해야 한다.
 - 알림 데이터 cleanup은 토큰 원문 최대 24시간, 180일 미활동 설치 비활성화, 비활성 설치정보 30일, 발송 상세 90일 기준으로 구현했다. 일일 cron, 멱등 실행, 직접 권한 차단, 경계값 삭제를 로컬 DB에서 검증했고 원격 cron을 활성화했다. 원격 실행 이력 4회는 성공했지만 만료 대상이 0건이어서 실제 만료정보 삭제 증거는 아직 없다.
+
+원격 migration은 로컬과 15/15 일치하고 Edge Function 8개가 배포됐다. legacy 등록·갱신·해제 endpoint는 HTTP 410이며, direct v2 synthetic canary는 HTTP 200과 `REGISTRATION_DISABLED`를 반환했다. `registration_enabled=false`, `policy_ready=false`, 법적 문서·설치·endpoint·구독·동의·복구 관련 행은 모두 0건이고 실제 push는 0건이다. Supabase 통합 로그에서 synthetic token·proof·installation UUID는 검색되지 않았고, API Gateway 범위에서 custom-header 이름도 0건이었다.
 
 ## 3. Android 검증
 
@@ -60,13 +62,17 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 | Android 실기기 핵심 화면 | 성공 | 홈·예배·미디어·안내·송리스트 |
 | Android 실기기 이동·공유 | 성공 | 캘린더 선택기·길찾기 선택창·공유 시트 확인, 외부 전송 없음 |
 | Android 뒤로가기 회귀 | 성공 | 화면 버튼·시스템 Back·가장자리 제스처 모두 송리스트에서 예배로 복귀 |
-| Android FCM 원격 알림 | 미완료 | Firebase/FCM 자격 증명 및 새 알림 빌드 필요 |
+| EAS Preview APK build `f60bcbcc-de16-457b-99cd-d3a9460df37d` | 성공 | commit `aaeed5e`, Samsung SM-G991N replace install·핵심 회귀·만 14세 gate·Fatal/ANR 0건 |
+| Preview APK 정적 검증 | 성공 | SHA-256 `2f9773412dbd040dd368fd115f636f31dfe258a4c9c033c3abdc51c56c641f07`, target API 36, v2 서명, 64-bit arm64/x86_64 ELF·ZIP 16KB 정렬 |
+| Android FCM 원격 알림 | 미완료 | `GOOGLE_SERVICES_JSON` 미설정으로 Firebase 초기화 단계에서 중단; token·실제 push·receipt 0건 |
 | Store 서명 AAB·Play 내부 테스트 | 미완료 | Google Play 연결 필요 |
 | Play 비공개 테스트 12명·14일·Production access | 미완료 | 2025년 생성 개인 개발자 계정 필수 게이트 |
 
 생성된 파일은 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`에 있다. 최신 v9 Release는 16KB 페이지 정렬, 라이트·다크 시작 화면, 테마 저장, 4개 탭, 송리스트 빈 상태, 주소 복사, 뒤로가기, 글자 크기 1.5, development 딥링크를 Android 15 16KB 에뮬레이터에서 확인했다. 이 APK는 development/debug 인증서 기반이며 Google Play 업로드, 스토어 서명, 최신 v9의 물리 기기 검증 또는 스토어 승인을 의미하지 않는다.
 
 2026-08-16 EAS development build `9d6ba4af-ad4c-419b-9319-7506100f0160`(commit `9159518`)을 Samsung SM-G991N(Android 15)에 설치했다. 4개 탭과 송리스트를 확인했고, 이전 빌드에서 시스템 Back이 앱을 종료하던 문제를 `predictiveBackGestureEnabled=false`로 수정한 뒤 화면 버튼·시스템 Back·가장자리 제스처가 모두 예배 화면으로 복귀함을 확인했다. 캘린더 선택기, 길찾기 선택창, Android 공유 시트도 열렸으며 저장·지도 선택·외부 공유 전송은 수행하지 않았다. Fatal·Unhandled JS 오류는 없었다. 이 결과물은 development client이므로 운영 서명 AAB와 실제 FCM 알림 검증을 대체하지 않는다.
+
+2026-08-20 EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`(commit `aaeed5e`, package `org.sundoo.jubileeworship.preview`)를 Samsung SM-G991N(Android 15/API 35)에 replace install했다. 공식 launcher icon, 새 홈 예배 사진, 4개 탭, 라이트·다크 강제종료 후 유지, 송리스트의 화면 버튼·시스템 Back·왼쪽 edge Back을 확인했다. 알림 종류 선택 전 만 14세 확인과 별도 동의가 먼저 표시되고, `별도 동의하고 알림 켜기`를 누른 뒤에만 Android 권한창이 표시됐다. 미확인·권한 거절 시 선택은 모두 꺼진 상태로 복구됐다. OS 권한을 시험용으로 허용한 뒤에는 Firebase 설정 부재로 `Default FirebaseApp is not initialized` 단계에서 중단돼 서버 RPC 및 FCM token 생성에는 도달하지 못했다. 원격 등록·정책 gate는 계속 꺼져 있고 관련 DB 행과 실제 push는 0건이다. 최종 logcat과 ApplicationExitInfo의 crash·ANR는 0건이며 권한은 다시 철회했다. SM-G991N의 page size는 4KB이므로 이 기기에서 16KB runtime을 검증한 것은 아니며, APK의 64-bit ELF와 ZIP 정렬을 정적으로 검증했다.
 
 ## 4. iOS 검증
 
@@ -77,7 +83,7 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 | Metro 없는 Release 단독 실행 | 성공 | 통과 |
 | 앱 종료 후 알림함 custom-scheme 콜드 딥링크 | 성공 | 통과 |
 | EAS Simulator development build | 생성·설치·실행 성공 | 홈·예배·미디어 화면 확인 |
-| EAS Preview Simulator 원격 콘텐츠 | 생성·설치·실행 성공 | 원격 Supabase 예배 데이터 표시 확인 |
+| EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7` | 생성·clean install·실행 성공 | commit `aaeed5e`, 공식 아이콘·새 홈 사진·4개 탭·테마 유지·만 14세 gate·Simulator fail-closed 확인 |
 | Preview 알림함·알림설정 딥링크 | 성공 | 각 화면 진입 후 이전 버튼으로 홈 복귀 |
 | v9 시작화면·라이트·다크 저장 | 성공 | 네이티브 아이콘→테마 전체화면→홈 |
 | v9 홈·4탭·송리스트 빈 상태·주소 복사 | 성공 | 실제 송리스트 공개 데이터 표시는 미검증, Clipboard 실제 값·성공 피드백 포함 |
@@ -91,9 +97,13 @@ iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없�
 
 2026-08-17에는 EAS Preview Simulator build `870d1615-ac38-4353-a4fa-c73913266d52`(commit `09c84da`)를 iPhone 17 Simulator(iOS 26.5)에 단독 설치했다. 원격 Supabase에서 2026-09-04 예배와 최근 영상을 읽어 홈에 표시했으며, 앱을 종료한 뒤 `jubileeworship://notifications`로 콜드 진입하고 화면의 이전 버튼으로 홈에 복귀했다. `jubileeworship://notification-settings` 진입·복귀도 성공했고, 시뮬레이터에는 실기기에서만 사용하는 시험 알림 연결 코드가 노출되지 않았다. 최근 실행 로그의 Fatal·Unhandled·exception·bundle URL 오류는 0건이었다.
 
+2026-08-20 EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`(commit `aaeed5e`, bundle `org.sundoo.jubileeworship.preview`)을 iPhone 17 Pro Simulator에 clean install했다. artifact SHA-256은 `39eacb096d85de7521a92aab1b1ec2a3f1f0e6cb989ac1874fde9e60814b235f`이다. 공식 launcher icon, 새 홈 예배 사진, 4개 탭, 라이트·다크 저장 및 재실행 유지를 확인했다. 만 14세 확인 전에는 별도 동의 버튼이 비활성화되고 확인 후 활성화됐으며, 동의 뒤에는 Simulator에서 실기기 전용 기능으로 fail-closed 처리됐다. Fatal·crash report는 0건이고 실제 push는 수행하지 않았다. 재설치 복구 UI는 등록된 실기기 token이 없어 직접 진입하지 못했으며, targeted test 27/27과 production 복구 거부로 보완 검증했다.
+
 Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내부 빌드는 Apple 서명 자격 증명 입력 단계에서 중단했다. Apple 비밀번호·2단계 인증값은 저장소나 채팅에 남기지 않고 사용자가 로컬 터미널에 직접 입력한 뒤 재개한다.
 
-## 5. 웹 화면·접근성 기존 QA 기록
+## 5. 웹 화면·접근성·Production QA
+
+2026-08-20 Vercel deployment `dpl_954nm6pMVRkGQP17kHyh1c3epB9R`를 Production으로 승격했다. 기본 운영 주소 `https://jubilee-worship.vercel.app`에서 `/`, `/support`, `/privacy`, `/sitemap.xml`이 모두 HTTP 200을 반환했다. `/support`의 문의 안내·만 14세 알림 절차·비밀정보 전송 금지 안내와 `/privacy`의 `noindex`·스토어 제출 금지 표시를 확인했다. 데스크톱 1240px와 모바일 390×844에서 수평 overflow와 사이트 console/page error는 0건이며, Production runtime error·warning도 0건이었다. 홈은 데스크톱과 모바일에 각각 승인된 새 hero 자산을 제공했다.
 
 2026-08-19 v9 모바일 Web local export를 390×844 viewport에서 브라우저로 확인했다. 홈·예배·미디어·안내·송리스트, 검색, 주소 복사, 라이트·다크 저장·재로드를 확인했다. 빈 화면·오류 overlay·깨진 이미지·수평 overflow·page error는 없었고, WCAG 자동 접근성 위반과 보이는 44px 미만 터치 대상은 0건이었다. Web에서는 Expo push-token listener가 동작하지 않는다는 공식 모듈 경고 1건만 있었으며 listener는 no-op이다. 이 검증은 네이티브 실기기 검증을 대체하지 않는다.
 
@@ -108,32 +118,35 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 다음은 로컬 코드 완료와 별개의 배포·운영 게이트다.
 
-1. 별도 동의·direct v2·일일 100/500 상한·등록 중단 스위치 migration, 시험 알림 연결·딥링크 migration·Edge Function, 변경된 앱과 `test-push`, `TEST_PUSH_PAIRING_PEPPER`를 원격 Supabase에 안전 순서로 적용하고 최초 owner Auth 계정·SMTP를 설정
-2. 비운영 custom-header log canary로 Expo token·설치 proof가 API·Postgres log·오류 보고서에 남지 않는지 확인
+1. 최초 owner Auth 계정·SMTP를 설정하고 `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 구성한 뒤 development·preview 실기기 pairing을 검증
+2. Supabase custom-header log canary는 완료했으나, 실제 owner·복구 흐름에서 raw 재설치 복구 코드가 Vercel runtime/error log에 남지 않는지 별도 canary 수행
 3. 외부 요청자가 `cf-connecting-ip`·`x-forwarded-for`를 주입·변조해 출처 bucket을 선택하거나 우회할 수 없는지 원격 테스트. 이 가정이 확인되지 않으면 현재 DB 소스 제한을 운영 보안경계로 간주할 수 없음
 4. DB RPC에 도달하지 않는 malformed URL·body와 분산 공격을 위한 gateway/WAF 제한, 사용량·차단량 alert, 등록 중단 스위치 운영 절차 설정
 5. 비운영 환경 또는 승인된 점검 창에서 중단 스위치와 일일 출처 101번째·전체 501번째 차단, 25시간 만료 설정을 원격 검증
 6. Firebase Android 앱 3종 등록 완료, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결
 7. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
 8. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-9. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
+9. Vercel 기본 Production 배포는 완료했으나 Preview 관리자 CRUD 회귀, 서버 전용 secret 구성, 선두교회 하위 도메인 승인·DNS·TLS·canonical 검증
 10. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
-11. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
+11. iOS 실기기·Archive·TestFlight와 Android 운영 서명 AAB·Play 내부 테스트 설치·실기기 검증
 12. 개인정보처리방침·이용약관 최종 원문과 시행일 승인. 알림 기능을 만 14세 이상으로 제한하고 지원 문의를 Google Workspace 업무용 계정으로 전환하며 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하는 제품 결정은 승인됐다. 다만 실제 Workspace 주소·도메인·계약/관리 설정, 법적 처리자·담당자·전화번호, 연령 확인의 법률적 충분성, Google의 법적 역할·처리 국가, 국외 처리 근거와 법률 검토는 미확정이므로 정책 공개 게이트는 유지한다.
-13. 원격 cleanup cron이 실제 만료정보를 정책 기간에 맞춰 삭제하는지 최초 대상 발생 후 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
+13. 원격 cleanup cron이 실제 만료정보를 정책 기간에 맞춰 삭제하는지 최초 대상 발생 후 확인. 완료 전 store-ready 개인정보처리방침 공개·스토어 개인정보 URL 사용 금지
 14. 실제 설교·송리스트를 관리자에서 검수·공개한 뒤 앱의 주제·말씀 구절·곡·아티스트·KEY·공식 YouTube 링크 표시를 검증
 15. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
 
 ## 7. 최종 판정
 
 - 로컬 DB·Edge·자동 테스트: **통과**
+- 커밋 `aaeed5e` 기준 GitHub PR #11 CI: **모두 통과**
+- Supabase remote migration 15/15·Edge Function 8개·legacy 410·direct v2 fail-closed canary: **적용·검증 완료**
+- Supabase 등록·정책 gate: **`registration_enabled=false`, `policy_ready=false` 유지**
+- 원격 설치·endpoint·구독·동의·복구 행 및 실제 push: **모두 0건**
+- Vercel 기본 Production 홈·지원·개인정보·sitemap: **배포·검증 완료**
 - Android v9 Release APK·16KB Android 15 에뮬레이터·테마·뒤로가기·딥링크: **통과**
-- Android 15 물리 기기 기존 development APK·핵심 화면·뒤로가기: **통과**, **최신 v9 재검증 전**
-- iOS v9 Release Simulator·테마·Dynamic Type·주소 복사·변형별 custom scheme: **통과**
+- Android EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`·Samsung SM-G991N: **replace install·핵심 화면·테마·Back·만 14세 gate·Fatal/ANR 0건 통과**
+- iOS EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`: **clean install·핵심 화면·테마·만 14세 gate·fail-closed 통과**
 - iOS 실기기·서명·스토어 배포: **미완료**
-- Expo/EAS 개발 프로젝트·iOS Simulator development build·Android development APK: **완료**
-- Supabase 기존 remote schema·Edge Function·retention cron: **적용 완료, 실제 push·만료정보 삭제 검증 전**
-- 별도 동의·direct v2·일일 100/500 상한·중단 스위치, 시험 알림 연결·딥링크 migration·Edge Function·앱·server pepper: **로컬 검증 완료, 원격 미적용·canary 전**
-- Vercel·DNS·실제 push: **미완료**
+- 실제 APNs·FCM·운영 서명·스토어 트랙·심사 제출: **미완료**
+- 법적 개인정보처리방침·Google Workspace 실제 주소·계약/관리 설정: **미확정**
 
-따라서 현재 상태는 **로컬 출시 후보 개발본**이며, **스토어 출시 또는 운영 배포 완료 상태는 아니다**.
+따라서 현재 상태는 **원격 fail-closed 배포와 iOS Preview Simulator 및 Android Preview의 핵심 화면·동의 gate·비발송 상태 검증까지 완료한 출시 후보 개발본**이며, **실제 알림 운영 또는 App Store·Google Play 제출 완료 상태는 아니다**.
