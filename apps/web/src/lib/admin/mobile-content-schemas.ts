@@ -95,6 +95,36 @@ export const testPushPairingApprovalFormSchema = z.object({
   pairing_code: normalizedTestPushPairingCodeSchema
 });
 
+const normalizedReinstallRecoveryCodeSchema = z
+  .string()
+  .trim()
+  .min(1, "새 기기에 표시된 복구 코드를 입력해 주세요.")
+  .max(50)
+  .transform((value) => value
+    .toUpperCase()
+    .replaceAll("-", "")
+    .replaceAll(" ", "")
+    .replaceAll("O", "0")
+    .replace(/[IL]/g, "1"))
+  .pipe(z.string().regex(
+    /^[0-9A-HJKMNP-TV-Z]{26}$/,
+    "26자리 재설치 복구 코드 형식을 확인해 주세요."
+  ));
+
+export const reinstallRecoveryApprovalFormSchema = z.object({
+  challenge_id: z.uuid("재설치 복구 요청을 확인해 주세요."),
+  recovery_code: normalizedReinstallRecoveryCodeSchema
+});
+
+export const reinstallRecoveryChallengeListSchema = z.array(z.object({
+  challenge_id: z.uuid(),
+  app_variant: testPushAppVariantSchema,
+  source_display_label: z.string().trim().min(1).max(200),
+  target_display_label: z.string().trim().min(1).max(200),
+  created_at: z.iso.datetime({ offset: true }),
+  expires_at: z.iso.datetime({ offset: true })
+}).strict()).max(100);
+
 export const testPushTargetListSchema = z.array(z.object({
   push_endpoint_id: z.uuid(),
   app_variant: testPushAppVariantSchema,

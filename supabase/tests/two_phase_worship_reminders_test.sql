@@ -281,7 +281,7 @@ select lives_ok(
       ),
       (
         'privacy_policy', 'two-phase-privacy-complete', '완성 개인정보처리방침',
-        E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있습니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n- 비활성 정보 보유 기간: 30일\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매일 1회\n- 수탁자: Supabase 및 Expo\n- 이전 국가: 미국\n- 이전 항목: 설치 식별자 및 푸시 토큰\n- 이전 시점 및 방법: 서비스 이용 시 암호화 전송\n- 국외 처리 보유 기간: 비활성화 후 30일\n- 이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+        E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\nSUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 하루 100회 하루 500회 25시간 5분 재사용할 수 없도록 650 Industries, Inc. Apple·Google 처리 미국 Google Workspace 만 14세\n- 비활성 정보 보유 기간: 30일\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매일 1회\n- 수탁자: Supabase 및 Expo\n- 이전 국가: 미국\n- 이전 항목: 설치 식별자 및 푸시 토큰\n- 이전 시점 및 방법: 서비스 이용 시 암호화 전송\n- 국외 처리 보유 기간: 비활성화 후 30일\n- 이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n- 개인정보 처리자의 법적 성명 또는 명칭: 테스트 운영자\n- 개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n- 전화번호 등 연락처: 032-000-0000\n- 국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 테스트 근거\n- 지원 문의 보유·삭제 기준: 해결 후 90일\n- 지원 이메일 제공자의 법적 역할·처리 근거: 독립 처리 역할\n- 지원 이메일 국외 처리 국가: 테스트 국가\n- 알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 법정대리인 서면 절차\n- 실제 시행일: 2026-09-01\n- 오너 최종 사실확인: 2026-09-01 서면 승인\n- 법률 전문가 검토 상태: 2026-09-01 의견서 수령',
         current_date
       )
   $sql$,
@@ -521,7 +521,7 @@ select is(
     where version = 'two-phase-privacy-complete'
   ),
   'draft'::text,
-  'complete nine-label privacy policy starts as a draft'
+  'complete privacy policy starts as a draft'
 );
 
 select lives_ok(
@@ -530,7 +530,7 @@ select lives_ok(
       (select id from public.legal_documents where version = 'two-phase-privacy-complete')
     )
   $$,
-  'direct privacy publication accepts all nine concrete bullet-form labels'
+  'direct privacy publication accepts every required concrete bullet-form label'
 );
 
 select is(

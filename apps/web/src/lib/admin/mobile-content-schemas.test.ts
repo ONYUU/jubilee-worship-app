@@ -5,6 +5,8 @@ import {
   guideSectionFormSchema,
   legalDocumentFormSchema,
   notificationCampaignFormSchema,
+  reinstallRecoveryApprovalFormSchema,
+  reinstallRecoveryChallengeListSchema,
   sermonRevisionFormSchema,
   setlistItemFormSchema,
   testPushEdgeRequestBody,
@@ -16,6 +18,7 @@ import {
   worshipReminderScheduleListSchema,
   worshipReminderScheduleResultSchema
 } from "./mobile-content-schemas";
+import { reinstallRecoveryCodeDigest } from "./reinstall-recovery";
 
 describe("mobile admin content schemas", () => {
   it("accepts complete sermon drafts within their database limits", () => {
@@ -226,6 +229,40 @@ describe("mobile admin content schemas", () => {
         expo_push_token: "ExpoPushToken[must_not_reach_the_browser]"
       }]).success
     ).toBe(false);
+  });
+
+  it("normalizes a 128-bit reinstall recovery capability and hashes it before Supabase", () => {
+    const parsed = reinstallRecoveryApprovalFormSchema.safeParse({
+      challenge_id: "550e8400-e29b-41d4-a716-446655440000",
+      recovery_code: "7m4k-9p2t-8w3x-6y5z-1a2b-3c4d-5e"
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.recovery_code).toBe("7M4K9P2T8W3X6Y5Z1A2B3C4D5E");
+      expect(reinstallRecoveryCodeDigest(parsed.data.recovery_code)).toBe(
+        "20cbe18066b63f0669a7628eeb6bcc10509d2907ccb19f7f879382f39218580c"
+      );
+    }
+    expect(reinstallRecoveryApprovalFormSchema.safeParse({
+      challenge_id: "550e8400-e29b-41d4-a716-446655440000",
+      recovery_code: "SHORT-CODE"
+    }).success).toBe(false);
+  });
+
+  it("accepts only masked reinstall recovery list metadata", () => {
+    const challenge = {
+      challenge_id: "550e8400-e29b-41d4-a716-446655440000",
+      app_variant: "preview",
+      source_display_label: "미리보기 · Android · 이전 기기 …446655440000",
+      target_display_label: "미리보기 · Android · 새 설치 …446655550000",
+      created_at: "2026-08-20T10:00:00+00:00",
+      expires_at: "2026-08-20T10:10:00+00:00"
+    };
+    expect(reinstallRecoveryChallengeListSchema.safeParse([challenge]).success).toBe(true);
+    expect(reinstallRecoveryChallengeListSchema.safeParse([{
+      ...challenge,
+      expo_push_token: "ExpoPushToken[must_not_reach_the_browser]"
+    }]).success).toBe(false);
   });
 
   it("validates both approved worship reminder messages", () => {

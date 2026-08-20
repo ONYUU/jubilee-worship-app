@@ -7,15 +7,18 @@ import { FormSection, SelectField, TextAreaField, TextField } from "@/components
 import { AdminDataNotice, AdminPageHeader, StatusPill } from "@/components/admin/admin-page";
 import { requireActiveAdmin } from "@/lib/auth/admin";
 import {
+  reinstallRecoveryChallengeListSchema,
   testPushTargetListSchema,
   worshipReminderScheduleListSchema
 } from "@/lib/admin/mobile-content-schemas";
 import { WORSHIP_REMINDER_SCHEDULE } from "@/lib/site-identity";
 import {
   approveNotificationCampaignAction,
+  approveReinstallRecoveryAction,
   approveTestPushPairingAction,
   deleteNotificationCampaignAction,
   queueNotificationCampaignAction,
+  rejectReinstallRecoveryAction,
   revokeTestPushTargetAction,
   scheduleWorshipRemindersAction,
   saveNotificationCampaignAction,
@@ -96,9 +99,15 @@ export default async function NotificationsAdminPage({
       .limit(100),
     supabase.rpc("list_worship_reminder_schedules")
   ]);
-  const testTargetResult = admin.role === "owner"
-    ? await supabase.rpc("list_owner_test_push_targets")
-    : { data: [], error: null };
+  const [testTargetResult, recoveryResult] = admin.role === "owner"
+    ? await Promise.all([
+      supabase.rpc("list_owner_test_push_targets"),
+      supabase.rpc("list_owner_reinstall_recovery_challenges")
+    ])
+    : [
+      { data: [], error: null },
+      { data: [], error: null }
+    ];
   const campaigns = campaignRows(campaignResult.data);
   const events = eventResult.data ?? [];
   const reminderSchedules = worshipReminderScheduleListSchema.safeParse(reminderScheduleResult.data);
@@ -107,6 +116,9 @@ export default async function NotificationsAdminPage({
   const parsedTestTargets = testPushTargetListSchema.safeParse(testTargetResult.data);
   const testTargets = parsedTestTargets.success ? parsedTestTargets.data : [];
   const testTargetContractAvailable = !testTargetResult.error && parsedTestTargets.success;
+  const parsedRecoveryChallenges = reinstallRecoveryChallengeListSchema.safeParse(recoveryResult.data);
+  const recoveryChallenges = parsedRecoveryChallenges.success ? parsedRecoveryChallenges.data : [];
+  const recoveryContractAvailable = !recoveryResult.error && parsedRecoveryChallenges.success;
   const eligibleEvents = events.filter(
     (event) => event.published
       && (event.status === "scheduled" || event.status === "postponed")
@@ -116,6 +128,7 @@ export default async function NotificationsAdminPage({
   const hasError = Boolean(
     campaignResult.error || eventResult.error || reminderScheduleResult.error || !reminderSchedules.success
       || (admin.role === "owner" && !testTargetContractAvailable)
+      || (admin.role === "owner" && !recoveryContractAvailable)
   );
 
   return (
@@ -286,6 +299,79 @@ export default async function NotificationsAdminPage({
           </AdminForm>
         </section>
       </div>
+
+      {admin.role === "owner" ? (
+        <section className="rounded-2xl border border-brand-sun/30 bg-brand-sun/5 p-5">
+          <h2 className="text-xl font-bold">재설치 알림 연결 복구</h2>
+          <p className="mt-2 text-sm text-stone-300">
+            같은 Expo 주소가 이전 설치에 남아 신규 등록이 막힌 경우에만 사용합니다. 현재는 개발·미리보기 앱만 허용하며 운영 앱은 차단합니다. 앱 버전처럼 기기가 임의로 보낼 수 있는 값은 표시하지 않으며, 이전·신규 설치의 12자리 마스킹 지문과 새 기기의 26자리 일회용 코드를 직접 대조한 뒤 승인하세요.
+          </p>
+          <p className="mt-2 text-xs text-stone-400">
+            승인은 짧은 완료 권한만 부여하며 이 단계에서는 이전 연결이 바뀌지 않습니다. 새 기기가 앱에서 현재 동의·알림 설정으로 완료하면 그 순간 이전 연결을 폐기하고 새 설치를 원자적으로 등록합니다. Expo token과 설치 인증값은 표시하지 않으며, 입력한 복구 코드 원문은 저장하거나 데이터베이스에 전송하지 않습니다.
+          </p>
+
+          {!recoveryContractAvailable ? (
+            <AdminDataNotice message="재설치 복구 RPC가 아직 연결되지 않았습니다. migration과 오너 권한을 확인해 주세요." />
+          ) : recoveryChallenges.length === 0 ? (
+            <div className="mt-4">
+              <AdminDataNotice message="승인을 기다리는 개발·미리보기 재설치 복구 요청이 없습니다." />
+            </div>
+          ) : (
+            <ul className="mt-5 space-y-5">
+              {recoveryChallenges.map((challenge) => (
+                <li key={challenge.challenge_id} className="rounded-xl border border-white/10 bg-night-900 p-4">
+                  <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+                    <div>
+                      <p className="text-xs font-semibold text-stone-400">연결을 폐기할 이전 설치</p>
+                      <p className="mt-1 text-sm text-stone-100">{challenge.source_display_label}</p>
+                    </div>
+                    <span aria-hidden className="hidden text-stone-500 lg:block">→</span>
+                    <div>
+                      <p className="text-xs font-semibold text-stone-400">새로 연결할 설치</p>
+                      <p className="mt-1 text-sm text-stone-100">{challenge.target_display_label}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-stone-400">
+                    요청 {formatSeoul(challenge.created_at)} · 만료 {formatSeoul(challenge.expires_at)}
+                  </p>
+
+                  <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                    <AdminForm
+                      action={approveReinstallRecoveryAction}
+                      submitLabel="대조 후 복구 승인"
+                      confirmMessage="화면의 이전·신규 기기 정보와 새 기기의 26자리 복구 코드를 직접 대조했습니까? 승인 후 새 기기 앱에서 완료해야 실제 교체되며, 승인만으로 이전 연결은 폐기되지 않습니다."
+                      resetOnSettled
+                    >
+                      <input type="hidden" name="challenge_id" value={challenge.challenge_id} />
+                      <FormSection
+                        title="새 기기 일회용 코드"
+                        description="새 기기 화면에 표시된 26자리 코드를 입력하세요. 서버는 즉시 해시한 값만 데이터베이스에 보냅니다."
+                      >
+                        <TextField
+                          label="재설치 복구 코드"
+                          name="recovery_code"
+                          required
+                          type="password"
+                          autoComplete="off"
+                          spellCheck={false}
+                          hint="예: 7M4K-9P2T-8W3X-6Y5Z-1A2B-3C4D-5E"
+                        />
+                      </FormSection>
+                    </AdminForm>
+                    <AdminActionButton
+                      action={rejectReinstallRecoveryAction}
+                      id={challenge.challenge_id}
+                      label="요청 거절"
+                      tone="danger"
+                      confirmMessage="이 재설치 복구 요청을 거절하고 대기 중 인증값을 폐기할까요?"
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       {admin.role === "owner" ? (
         <section className="rounded-2xl border border-brand-sky/30 bg-brand-sky/5 p-5">

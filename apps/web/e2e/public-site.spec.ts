@@ -47,3 +47,28 @@ test("unknown pages show a safe 404", async ({ page }) => {
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "찾으시는 페이지가 없습니다" })).toBeVisible();
 });
+
+test("support route gives safe notification and contact guidance", async ({ page, request }) => {
+  const response = await page.goto("/support");
+  expect(response?.status()).toBe(200);
+
+  await expect(
+    page.getByRole("heading", { level: 1, name: "쥬빌리워십 이용을 도와드립니다" })
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "알림이 오지 않을 때" })).toBeVisible();
+  await expect(page.getByText("앱 하단의 ‘안내’ 탭에서 ‘알림 설정’을 선택합니다.")).toBeVisible();
+  await expect(page.getByText("기기 모델과 운영체제 버전")).toBeVisible();
+  await expect(page.getByText(/API 키·접속 토큰/)).toBeVisible();
+
+  const supportLink = page
+    .locator("#contact")
+    .getByRole("link", { name: "sundoojubileeworship@gmail.com" });
+  await expect(supportLink).toHaveAttribute("href", "mailto:sundoojubileeworship@gmail.com");
+  await expect(page.getByRole("link", { name: "예배 일정 확인" })).toHaveAttribute("href", "/worship");
+  await expect(page.getByRole("link", { name: "개인정보처리방침 보기" })).toHaveAttribute("href", "/privacy");
+  await expect(page.locator("form")).toHaveCount(0);
+
+  const sitemapResponse = await request.get("/sitemap.xml");
+  expect(sitemapResponse.status()).toBe(200);
+  expect(await sitemapResponse.text()).toContain("/support");
+});

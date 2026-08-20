@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react";
+import { useActionState, useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { AdminFieldErrorsContext, getAdminFieldId } from "@/components/admin/admin-fields";
 import type { ActionState } from "@/lib/auth/types";
@@ -12,6 +12,7 @@ type AdminFormProps = {
   submitLabel: string;
   className?: string;
   confirmMessage?: string;
+  resetOnSettled?: boolean;
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -28,15 +29,31 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-export function AdminForm({ action, children, submitLabel, className = "", confirmMessage }: AdminFormProps) {
+export function AdminForm({
+  action,
+  children,
+  submitLabel,
+  className = "",
+  confirmMessage,
+  resetOnSettled = false
+}: AdminFormProps) {
   const [state, formAction] = useActionState(action, INITIAL_ACTION_STATE);
   const errors = Object.entries(state.fieldErrors ?? {});
   const formId = useId().replaceAll(":", "");
   const summaryRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const fieldContext = useMemo(
     () => ({ fieldErrors: state.fieldErrors ?? {}, formId }),
     [formId, state.fieldErrors]
   );
+
+  const clearSettledForm = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement && formRef.current?.contains(activeElement)) {
+      activeElement.blur();
+    }
+    formRef.current?.reset();
+  }, []);
 
   useEffect(() => {
     if (state.status === "error") {
@@ -44,13 +61,22 @@ export function AdminForm({ action, children, submitLabel, className = "", confi
     }
   }, [state.status, state.message, state.fieldErrors]);
 
+  useEffect(() => {
+    if (!resetOnSettled || state.status === "idle") return;
+    clearSettledForm();
+  }, [clearSettledForm, resetOnSettled, state]);
+
   return (
     <form
+      ref={formRef}
       action={formAction}
       className={`space-y-6 ${className}`}
       noValidate
       onSubmit={(event) => {
-        if (confirmMessage && !window.confirm(confirmMessage)) event.preventDefault();
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          event.preventDefault();
+          if (resetOnSettled) clearSettledForm();
+        }
       }}
     >
       <AdminFieldErrorsContext.Provider value={fieldContext}>

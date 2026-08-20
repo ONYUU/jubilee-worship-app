@@ -7,8 +7,17 @@ import {
   readJsonObject,
   throwForRpcError,
 } from "../_shared/http.ts";
-import { chunks, expoErrorCode, sendExpoMessages } from "../_shared/expo.ts";
-import type { ClaimedDelivery, RpcClient } from "../_shared/types.ts";
+import {
+  chunks,
+  createExpoMessage,
+  expoErrorCode,
+  sendExpoMessages,
+} from "../_shared/expo.ts";
+import type {
+  ClaimedDelivery,
+  RevalidatedDelivery,
+  RpcClient,
+} from "../_shared/types.ts";
 
 function readCampaignLimit(value: unknown): number {
   const result = value === undefined ? 1 : value;
@@ -66,6 +75,18 @@ async function finishCampaign(
   throwForRpcError(error, "campaign_finish_failed");
 }
 
+async function revalidateDeliveries(
+  adminClient: RpcClient,
+  deliveryIds: number[],
+): Promise<RevalidatedDelivery[]> {
+  const { data, error } = await adminClient.rpc(
+    "service_revalidate_notification_deliveries",
+    { target_delivery_ids: deliveryIds },
+  );
+  throwForRpcError(error, "delivery_revalidation_failed");
+  return Array.isArray(data) ? data as RevalidatedDelivery[] : [];
+}
+
 export async function dispatchNotifications(
   request: Request,
   adminClient: RpcClient,
@@ -104,6 +125,7 @@ export async function dispatchNotifications(
     let deliveryCount = 0;
     let providerAcceptedCount = 0;
     let failedCount = 0;
+    let consentRevokedCount = 0;
 
     for (const [campaignId, rows] of campaigns) {
       const deliveries = rows.filter(
@@ -116,31 +138,45 @@ export async function dispatchNotifications(
           typeof row.delivery_id === "number" &&
           typeof row.expo_push_token === "string",
       );
-      deliveryCount += deliveries.length;
-
       try {
         if (dryRun) {
-          for (const delivery of deliveries) {
-            await recordTicket(
+          for (const claimedBatch of chunks(deliveries, 100)) {
+            const revalidated = await revalidateDeliveries(
               adminClient,
-              delivery.delivery_id,
-              "ok",
-              `dry-run-${delivery.delivery_id}-${crypto.randomUUID()}`,
-              null,
+              claimedBatch.map((delivery) => delivery.delivery_id),
             );
-            providerAcceptedCount += 1;
+            deliveryCount += revalidated.length;
+            consentRevokedCount += claimedBatch.length - revalidated.length;
+            for (const delivery of revalidated) {
+              await recordTicket(
+                adminClient,
+                delivery.delivery_id,
+                "ok",
+                `dry-run-${delivery.delivery_id}-${crypto.randomUUID()}`,
+                null,
+              );
+              providerAcceptedCount += 1;
+            }
           }
         } else {
-          for (const batch of chunks(deliveries, 100)) {
+          for (const claimedBatch of chunks(deliveries, 100)) {
+            const batch = await revalidateDeliveries(
+              adminClient,
+              claimedBatch.map((delivery) => delivery.delivery_id),
+            );
+            deliveryCount += batch.length;
+            consentRevokedCount += claimedBatch.length - batch.length;
+            if (batch.length === 0) continue;
             const tickets = await sendExpoMessages(
-              batch.map((delivery) => ({
-                to: delivery.expo_push_token,
-                title: delivery.title,
-                body: delivery.body,
-                ...(delivery.deep_link
-                  ? { data: { url: delivery.deep_link } }
-                  : {}),
-              })),
+              batch.map((delivery) =>
+                createExpoMessage({
+                  to: delivery.expo_push_token,
+                  title: delivery.title,
+                  body: delivery.body,
+                  deepLink: delivery.deep_link,
+                  expiresAt: delivery.expires_at,
+                })
+              ),
               expoAccessToken,
             );
 
@@ -200,6 +236,7 @@ export async function dispatchNotifications(
       deliveryCount,
       providerAcceptedCount,
       failedCount,
+      consentRevokedCount,
     });
   } catch (error) {
     return errorResponse(error);

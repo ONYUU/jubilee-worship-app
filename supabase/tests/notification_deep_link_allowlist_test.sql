@@ -328,6 +328,15 @@ insert into private.app_installations (
   'android', '1.0.0-deep-link-test', 'development'
 );
 
+update private.app_installations
+set sensitive_interest_consent_version = 'sensitive-interest-notifications-v2',
+    sensitive_interest_consented_at = statement_timestamp(),
+    sensitive_interest_disclosure_sha256 =
+      '654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c',
+    sensitive_interest_consent_locale = 'ko-KR',
+    sensitive_interest_age_14_or_over_confirmed_at = statement_timestamp()
+where id = 'f2000000-0000-4000-8000-000000000001';
+
 insert into private.push_endpoints (
   id, installation_id, expo_push_token, token_hash, platform
 ) values (

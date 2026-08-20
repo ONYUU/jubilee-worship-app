@@ -20,11 +20,11 @@ describe("legal document templates", () => {
       expect(hasConfirmedServiceIdentity(template.body)).toBe(true);
       if (documentType === "privacy_policy") {
         expect(hasRequiredAppPrivacyDisclosures(template.body)).toBe(true);
-        expect(template.body).toContain("푸시 토큰 원문을 최대 24시간 이내에 삭제");
+        expect(template.body).toContain("최대 24시간 이내에 데이터베이스 토큰 원문과 해시를 삭제");
         expect(template.body).toContain("180일 동안 활동이 확인되지 않은 설치");
         expect(template.body).toContain("비활성화 후 최대 30일");
         expect(template.body).toContain("발송 상세기록 최대 90일");
-        expect(template.body).toContain("정기 삭제 주기: 매일 1회");
+        expect(template.body).toContain("정기 삭제 주기: 매일 오전 3시 17분(한국시간) 1회");
         expect(template.body).toContain("종교적 관심");
         expect(template.body).toContain("광고·추적·이용자 프로파일링에 사용하지 않습니다");
       }
@@ -59,7 +59,14 @@ describe("legal document templates", () => {
     expect(hasCompletedPrivacyOperationalDetails(completedOnly)).toBe(false);
     expect(isStoreReadyPrivacyPolicy({ document_type: "privacy_policy", body: completedOnly })).toBe(false);
 
-    for (const placeholder of ["검토 완료함", "내용 확인 완료함", "확정 완료함", "기입완료"]) {
+    for (const placeholder of [
+      "검토 완료함",
+      "내용 확인 완료함",
+      "확정 완료함",
+      "기입완료",
+      "확인 필요",
+      "검토 예정"
+    ]) {
       const renamed = getLegalDocumentTemplate("privacy_policy").body.replaceAll(
         LEGAL_REVIEW_MARKER,
         placeholder
@@ -70,26 +77,16 @@ describe("legal document templates", () => {
   });
 
   it("requires a published privacy body to contain confirmed identity and completed operational values", () => {
-    let body = getLegalDocumentTemplate("privacy_policy").body;
-    const completedValues = [
-      "알림 해제 후 30일",
-      "발송일로부터 90일",
-      "매일 1회",
-      "Supabase, Inc. 및 650 Industries, Inc.",
-      "미국",
-      "설치 식별자, 푸시 토큰, 플랫폼, 앱 버전, 알림 선택 설정",
-      "알림 기능 이용 시 암호화된 네트워크를 통한 전송",
-      "이용 목적 달성 또는 계약 종료 시까지",
-      "앱 알림 설정에서 거부할 수 있으며 거부 시 푸시 알림을 받을 수 없음"
-    ];
-    for (const value of completedValues) {
-      body = body.replace(LEGAL_REVIEW_MARKER, value);
-    }
+    const body = getLegalDocumentTemplate("privacy_policy").body.replaceAll(
+      LEGAL_REVIEW_MARKER,
+      "2026-09-01 담당자 서면 승인 기록"
+    );
+    expect(body).toContain("‘만 14세 이상입니다’ 확인과 민감정보 별도 동의");
     expect(hasCompletedPrivacyOperationalDetails(body)).toBe(true);
     expect(isStoreReadyPrivacyPolicy({ document_type: "privacy_policy", body })).toBe(true);
     expect(isStoreReadyPrivacyPolicy({
       document_type: "privacy_policy",
-      body: body.replace("sundoojubileeworship@gmail.com", "")
+      body: body.replaceAll("sundoojubileeworship@gmail.com", "")
     })).toBe(false);
     expect(isStoreReadyPrivacyPolicy({
       document_type: "privacy_policy",

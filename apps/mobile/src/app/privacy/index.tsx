@@ -3,6 +3,7 @@ import { AppContactCard } from "@/components/app-contact-card";
 import { Screen } from "@/components/screen";
 import { Card, EmptyState, ErrorState, LoadingState } from "@/components/ui";
 import { useContent } from "@/features/content/content-provider";
+import { selectStoreReadyPrivacyPolicy } from "@/features/content/legal";
 import { APP_INFO } from "@/config/app-info";
 import { useAppThemeStyles } from "@/theme/theme-provider";
 import { spacing, typography, type ThemeColors } from "@/theme/tokens";
@@ -14,7 +15,7 @@ export default function PrivacyScreen() {
   if (loading && !content) return <Screen><LoadingState /></Screen>;
   if (error && !content) return <Screen><ErrorState message={error} retry={() => void refresh()} /></Screen>;
 
-  const document = content?.legal.find((item) => item.document_type === "privacy_policy") ?? null;
+  const document = selectStoreReadyPrivacyPolicy(content?.legal ?? []);
 
   return (
     <Screen>

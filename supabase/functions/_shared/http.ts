@@ -3,6 +3,10 @@ const UUID_PATTERN =
 const EXPO_PUSH_TOKEN_PATTERN =
   /^(?:ExponentPushToken|ExpoPushToken)\[[A-Za-z0-9_-]+\]$/;
 const DEEP_LINK_PATTERN = /^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/;
+const SHA256_HEX_PATTERN = /^[0-9a-f]{64}$/;
+
+export const SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION =
+  "sensitive-interest-notifications-v2";
 
 export class HttpError extends Error {
   constructor(
@@ -131,6 +135,18 @@ export function requiredUuid(value: unknown, field: string): string {
   return result.toLowerCase();
 }
 
+export function requiredSha256Hex(value: unknown, field: string): string {
+  const result = requiredString(value, field, 64);
+  if (!SHA256_HEX_PATTERN.test(result)) {
+    throw new HttpError(
+      400,
+      "invalid_input",
+      `${field} 값이 올바르지 않습니다.`,
+    );
+  }
+  return result;
+}
+
 export function requiredPlatform(value: unknown): "ios" | "android" {
   if (value !== "ios" && value !== "android") {
     throw new HttpError(
@@ -222,6 +238,33 @@ export function requiredSubscriptions(value: unknown): {
   };
 }
 
+export function requiredSensitiveInterestNotificationConsent(
+  value: unknown,
+): typeof SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION {
+  if (value !== SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION) {
+    throw new HttpError(
+      400,
+      "sensitive_interest_consent_required",
+      "종교적 관심을 드러낼 수 있는 알림 처리에 별도 동의가 필요합니다.",
+    );
+  }
+  return SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION;
+}
+
+export function requireEnabledSubscription(subscriptions: {
+  worshipReminder: boolean;
+  scheduleChanges: boolean;
+  setlistUpdates: boolean;
+}): void {
+  if (!Object.values(subscriptions).some(Boolean)) {
+    throw new HttpError(
+      400,
+      "notification_unregistration_required",
+      "모든 알림을 끌 때는 알림 동의 철회 요청을 사용해 주세요.",
+    );
+  }
+}
+
 export async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
@@ -230,15 +273,6 @@ export async function sha256Hex(value: string): Promise<string> {
   return [...new Uint8Array(digest)]
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
-}
-
-export function createInstallationSecret(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  const binary = String.fromCharCode(...bytes);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(
-    /=+$/,
-    "",
-  );
 }
 
 export type RpcError = {

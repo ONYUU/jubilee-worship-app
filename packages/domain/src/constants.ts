@@ -49,6 +49,19 @@ export const APPROVED_YOUTUBE_CHANNEL_IDS = [SITE.youtube_channel_id] as const;
 export const PUBLIC_MEDIA_URI_PREFIX = "storage://public-media/" as const;
 
 /**
+ * Versioned, separate consent required before registering any notification
+ * choice that can reveal an interest in religious worship. Keep this value in
+ * sync with the database and Edge Function contract.
+ */
+export const SENSITIVE_INTEREST_NOTIFICATION_CONSENT = {
+  version: "sensitive-interest-notifications-v2",
+  policyVersion: "1.0.0",
+  draftedOn: "2026-08-20",
+  locale: "ko-KR",
+  disclosureSha256: "654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c"
+} as const;
+
+/**
  * URLs whose publisher was verified against the current Jubilee Worship
  * channel. Additions require the same explicit editorial verification.
  */

@@ -1,50 +1,100 @@
 import { SERVICE_IDENTITY, WORSHIP_REMINDER_SCHEDULE } from "@/lib/site-identity";
+import {
+  LEGAL_REVIEW_MARKER,
+  hasCompletedPrivacyOperationalDetails,
+  hasCompletedTermsOperationalDetails,
+  hasConfirmedServiceIdentity,
+  hasRequiredAppPrivacyDisclosures,
+  hasUnresolvedLegalReview,
+  isStoreReadyPrivacyPolicy
+} from "@jubilee/domain";
 
-export const LEGAL_REVIEW_MARKER = "[[오너 확인 필요]]";
+export {
+  LEGAL_REVIEW_MARKER,
+  hasCompletedPrivacyOperationalDetails,
+  hasCompletedTermsOperationalDetails,
+  hasConfirmedServiceIdentity,
+  hasRequiredAppPrivacyDisclosures,
+  hasUnresolvedLegalReview,
+  isStoreReadyPrivacyPolicy
+};
 
 export type LegalDocumentType = "privacy_policy" | "terms_of_service";
 
 type LegalDocumentTemplate = {
   title: string;
   body: string;
+  version?: string;
+  effectiveOn?: string;
 };
 
 const privacyPolicyBody = `개인정보처리방침
 
-1. 운영주체와 문의처
+1. 운영주체, 개인정보 처리자와 문의처
 서비스 운영주체는 ${SERVICE_IDENTITY.operatorName}입니다.
 개인정보 및 앱 이용 문의: ${SERVICE_IDENTITY.contactEmail}
+개인정보 처리자의 법적 성명 또는 명칭: ${LEGAL_REVIEW_MARKER}
+개인정보 보호책임자 또는 고충처리 담당부서: ${LEGAL_REVIEW_MARKER}
+전화번호 등 연락처: ${LEGAL_REVIEW_MARKER}
 
 2. 일반 앱 이용
-앱은 일반 사용자의 회원가입을 받지 않으며, 이름·이메일·전화번호·위치정보를 직접 입력받지 않습니다.
+앱은 일반 사용자의 회원가입이나 개인정보 입력 폼을 제공하지 않습니다. 예배 일정·미디어·안내 등 공개 콘텐츠를 불러오기 위해 Supabase Data API에 접속하며, 이 과정에서 Supabase 표준 API·보안 로그가 IP 주소, User-Agent, 요청 경로·상태와 같은 네트워크 메타데이터를 보안·장애 대응 목적으로 처리할 수 있습니다. 알림에 별도 동의하지 않은 경우 앱은 푸시 토큰·알림 선택·알림용 설치 검증값을 서버에 등록하지 않습니다. 사용자가 외부 이메일 앱으로 지원 문의를 보내면 제8항의 문의정보를 처리합니다. 실제 프로젝트 로그 항목·마스킹·보유기간은 공개 전에 운영 환경에서 확인합니다.
 
 3. 알림 이용 시 처리하는 정보
-사용자가 알림을 직접 켜면 무작위 설치 식별자, 기기 푸시 토큰, 플랫폼(iOS또는 Android), 앱 버전, 알림 선택 설정과 최종 연결 시각을 처리합니다. 설치 비밀값 원문은 기기에 보관하고, 서버에는 해시값만 저장합니다.
+사용자가 별도 고지를 읽고 동의한 뒤 알림을 켜면 무작위 설치 식별자, Expo 푸시 토큰, 플랫폼(iOS 또는 Android), 앱 버전·앱 구분, 선택한 알림 종류, 동의 버전·서버 동의 시각, 최종 연결 시각과 발송·오류 상태를 처리합니다.
+설치 비밀값 원문은 기기 보안저장소에만 두고, Supabase Data API로는 등록용 검증값 또는 후속 요청용 증명값을 전송하며 데이터베이스에는 재사용할 수 없도록 한 단계 더 해시한 검증값만 저장합니다. 앱은 남용 방지를 위해 요청 출처 IP를 프로젝트 서버 비밀키 기반 HMAC 가명 검증값으로 처리합니다. 일반 요청의 분산 요청 제한은 1분 창에 적용됩니다. 해당 행은 요청이 이어지는 동안 다음 창으로 갱신될 수 있으며, 마지막으로 시작된 창에 추가 요청이 없으면 창 시작 5분 후 만료하고 5분 주기 정리 지연 뒤 삭제됩니다. 신규 알림 등록은 같은 요청 출처에서 하루 100회, 전체 서비스에서 하루 500회로 제한합니다. 이 일일 가명 카운터도 요청이 이어지는 동안 다음 창으로 갱신될 수 있으며, 마지막으로 시작된 일일 창에 추가 요청이 없으면 창 시작 25시간 후 만료하고 정리 지연을 포함해 약 25시간 5분 뒤 삭제됩니다. 알림 RPC에도 제2항의 네트워크 메타데이터 처리가 적용될 수 있습니다. 민감한 요청 헤더값이 운영 로그에 남지 않는지 실제 환경에서 확인하기 전에는 알림 기능을 배포하지 않습니다. Expo는 자체 정책에 따라 푸시 토큰, IP 주소, 운영체제, 오류·성능 정보를 처리할 수 있습니다.
 
-4. 처리 목적
+4. 민감정보에 해당할 수 있는 알림 선택과 별도 동의
 위 정보는 예배 일정·일정 변경·송리스트 알림 제공, 알림 선택 유지, 중복 발송 방지와 배송 오류 처리에만 사용합니다. 예배 알림은 ${WORSHIP_REMINDER_SCHEDULE.dayBeforeLabel}과 ${WORSHIP_REMINDER_SCHEDULE.oneHourBeforeLabel}에 발송하는 것을 운영 기준으로 합니다.
-예배 알림 선택은 종교적 관심을 추론할 수 있는 정보로 보수적으로 보호합니다. 이름·이메일·전화번호·광고 식별자와 결합하지 않고, 광고·추적·이용자 프로파일링에 사용하지 않습니다.
+예배·일정·송리스트 알림 선택은 종교적 관심을 추론할 수 있는 정보로 보수적으로 보호합니다. 앱은 첫 알림 활성화 전에 일반 앱 이용이나 운영체제 알림 권한과 구분된 설명을 보여주고 별도 동의를 받습니다. 취소하면 푸시 토큰을 요청하거나 서버에 등록하지 않으며 앱의 다른 기능은 계속 이용할 수 있습니다.
+서버에는 동의 버전과 동의 시각을 기록하고, 동의·철회 이력을 설치정보 삭제 시점까지 보관합니다. 이 정보는 이름·이메일·전화번호·광고 식별자와 결합하지 않고, 광고·추적·이용자 프로파일링에 사용하지 않습니다.
 
 5. 보유·파기
-사용자가 알림 해제를 요청하거나 푸시 제공자가 무효 토큰으로 판정하면 알림 선택을 끄고 푸시 토큰 원문을 최대 24시간 이내에 삭제합니다. 180일 동안 활동이 확인되지 않은 설치는 비활성화하고, 그 후 30일 동안 재등록하지 않으면 설치 정보를 삭제합니다.
+사용자가 마지막 알림을 끄거나 등록 해제를 선택하면 앱은 이 기기의 동의·알림 표시를 즉시 끄고 서버 해제를 요청합니다. 서버 요청이 성공하면 데이터베이스의 푸시 토큰 원문·해시를 삭제하고, 기기 증명값과 연결될 수 없는 무작위 값으로 설치 검증값을 교체하며 현재 동의 버전·시각을 지웁니다. 네트워크 실패 시 앱은 재시도 대기를 표시하고 다음 실행에서 해제를 다시 요청합니다. 서버 해제 전까지 기존 등록에 따른 알림이 도착할 수 있습니다. 푸시 제공자가 토큰을 무효로 판정하거나 다른 비활성 사유가 발생한 경우에는 최대 24시간 이내에 데이터베이스 토큰 원문과 해시를 삭제합니다. 180일 동안 활동이 확인되지 않은 설치는 비활성화하고, 그 후 30일 동안 재등록하지 않으면 연결 해제된 설치 식별자·무작위 검증값·설정·동의 이력을 삭제합니다. 철회 요청 처리 전 또는 처리 중 이미 발송 작업에 넘겨진 알림은 외부 서비스로 전달되어 이후 도착할 수 있지만, 처리 완료 후 새 발송 대상에서는 제외합니다.
 비활성 정보 보유 기간: 비활성화 후 최대 30일
 발송 기록 보유 기간: 발송 상세기록 최대 90일
-정기 삭제 주기: 매일 1회
+정기 삭제 주기: 매일 오전 3시 17분(한국시간) 1회
 
 6. 외부 서비스와 국외 처리
-앱은 콘텐츠·알림 제공을 위해 Supabase, Expo Push Service 등 외부 서비스를 사용할 수 있습니다.
+앱은 알림 등록·보관에 Supabase를, 실제 푸시 전달에 Expo Push Service와 Expo의 공식 하위처리자 목록에 있는 Apple·Google을 사용합니다. 공급자별 법적 역할·국외 처리 근거는 오너 실무 확인과 법률 검토를 구분하여 확정합니다.
+
+Supabase 처리: 계약·서비스 운영주체는 싱가포르 법인 SUPABASE PTE. LTD.입니다. 이 프로젝트의 주 데이터베이스는 대한민국 서울(ap-northeast-2)에 있습니다. Data API와 데이터베이스가 무작위 설치 식별자, 재사용 불가능하게 해시한 설치 검증값, Expo 푸시 토큰과 해시, 플랫폼·앱 버전·앱 구분, 알림 선택, 동의 버전·동의 시각, 최종 연결 시각, 발송·오류 상태와 보안·API 요청 메타데이터를 처리할 수 있습니다.
+Expo 처리: 미국 법인 650 Industries, Inc.가 Expo 푸시 토큰, 프로젝트·앱 식별정보, 알림 제목·본문·딥링크, 티켓·영수증·오류 정보를 푸시 전달과 오류 확인을 위해 처리합니다. 알림 내용은 Apple·Google의 푸시 서비스에 전달하는 데 필요한 동안만 메모리와 메시지 큐에 두고 Expo 데이터베이스에는 저장하지 않습니다.
+Apple·Google 처리: Expo의 2026년 8월 17일자 공식 하위처리자 목록은 Apple과 Google의 푸시 관련 처리 국가를 미국으로 표시합니다. 실제 적용되는 처리 국가·계약 범위는 공개 전 최신 목록과 계약을 다시 확인하며, 기기 푸시 토큰, 알림 제목·본문·딥링크와 전달 메타데이터는 기기로 전달하기 위해 처리될 수 있습니다.
+
 수탁자: ${LEGAL_REVIEW_MARKER}
 이전 국가: ${LEGAL_REVIEW_MARKER}
-이전 항목: ${LEGAL_REVIEW_MARKER}
-이전 시점 및 방법: ${LEGAL_REVIEW_MARKER}
+이전 항목: 위 Supabase 처리, Expo 처리, Apple·Google 처리 항목과 같음
+이전 시점 및 방법: 별도 동의 후 알림 등록·설정 변경·발송 시 암호화된 HTTPS 통신으로 전송
 국외 처리 보유 기간: ${LEGAL_REVIEW_MARKER}
-이전 거부 방법 및 효과: ${LEGAL_REVIEW_MARKER}
+이전 거부 방법 및 효과: 별도 동의를 하지 않거나 앱에서 마지막 알림을 끄고 등록을 해제하여 거부할 수 있으며 푸시 알림만 이용할 수 없고 앱의 다른 기능은 이용 가능
+국외 처리 법적 근거(법률 검토 후 확정): ${LEGAL_REVIEW_MARKER}
 
 7. 이용자의 선택과 권리
-사용자는 앱의 알림 설정에서 알림 종류별 수신 여부를 변경할 수 있고, 기기 설정에서 알림 권한을 철회할 수 있습니다. 추가 요청은 위 문의처로 접수할 수 있습니다.
+사용자는 앱의 알림 설정에서 알림 종류별 수신 여부를 변경할 수 있습니다. 마지막 알림을 끄거나 ‘알림 동의 철회 및 등록 해제’를 선택하면 서버 동의 철회와 토큰 삭제를 요청합니다. 운영체제 설정에서 알림 권한만 끄면 화면 표시만 차단되고 서버에 철회 사실이 전달되지 않을 수 있으므로 서버 등록 삭제는 앱의 철회 기능을 이용해야 합니다.
+사용자는 자신의 설치정보에 대한 열람·정정·삭제·처리정지 요청을 위 문의처로 접수할 수 있습니다. 계정이나 이름을 수집하지 않으므로 요청 대상 기기를 확인하기 위한 추가 정보가 필요할 수 있습니다.
 
-8. 시행일
-이 방침의 시행일은 관리자가 승인한 문서 상단의 효력일과 같습니다.`;
+8. 지원 문의
+사용자가 홈페이지 또는 앱의 지원 링크를 눌러 외부 이메일 앱에서 문의를 보내는 경우 발신 이메일 주소·표시 이름, 플랫폼·앱 버전·기기 모델·운영체제, 문의 내용·증상 발생 시각과 사용자가 선택해 첨부한 스크린샷 등 파일을 처리할 수 있습니다. 이 정보는 문의 확인·답변·오류 진단과 보안 사고 대응에만 사용하며, 설치 비밀값·푸시 토큰·비밀번호 등 비밀정보를 이메일로 요구하지 않습니다.
+지원 문의 채널은 개인용 Gmail이 아닌 Google Workspace 업무용 계정으로 전환하기로 결정했습니다. 실제 업무용 주소·도메인, Google Cloud Data Processing Addendum 적용 여부, 관리자 보안·삭제 설정과 처리 국가를 확인하기 전에는 전환이 완료된 것으로 보거나 이 정책을 공개하지 않습니다. 현재 표시된 ${SERVICE_IDENTITY.contactEmail}은 전환 완료 전 임시 문의 주소이며 스토어 제출용 확정 지원 채널이 아닙니다.
+지원 문의 보유·삭제 기준: 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하고 월 1회 삭제 대상을 점검
+지원 문의 삭제 요청: 위 문의 이메일로 요청할 수 있으며 요청자·대상 메일 확인 후 처리합니다.
+지원 이메일 제공자의 법적 역할·처리 근거: ${LEGAL_REVIEW_MARKER}
+지원 이메일 국외 처리 국가: ${LEGAL_REVIEW_MARKER}
+
+9. 만 14세 미만 이용자
+알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 알림 기능은 만 14세 이상으로 제한하며, 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 민감정보 별도 동의를 모두 받아 서버 시각으로 기록합니다. 생년월일은 수집하지 않고, 만 14세 미만 이용자는 알림 기능을 사용할 수 없지만 공개 콘텐츠 등 다른 앱 기능은 이용할 수 있습니다.
+이 연령 확인 방식의 법률적 충분성과 스토어 연령 설정의 정합성은 공개 전에 법률 전문가가 최종 검토합니다. 검토가 끝나기 전에는 개인정보처리방침을 공개하거나 알림 등록을 활성화하지 않습니다.
+
+10. 안전조치
+앱과 외부 서비스 간 통신은 HTTPS로 암호화합니다. 앱 공개 데이터와 알림 설치정보를 분리하고, 알림 테이블은 일반 앱·익명·로그인 사용자에게 직접 공개하지 않으며 서비스 전용 함수만 접근합니다. 설치 비밀값 원문과 푸시 토큰을 동의 이력에 기록하지 않습니다.
+
+11. 변경 및 시행일
+버전 1.0.0 초안은 2026년 8월 20일 작성되었습니다.
+실제 시행일: ${LEGAL_REVIEW_MARKER}
+오너 최종 사실확인: ${LEGAL_REVIEW_MARKER}
+법률 전문가 검토 상태: ${LEGAL_REVIEW_MARKER}
+중요한 변경이 있으면 시행 전에 앱 또는 공개 페이지로 알립니다.`;
 
 const termsBody = `서비스 이용약관
 
@@ -76,7 +126,8 @@ const termsBody = `서비스 이용약관
 const LEGAL_DOCUMENT_TEMPLATES: Record<LegalDocumentType, LegalDocumentTemplate> = {
   privacy_policy: {
     title: "쥬빌리워십 앱 개인정보처리방침",
-    body: privacyPolicyBody
+    body: privacyPolicyBody,
+    version: "1.0.0"
   },
   terms_of_service: {
     title: "쥬빌리워십 앱 이용약관",
@@ -86,79 +137,4 @@ const LEGAL_DOCUMENT_TEMPLATES: Record<LegalDocumentType, LegalDocumentTemplate>
 
 export function getLegalDocumentTemplate(documentType: LegalDocumentType): LegalDocumentTemplate {
   return LEGAL_DOCUMENT_TEMPLATES[documentType];
-}
-
-export function hasUnresolvedLegalReview(body: string): boolean {
-  return body.includes(LEGAL_REVIEW_MARKER);
-}
-
-export function hasConfirmedServiceIdentity(body: string): boolean {
-  return body.includes(SERVICE_IDENTITY.operatorName) && body.includes(SERVICE_IDENTITY.contactEmail);
-}
-
-export function hasRequiredAppPrivacyDisclosures(body: string): boolean {
-  return ["설치 식별자", "푸시 토큰", "알림 선택", "종교적 관심", "보유", "비활성화"].every((term) =>
-    body.includes(term)
-  );
-}
-
-const PRIVACY_OPERATIONAL_LABELS = [
-  "비활성 정보 보유 기간:",
-  "발송 기록 보유 기간:",
-  "정기 삭제 주기:",
-  "수탁자:",
-  "이전 국가:",
-  "이전 항목:",
-  "이전 시점 및 방법:",
-  "국외 처리 보유 기간:",
-  "이전 거부 방법 및 효과:"
-] as const;
-
-const TERMS_OPERATIONAL_LABELS = [
-  "준거법:",
-  "관할:",
-  "면책 범위:",
-  "미성년자 이용 안내:"
-] as const;
-
-const PLACEHOLDER_VALUE_PATTERN = /\[\[|\]\]|미정|추후|확인|검토|확정|완료|입력|기입|작성/i;
-const PLACEHOLDER_ONLY_VALUE_PATTERN = /^(?:(?:최종\s*)?(?:검토\s*)?완료(?:됨)?|(?:최종\s*)?확정(?:됨)?|검토\s*됨|N\/?A|해당\s*없음)[:.!]?$/i;
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function hasCompletedLabeledValues(body: string, labels: readonly string[]): boolean {
-  const lines = body.replaceAll("\r\n", "\n").split("\n");
-  return labels.every((label) => {
-    const matcher = new RegExp(`^\\s*(?:[-*]\\s*)?${escapeRegExp(label)}\\s*(.*)$`);
-    const matches = lines.map((line) => line.match(matcher)).filter((match) => match !== null);
-    if (matches.length !== 1) return false;
-    const value = matches[0]?.[1]?.trim() ?? "";
-    return value.length >= 2
-      && /[0-9A-Za-z가-힣]/.test(value)
-      && !PLACEHOLDER_VALUE_PATTERN.test(value)
-      && !PLACEHOLDER_ONLY_VALUE_PATTERN.test(value);
-  });
-}
-
-export function hasCompletedPrivacyOperationalDetails(body: string): boolean {
-  return hasCompletedLabeledValues(body, PRIVACY_OPERATIONAL_LABELS);
-}
-
-export function hasCompletedTermsOperationalDetails(body: string): boolean {
-  return hasCompletedLabeledValues(body, TERMS_OPERATIONAL_LABELS);
-}
-
-export function isStoreReadyPrivacyPolicy(
-  document: { document_type: string; body: string } | null
-): boolean {
-  return Boolean(
-    document
-      && document.document_type === "privacy_policy"
-      && !hasUnresolvedLegalReview(document.body)
-      && hasConfirmedServiceIdentity(document.body)
-      && hasRequiredAppPrivacyDisclosures(document.body)
-      && hasCompletedPrivacyOperationalDetails(document.body)
-  );
 }

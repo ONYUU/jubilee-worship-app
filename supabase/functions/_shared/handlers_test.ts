@@ -63,157 +63,39 @@ function jsonRequest(value: unknown): Request {
   });
 }
 
-Deno.test("registration returns the raw secret once and sends only its hash to Postgres", async () => {
-  const client = new MockRpcClient(() => ({
-    data: crypto.randomUUID(),
-    error: null,
-  }));
-  const response = await registerInstallation(
-    jsonRequest({
-      platform: "ios",
-      appVersion: "0.1.0",
-      appVariant: "preview",
-      expoPushToken: "ExpoPushToken[local_test_token]",
-      subscriptions: {
-        worshipReminder: true,
-        scheduleChanges: true,
-        setlistUpdates: false,
-      },
-    }),
-    client,
-  );
-
-  assertEquals(response.status, 201);
-  const result = await response.json() as {
-    installationId: string;
-    installationSecret: string;
-  };
-  assertMatch(result.installationId, /^[0-9a-f-]{36}$/);
-  assert(result.installationSecret.length >= 40);
-  assertEquals(client.calls.length, 1);
-  const params = client.calls[0].params ?? {};
-  assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
-  assertEquals(params.target_app_variant, "preview");
-  assert(params.target_secret_hash !== result.installationSecret);
-  assert(!("target_installation_secret" in params));
-});
-
-Deno.test("registration rejects an invalid push token before an RPC call", async () => {
-  const client = new MockRpcClient(() => ({ data: null, error: null }));
-  const response = await registerInstallation(
-    jsonRequest({
-      platform: "android",
-      appVersion: "0.1.0",
-      appVariant: "development",
-      expoPushToken: "not-a-push-token",
-      subscriptions: {
-        worshipReminder: false,
-        scheduleChanges: false,
-        setlistUpdates: false,
-      },
-    }),
-    client,
-  );
-  assertEquals(response.status, 400);
-  assertEquals(client.calls.length, 0);
-});
-
-Deno.test("registration rejects a missing or invalid app variant before an RPC call", async () => {
-  for (const appVariant of [undefined, "staging"]) {
+Deno.test("legacy notification mutation Edge routes fail closed without parsing or RPC calls", async () => {
+  const handlers = [
+    registerInstallation,
+    updateNotificationSettings,
+    unregisterInstallation,
+  ] as const;
+  for (const handler of handlers) {
     const client = new MockRpcClient(() => ({ data: null, error: null }));
-    const response = await registerInstallation(
+    const response = await handler(
       jsonRequest({
-        platform: "ios",
-        appVersion: "0.1.0",
-        ...(appVariant === undefined ? {} : { appVariant }),
-        expoPushToken: "ExpoPushToken[variant_validation_token]",
-        subscriptions: {
-          worshipReminder: true,
-          scheduleChanges: false,
-          setlistUpdates: false,
-        },
+        expoPushToken: "ExpoPushToken[must_not_be_parsed_or_forwarded]",
+        installationSecret: "must-not-be-parsed-or-forwarded",
       }),
       client,
     );
-    assertEquals(response.status, 400);
+    assertEquals(response.status, 410);
+    assertEquals((await response.json()).error, "direct_data_api_required");
     assertEquals(client.calls.length, 0);
   }
-});
-
-Deno.test("settings update hashes a body secret before the service RPC", async () => {
-  const client = new MockRpcClient(() => ({ data: null, error: null }));
-  const rawSecret = "settings-secret-that-must-not-reach-postgres";
-  const response = await updateNotificationSettings(
-    jsonRequest({
-      installationId: crypto.randomUUID(),
-      installationSecret: rawSecret,
-      appVersion: "0.1.1",
-      appVariant: "production",
-      subscriptions: {
-        worshipReminder: false,
-        scheduleChanges: true,
-        setlistUpdates: true,
-      },
-    }),
-    client,
-  );
-  assertEquals(response.status, 204);
-  const params = client.calls[0].params ?? {};
-  assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
-  assertEquals(params.target_app_variant, "production");
-  assert(params.target_secret_hash !== rawSecret);
-  assert(!Object.values(params).includes(rawSecret));
-});
-
-Deno.test("settings update rejects an invalid app variant before an RPC call", async () => {
-  const client = new MockRpcClient(() => ({ data: null, error: null }));
-  const response = await updateNotificationSettings(
-    jsonRequest({
-      installationId: crypto.randomUUID(),
-      installationSecret: "settings-secret-that-must-not-reach-postgres",
-      appVersion: "0.1.1",
-      appVariant: "staging",
-      subscriptions: {
-        worshipReminder: true,
-        scheduleChanges: false,
-        setlistUpdates: false,
-      },
-    }),
-    client,
-  );
-  assertEquals(response.status, 400);
-  assertEquals(client.calls.length, 0);
-});
-
-Deno.test("unregister hashes a body secret before the service RPC", async () => {
-  const client = new MockRpcClient(() => ({ data: null, error: null }));
-  const rawSecret = "unregister-secret-that-must-not-reach-postgres";
-  const response = await unregisterInstallation(
-    jsonRequest({
-      installationId: crypto.randomUUID(),
-      installationSecret: rawSecret,
-    }),
-    client,
-  );
-  assertEquals(response.status, 204);
-  const params = client.calls[0].params ?? {};
-  assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
-  assert(params.target_secret_hash !== rawSecret);
-  assert(!Object.values(params).includes(rawSecret));
 });
 
 Deno.test("a non-production installation creates one HMAC-bound pairing code", async () => {
   const expiresAt = "2035-06-15T10:10:00.000Z";
   const client = new MockRpcClient((name) => ({
-    data: name === "service_create_test_push_pairing" ? expiresAt : null,
+    data: name === "service_create_test_push_pairing_v2" ? expiresAt : null,
     error: null,
   }));
   const installationId = crypto.randomUUID();
-  const installationSecret = "device-secret-that-never-reaches-the-database";
+  const pairingProof = "a".repeat(64);
   const response = await createTestPushPairing(
     jsonRequest({
       installationId,
-      installationSecret,
+      pairingProof,
       appVariant: "development",
     }),
     client,
@@ -233,15 +115,13 @@ Deno.test("a non-production installation creates one HMAC-bound pairing code", a
   assertEquals(result.expiresAt, expiresAt);
   assertEquals(result.appVariant, "development");
   assertEquals(client.calls.map((call) => call.name), [
-    "service_create_test_push_pairing",
+    "service_create_test_push_pairing_v2",
   ]);
   const params = client.calls[0].params ?? {};
   assertEquals(params.target_installation_id, installationId);
-  assertMatch(String(params.target_secret_hash), /^[0-9a-f]{64}$/);
+  assertEquals(params.target_pairing_proof, pairingProof);
   assertMatch(String(params.target_code_digest), /^[0-9a-f]{64}$/);
-  assert(params.target_secret_hash !== installationSecret);
   assert(params.target_code_digest !== result.pairingCode);
-  assert(!Object.values(params).includes(installationSecret));
   assert(!Object.values(params).includes(result.pairingCode));
 });
 
@@ -505,6 +385,19 @@ Deno.test("dispatch dry-run records a synthetic ticket without an external reque
         error: null,
       };
     }
+    if (name === "service_revalidate_notification_deliveries") {
+      return {
+        data: [{
+          delivery_id: 7,
+          expo_push_token: "ExpoPushToken[local_test_token]",
+          title: "시험 알림",
+          body: "외부로 발송하지 않습니다.",
+          deep_link: "jubileeworship://worship/local",
+          expires_at: "2035-06-15T10:00:00.000Z",
+        }],
+        error: null,
+      };
+    }
     return { data: null, error: null };
   });
 
@@ -528,6 +421,49 @@ Deno.test("dispatch dry-run records a synthetic ticket without an external reque
     client.calls.some((call) =>
       call.name === "service_finish_notification_campaign"
     ),
+  );
+});
+
+Deno.test("dispatch drops a delivery whose consent was withdrawn after claim", async () => {
+  const campaignId = crypto.randomUUID();
+  const client = new MockRpcClient((name) => {
+    if (name === "service_claim_notification_outbox") {
+      return {
+        data: [{
+          outbox_id: 1,
+          campaign_id: campaignId,
+          delivery_id: 8,
+          push_endpoint_id: crypto.randomUUID(),
+          expo_push_token: "ExpoPushToken[stale_claim_token]",
+          title: "철회 전 제외",
+          body: "재검증에서 제외됩니다.",
+          deep_link: null,
+        }],
+        error: null,
+      };
+    }
+    if (name === "service_revalidate_notification_deliveries") {
+      return { data: [], error: null };
+    }
+    return { data: null, error: null };
+  });
+
+  const response = await dispatchNotifications(
+    jsonRequest({ dryRun: true, campaignLimit: 1 }),
+    client,
+    false,
+  );
+  assertEquals(response.status, 200);
+  const result = await response.json() as {
+    providerAcceptedCount: number;
+    consentRevokedCount: number;
+  };
+  assertEquals(result.providerAcceptedCount, 0);
+  assertEquals(result.consentRevokedCount, 1);
+  assertEquals(
+    client.calls.filter((call) => call.name === "service_record_push_ticket")
+      .length,
+    0,
   );
 });
 

@@ -133,9 +133,14 @@ select is(
 );
 
 select ok(
-  has_function_privilege(
+  not has_function_privilege(
     'service_role',
     'public.service_create_test_push_pairing(uuid,text,text,text)',
+    'EXECUTE'
+  )
+  and has_function_privilege(
+    'service_role',
+    'public.service_create_test_push_pairing_v2(uuid,text,text,text)',
     'EXECUTE'
   )
   and has_function_privilege(
@@ -143,7 +148,7 @@ select ok(
     'public.service_cleanup_test_push_pairings(timestamptz)',
     'EXECUTE'
   ),
-  'service_role can create and clean pairing challenges through RPC only'
+  'service_role uses the scoped v2 pairing capability and can run cleanup'
 );
 
 select ok(
@@ -256,10 +261,24 @@ values
     'ios', '1.0.0-disabled', 'preview', statement_timestamp(), 'user_unregistered'
   );
 
+update private.app_installations
+set sensitive_interest_consent_version = 'sensitive-interest-notifications-v2',
+    sensitive_interest_consented_at = statement_timestamp(),
+    sensitive_interest_disclosure_sha256 =
+      '654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c',
+    sensitive_interest_consent_locale = 'ko-KR',
+    sensitive_interest_age_14_or_over_confirmed_at = statement_timestamp(),
+    test_pairing_secret_hash = secret_hash
+where id::text like '62000000-0000-4000-8000-00000000000%'
+  and disabled_at is null;
+
 insert into private.notification_subscriptions (
   installation_id, worship_reminder, schedule_changes, setlist_updates
 )
-select id, true, true, true
+select id,
+  disabled_at is null,
+  disabled_at is null,
+  disabled_at is null
 from private.app_installations
 where id::text like '62000000-0000-4000-8000-00000000000%';
 

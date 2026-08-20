@@ -5,10 +5,9 @@ import {
   HttpError,
   jsonResponse,
   readJsonObject,
-  requiredString,
+  requiredSha256Hex,
   requiredTestAppVariant,
   requiredUuid,
-  sha256Hex,
   throwForRpcError,
 } from "../_shared/http.ts";
 import {
@@ -35,10 +34,9 @@ export async function createTestPushPairing(
     const pepper = requiredTestPushPairingPepper(pairingPepper);
     const input = await readJsonObject(request);
     const installationId = requiredUuid(input.installationId, "installationId");
-    const installationSecret = requiredString(
-      input.installationSecret,
-      "installationSecret",
-      128,
+    const pairingProof = requiredSha256Hex(
+      input.pairingProof,
+      "pairingProof",
     );
     const appVariant = requiredTestAppVariant(input.appVariant);
     const pairingCode = createTestPushPairingCode();
@@ -46,10 +44,10 @@ export async function createTestPushPairing(
     const codeDigest = await pairingCodeDigest(normalizedCode, pepper);
 
     const { data: expiresAt, error } = await adminClient.rpc(
-      "service_create_test_push_pairing",
+      "service_create_test_push_pairing_v2",
       {
         target_installation_id: installationId,
-        target_secret_hash: await sha256Hex(installationSecret),
+        target_pairing_proof: pairingProof,
         target_app_variant: appVariant,
         target_code_digest: codeDigest,
       },

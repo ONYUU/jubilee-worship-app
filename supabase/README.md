@@ -1,6 +1,6 @@
 # 쥬빌리워십 Supabase 운영·부트스트랩
 
-기준일: 2026-08-15 (Asia/Seoul)
+기준일: 2026-08-20 (Asia/Seoul)
 
 이 디렉터리는 로컬·검수 환경을 재현하고, 검증된 migration만 원격 환경에 적용하기 위한 기준이다. `reference/`의 SQL은 참고 초안이며 배포 대상으로 사용하지 않는다.
 
@@ -25,7 +25,7 @@
 - 송리스트의 전체 재생목록과 곡별 YouTube 링크는 owner가 각각 검증 RPC를 실행해야 공개할 수 있다. URL 변경 시 검증 기록은 자동 초기화된다. `is_changed`는 초안 개정 번호가 아니라 실제 공개 순번으로 계산한다.
 - 갤러리와 안내의 `published` 열은 직접 쓸 수 없다. owner 전용 RPC만 공개 상태를 바꾸며, 갤러리는 인물·사용 동의 확인 기록이 없으면 공개가 거부된다.
 - 개인정보 처리방침·이용약관은 `draft → published → withdrawn` 버전으로 관리하며 owner 공개 RPC가 기존 공개본 철회와 새 공개본 교체를 한 트랜잭션에서 처리한다.
-- 앱 설치, 알림 선택, Expo token, 캠페인·outbox·delivery는 `private` schema에만 있고 `anon`/`authenticated`의 직접 table 권한은 없다. 설치 비밀값은 Edge Function 응답으로 한 번 전달하고 DB에는 SHA-256 hash만 저장한다.
+- 앱 설치, 알림 선택, Expo token, 캠페인·outbox·delivery는 `private` schema에만 있고 `anon`/`authenticated`의 직접 table 권한은 없다. 설치 비밀값 `S`는 앱이 비동기 안전 난수로 만들어 SecureStore에만 보관한다. 등록은 `H2=SHA256(SHA256(S))`, 후속 요청은 `V=SHA256(S)`를 사용하고 DB는 `SHA256(V)=H2`를 비교한다.
 - 캠페인은 editor가 초안을 만들 수 있지만 owner만 승인·queue할 수 있다. 캠페인과 outbox 양쪽의 dedupe key가 중복 작업을 차단한다.
 - 새 개정본을 편집하거나 검수하는 동안 기존 공개본은 그대로 유지된다. 설교 주제·말씀 구절은 함께 승인되며, 빈 송리스트는 검수 요청할 수 없다.
 - 공지는 `published`, `starts_at`, `expires_at`을 RLS와 DTO view 양쪽에서 확인한다.
@@ -187,29 +187,49 @@ publish_legal_document(target_document_id bigint) -> void
 withdraw_legal_document(target_document_id bigint) -> void
 ```
 
-`publish_legal_document`는 웹 화면을 우회한 직접 호출에도 동일한 공개 gate를 적용한다. 두 문서 모두 확정 운영주체·문의 이메일과 미해결 marker 부재가 필요하다. 개인정보처리방침은 보유·삭제·국외 처리 9개 항목과 `종교적 관심`·비결합·알림 목적 제한 문구, 이용약관은 준거법·관할·면책·미성년자 안내 4개 항목이 각각 정확히 한 번 존재하고 실제 값으로 채워져야 한다. `확인`, `검토`, `확정`, `완료`, `입력`, `기입`, `작성`, `미정`, `추후`, marker, `N/A`, `해당 없음` 같은 검토용 값은 공개할 수 없다.
+`publish_legal_document`는 웹 화면을 우회한 직접 호출에도 동일한 공개 gate를 적용한다. 개인정보처리방침은 보유·삭제·국외 처리 항목 외에 개인정보 처리자, 보호책임자 또는 고충처리 부서·전화, 지원 문의 보유·이메일 제공자 역할·국가, 만 14세 절차, 실제 시행일, 오너 사실확인과 법률 전문가 검토 상태까지 라벨별 실제 값이 필요하다. `미정`·`추후`, marker, `확인 필요`·`검토 예정` 같은 명시적 미해결 표현, `확인`·`검토`·`확정`·`완료`·`입력`·`기입`·`작성`만으로 된 값과 `N/A`·`해당 없음`은 공개할 수 없다. 실제 절차를 설명하는 장문 안의 정상 단어는 허용한다.
 
-앱 설치용 Edge Function은 publishable key를 `apikey`로 보내며 JSON 계약은 다음과 같다.
+앱은 첫 알림을 켜기 전에 운영체제 알림 권한과 구분된 `민감정보(종교적 관심) 알림 처리 별도 동의` 화면을 보여준다. 목적·항목·보유기간·거부 효과·철회·국외 처리 요약과 개인정보처리방침 링크를 먼저 제공하고, `만 14세 이상입니다` 확인과 별도 동의를 모두 완료해야만 토큰을 요청한다. 생년월일은 수집하지 않으며, 만 14세 미만은 알림 기능만 사용할 수 없고 앱의 다른 기능은 그대로 이용할 수 있다. 동의 버전·고지문 SHA-256·언어·14세 이상 확인을 기기에 함께 저장하고 서버는 확인 시각을 생성한다. 문구가 바뀌면 배포 전에 버전을 올리고 DB 상수와 테스트를 함께 갱신한다.
+
+앱의 등록·변경·철회는 hosted Edge Function 본문을 거치지 않고 publishable key의 `apikey`로 Supabase Data API의 좁은 `anon` RPC를 직접 호출한다.
 
 ```text
-POST register-installation
-{ platform, appVersion, appVariant, expoPushToken, subscriptions }
--> 201 { installationId, installationSecret }
+POST /rest/v1/rpc/notification_register_v2
+body: installation UUID, H2, pairing capability hash, platform, app/build version,
+      app variant, consent version/disclosure digest/locale, 14+ affirmation,
+      three choices
+header: x-jubilee-expo-push-token
+-> 200 { "status": "ok" } | 200 { "status": "error", "code": "..." }
 
-POST update-notification-settings
-{ installationId, installationSecret, appVersion, appVariant, expoPushToken?, subscriptions }
--> 204
+POST /rest/v1/rpc/notification_update_v2
+body: installation UUID, pairing capability hash, app/build version, app variant,
+      consent version/disclosure digest/locale, 14+ affirmation, three choices
+header: x-jubilee-installation-proof=V, optional x-jubilee-expo-push-token
+-> same typed result
 
-POST unregister-installation
-{ installationId, installationSecret }
--> 204
+POST /rest/v1/rpc/notification_unregister_v2
+body: installation UUID, app variant
+header: x-jubilee-installation-proof=V
+-> same typed result
 ```
 
-`subscriptions`는 `worshipReminder`, `scheduleChanges`, `setlistUpdates` boolean 세 필드를 모두 포함한다. 설치 secret 원문은 앱의 SecureStore에만 보관하며 Edge Function은 즉시 hash로 바꿔 service-role RPC에 전달한다. 등록 함수의 메모리 요청 제한은 1차 abuse guard이므로 운영 배포에서는 API gateway의 분산 rate limit도 추가한다.
+`notification_register_v2`와 `notification_update_v2`는 모두 등록 중단
+스위치가 켜져 있고 현재 store-ready 개인정보처리방침이 공개된 경우에만
+설치정보·토큰·알림 선택을 변경한다. 어느 조건이든 충족하지 않으면 상태를
+변경하지 않고 `REGISTRATION_DISABLED`를 반환한다. 동의 철회를 막지 않도록
+`notification_unregister_v2`는 이 두 gate와 무관하게 계속 허용한다.
 
-시험 기기 연결은 공개 등록과 분리한다. `development|preview` 앱이 설치 UUID·secret·명시적 variant로 `create-test-push-pairing`을 호출하면 Edge Function이 12자리 Crockford 코드를 생성하고 서버 전용 `TEST_PUSH_PAIRING_PEPPER`로 HMAC-SHA256 digest를 계산한다. DB에는 10분 동안 digest만 저장하고 raw 코드는 앱에 한 번만 반환한다. 발급은 endpoint별 30초 cooldown·시간당 10회 제한이며, 새 발급·승인·만료 시 이전 digest를 즉시 제거한다.
+DB wrapper는 검증·인증·중복 실패를 typed result로 반환해 외부 정보를 노출하지 않으면서, 실패 요청의 분산 rate-limit 카운터도 같은 transaction에 commit한다. proxy가 제어하는 `cf-connecting-ip`가 없으면 하나의 `unknown` bucket으로 fail closed하고, 원문 IP는 저장하지 않으며 project-scoped 비밀키로 HMAC한 가명 검증값만 사용한다. 일반 호출은 출처·전역·installation별 1분 제한을 적용하고, 신규 등록은 같은 출처 하루 100회·서비스 전체 하루 500회로 추가 제한한다. 1분 행은 마지막으로 시작된 제한 창에서 추가 요청이 없으면 창 시작 5분 후, 일일 행은 창 시작 25시간 후 만료하며 각각 5분 cron 지연 뒤 삭제된다. 요청이 계속되면 다음 제한 창으로 갱신될 수 있다. private 등록 중단 스위치는 신규 설치 생성을 즉시 fail closed한다. malformed URL/body로 RPC 선택 자체가 실패하는 요청과 분산 공격은 DB 함수가 실행되지 않으므로 운영 gateway/WAF 경계에서 별도로 제한하고 사용량·차단량 alert를 설정해야 한다.
+
+이전 Edge mutation 경로 `register-installation`, `update-notification-settings`, `unregister-installation`은 요청 본문을 파싱하지 않고 HTTP 410을 반환한다. 운영 배포는 Data API custom header가 API/Postgres log에 남지 않는지 확인하고, 외부 호출자가 주입한 `cf-connecting-ip`·`x-forwarded-for`가 제한 bucket을 선택하지 못하며 Supabase proxy의 실제 출처값이 일관되게 주입되는지를 비운영 canary로 입증할 때까지 진행하지 않는다.
+
+시험 기기 연결은 공개 등록과 분리한다. `development|preview` 앱은 master `V`가 아닌 domain-separated `C=SHA256("jubilee:test-pairing:v1\n"+S)`만 `create-test-push-pairing` Edge Function에 보낸다. DB는 `SHA256(C)`를 맞추며 `C`는 등록 변경·철회에 재사용할 수 없다. Edge Function이 12자리 Crockford 코드를 생성하고 서버 전용 `TEST_PUSH_PAIRING_PEPPER`로 HMAC-SHA256 digest를 계산한다. DB에는 10분 동안 digest만 저장하고 raw 코드는 앱에 한 번만 반환한다. 발급은 endpoint별 30초 cooldown·시간당 10회 제한이며, 새 발급·승인·만료 시 이전 digest를 즉시 제거한다.
 
 active owner는 raw 코드를 `approve-test-push-pairing`에 입력한다. Edge Function이 같은 HMAC digest로 바꿔 사용자 JWT RPC를 호출하며, DB가 pending·미만료·active·variant 일치를 확인한 뒤 endpoint allowlist를 원자적으로 갱신한다. `list_owner_test_push_targets()`는 승인된 active endpoint의 `{ push_endpoint_id, app_variant, display_label }`만 반환한다. `display_label`은 서버에서 마스킹되며 설치 UUID·secret·Expo token·token hash·code digest는 브라우저로 반환하지 않는다. 같은 endpoint 행의 token refresh는 승인을 유지하지만 새 endpoint ID는 다시 연결해야 한다.
+
+재설치 후 같은 Expo token이 이전 설치에 남은 경우의 오너 복구는 개발·미리보기 앱에만 제공한다. 앱은 128-bit 일회용 코드와 exact token을 RPC 전에 SecureStore provisional record로 먼저 저장하고, DB에는 원문 대신 proof verifier·token hash·domain-separated unlink binding만 보낸다. 코드 TTL이 끝나거나 철회 모드로 전환되면 SecureStore에서도 raw code를 즉시 제거하고, 철회 재시도에 필요한 exact token·variant·target proof 연결만 최소 보존한다. 오너 승인은 이전 연결을 즉시 풀지 않고 짧은 `authorized` 상태만 만든다. 새 기기가 proof·exact token·현재 14세 이상 확인·현재 별도 동의·최신 알림 선택을 다시 제출하는 finalize 거래에서만 이전 설치 철회와 새 설치 등록이 원자적으로 함께 일어난다. 따라서 승인 후 기기가 돌아오지 않거나 공격자가 token만 먼저 등록하려 해도 이전 token의 unique 예약은 유지된다.
+
+복구 중 사용자가 알림을 모두 끄면 등록·정책 kill switch와 무관하게 cancel을 우선 처리하며, 실제 source/target token·동의·구독이 scrub됐다는 `withdrawn` 응답을 받은 경우에만 local token/proof 연결과 cleanup marker를 지운다. 알 수 없는 대상은 성공으로 간주하지 않는다. challenge 응답 유실·30일 감사 삭제 뒤에도 철회가 멈추지 않도록 개발·미리보기 exact token은 unsubscribe-only fallback으로 허용한다. 이 경계는 target takeover·동의 grant·설치 생성은 불가능하지만 token이 노출되면 해당 비운영 알림을 끄는 DoS는 가능하므로 production에는 절대 적용하지 않고 비운영 token도 로그·화면·요청 body에 노출하지 않는다. 재사용 가능한 code/proof verifier/token hash는 terminal 전환 즉시 scrub하고, unlink-only double hash와 앱 버전을 제외한 12자리 설치 지문 감사 메타데이터도 최대 30일 후 삭제한다. `decided_by`는 FK가 아닌 승인 시점 owner UUID snapshot으로 보존해 auth 계정 삭제가 상태 제약을 깨거나 actor를 지우지 않게 한다.
 
 이 절차는 오너가 보고 있는 실기기와 서버 endpoint를 사람의 확인으로 연결하는 장치이며 앱 package 자체를 암호학적으로 증명하지는 않는다. 오너는 직접 확인한 development/preview 화면의 코드만 승인한다. 악성 변조 앱까지 자동 판별해야 하는 단계에서는 Play Integrity·App Attest와 환경별 서명 검증을 별도 도입한다.
 
@@ -217,7 +237,7 @@ active owner는 raw 코드를 `approve-test-push-pairing`에 입력한다. Edge 
 
 알림 `deepLink`는 production 스킴 `jubileeworship://`과 앱에 구현된 고정 화면(`notifications`, `notification-settings`, `privacy`, `worship`, `media`, `guide`) 또는 안전한 예배 상세·송리스트 경로만 허용한다. 웹 검증과 별개로 DB check constraint가 직접 table·RPC 호출도 같은 allowlist로 제한하며, 이전의 비허용 저장값은 migration에서 링크 없음(`NULL`)으로 정리한다.
 
-worker claim wrapper는 test outbox를 처리하기 직전에 allowlist·variant·endpoint·installation 상태를 다시 검증하고 부적격 legacy/pending 행을 취소한다. delivery insert 경계도 같은 행들을 `FOR UPDATE`로 잠가 revoke·disable과 직렬화한다. 단, provider 단계로 claim된 뒤의 발송은 승인 해제로 회수할 수 없다.
+worker claim wrapper는 test outbox를 처리하기 직전에 allowlist·variant·endpoint·installation 상태를 다시 검증하고 부적격 legacy/pending 행을 취소한다. delivery insert 경계도 같은 행들을 `FOR UPDATE`로 잠가 revoke·disable과 직렬화한다. dispatch worker는 Expo 호출 직전에 현재 동의·선택·토큰·이벤트를 다시 검증하고, 예배 리마인더에는 예배 시작 시각을 Expo `expiration`으로 설정한다. 단, 철회 요청 처리 전 또는 처리 중 이미 발송 작업에 넘겨진 알림은 외부 서비스로 전달되어 이후 도착할 수 있다.
 
 `dispatch-notifications`와 `process-push-receipts`는 secret key 요청만 허용하고 기본 `dryRun=true`다. 코드에 실제 Expo access token을 저장하지 않는다. 운영 외부 발송은 배포 secret과 `PUSH_EXTERNAL_SEND_ENABLED=true`를 별도 승인한 뒤에만 활성화한다.
 
@@ -245,6 +265,7 @@ claim worker는 pending→processing 직전에 event와 schedule을 다시 검�
 정확히 180·24·30·90일을 사용하라는 Apple·Google 일률 규정은 없다. 이 숫자는 월 1회 예배 알림 사용성과 최소수집 원칙을 반영한 쥬빌리워십의 보수적 운영 정책이다. 스토어 제출 전 게시 개인정보처리방침·Data safety 답변와 아래 계약을 일치시키고 최종 법률 검토한다.
 
 - 성공한 설정·토큰 갱신 시각인 `last_seen_at`이 180일 지나면 installation과 구독을 `stale_inactivity`로 비활성화한다. 올바른 secret과 새 token을 보내면 30일 유예 내에 재활성화할 수 있다.
+- 사용자가 마지막 알림을 끄거나 등록 해제를 선택하면 앱은 동의·선택을 먼저 로컬에서 끄고 서버 철회를 요청한다. 성공 트랜잭션은 Expo token 원문·hash를 즉시 `NULL`로 바꾸고, 설치 verifier를 무작위 값으로 교체하고 pairing verifier·현재 동의·모든 선택을 제거한다. 네트워크 실패 시 SecureStore의 cleanup-pending을 남기고 다음 실행 시 새 등록보다 재시도를 먼저 수행한다.
 - endpoint가 비활성화되면 다음 일일 실행에서 Expo token 원문과 token hash를 함께 제거한다. 정상 cron 운영 기준 최대 24시간이며, 진행 중 FK로 endpoint 행이 더 남아도 token은 남지 않는다. endpoint 행은 24시간 경계와 terminal 조건을 모두 충족해야 삭제한다.
 - 비활성 installation은 30일 후 삭제하고 subscription은 FK cascade로 함께 삭제한다. terminal delivery·outbox·campaign 상세는 90일 후 삭제하되, 기기·token 값이 없는 dedupe tombstone만 남겨 중복 발송을 막는다.
 - 24시간 이상 멈춘 `processing` lease는 중복 재발송하지 않고 `failed`로 종료하며, 24시간 이상 확정되지 않은 Expo receipt도 `ReceiptExpired`로 종료한다.
@@ -252,7 +273,7 @@ claim worker는 pending→processing 직전에 event와 schedule을 다시 검�
 
 `service_cleanup_notification_data(target_now, target_batch_limit)`는 `service_role`만 실행할 수 있고 같은 cutoff으로 재실행해도 멱등이다. migration은 `pg_cron`의 `jubilee-notification-retention-daily`을 `17 18 * * *` UTC(매일 03:17 KST)로 등록하며 DB 함수를 직접 호출해 secret을 SQL·Git에 남기지 않는다. 운영에서는 `cron.job_run_details`를 매일 확인하고 실패 시 같은 RPC를 수동 재실행한다. 예배 알림용 5분 scheduler는 이 정리 cron과 별도다.
 
-근거: [Apple App Review Guidelines 5.1.1](https://developer.apple.com/app-store/review/guidelines/), [Google Play Data safety](https://support.google.com/googleplay/android-developer/answer/10787469), [개인정보 보호법 제21조](https://www.law.go.kr/LSW/lsLinkCommonInfo.do?ancYnChk=&chrClsCd=010202&lsJoLnkSeq=1020398651), [Expo push receipt](https://docs.expo.dev/push-notifications/sending-notifications/), [Supabase Cron](https://supabase.com/docs/guides/cron)
+근거: [Apple App Review Guidelines 5.1.1](https://developer.apple.com/app-store/review/guidelines/), [Google Play Data safety](https://support.google.com/googleplay/android-developer/answer/10787469), [개인정보 보호법 제23조](https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1029335401), [Expo push FAQ](https://docs.expo.dev/push-notifications/faq/), [Supabase Cron](https://supabase.com/docs/guides/cron)
 
 ## 8. 원격 배포 순서
 

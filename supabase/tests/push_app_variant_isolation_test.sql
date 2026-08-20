@@ -59,16 +59,16 @@ select ok(
 select ok(
   has_function_privilege(
     'service_role',
-    'public.service_register_app_installation(uuid,text,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_register_app_installation(uuid,text,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
-  ),
-  'service_role can execute variant-aware registration'
+  ) is false,
+  'the legacy service registration RPC is revoked during the direct-v2 cutover'
 );
 
 select ok(
   not has_function_privilege(
     'anon',
-    'public.service_register_app_installation(uuid,text,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_register_app_installation(uuid,text,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
   ),
   'anon cannot execute variant-aware registration'
@@ -77,7 +77,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'authenticated',
-    'public.service_register_app_installation(uuid,text,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_register_app_installation(uuid,text,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
   ),
   'authenticated cannot execute variant-aware registration'
@@ -86,16 +86,16 @@ select ok(
 select ok(
   has_function_privilege(
     'service_role',
-    'public.service_update_app_installation(uuid,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_update_app_installation(uuid,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
-  ),
-  'service_role can execute variant-aware installation updates'
+  ) is false,
+  'the legacy service update RPC is revoked during the direct-v2 cutover'
 );
 
 select ok(
   not has_function_privilege(
     'anon',
-    'public.service_update_app_installation(uuid,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_update_app_installation(uuid,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
   ),
   'anon cannot execute variant-aware installation updates'
@@ -104,7 +104,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'authenticated',
-    'public.service_update_app_installation(uuid,text,text,text,text,text,boolean,boolean,boolean)',
+    'public.service_update_app_installation(uuid,text,text,text,text,boolean,text,text,boolean,boolean,boolean)',
     'EXECUTE'
   ),
   'authenticated cannot execute variant-aware installation updates'
@@ -142,6 +142,8 @@ select throws_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000006', repeat('6', 64),
       'ios', '1.0.0', 'staging',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[variant_invalid]', repeat('6', 64), true, true, true
     )
   $$,
@@ -155,6 +157,8 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000001', repeat('1', 64),
       'ios', '1.0.0', 'production',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[variant_production]', repeat('a', 64), true, true, true
     )
   $$,
@@ -166,6 +170,8 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
       'ios', '1.0.0', 'preview',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[variant_preview]', repeat('b', 64), true, true, true
     )
   $$,
@@ -177,6 +183,8 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000003', repeat('3', 64),
       'android', '1.0.0', 'development',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[variant_development]', repeat('c', 64), true, true, true
     )
   $$,
@@ -203,7 +211,9 @@ select throws_ok(
   $$
     select public.service_update_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
-      '1.0.1', 'production', null, null, true, true, true
+      '1.0.1', 'production', 'sensitive-interest-notifications-v2',
+      true,
+      null, null, true, true, true
     )
   $$,
   '28000',
@@ -215,7 +225,9 @@ select lives_ok(
   $$
     select public.service_update_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
-      '1.0.1', 'preview', null, null, true, true, true
+      '1.0.1', 'preview', 'sensitive-interest-notifications-v2',
+      true,
+      null, null, true, true, true
     )
   $$,
   'an installation can update within its registered variant'

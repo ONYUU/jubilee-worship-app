@@ -1,28 +1,28 @@
 # 출시 후보 개발본 QA 보고서
 
-- 기준일: 2026-08-19 KST
-- 범위: 로컬 코드·Supabase·Edge Function, v9 라이트·다크 모바일 Web, Android 16KB Release, iOS Simulator Release, 기존 EAS·Android 실기기 검증 기록
-- 결론: v9 시작 자산·화면·라이트·다크·접근성·딥링크를 실제 앱에 반영했고 자동 검증과 Android 16KB 에뮬레이터·iOS Simulator Release 회귀를 통과했다. 다만 최신 v9의 Android 물리 기기, iPhone 실기기, 실제 APNs·FCM, 운영 서명·스토어 검증은 아직 완료되지 않았다.
+- 기준일: 2026-08-20 KST
+- 범위: 로컬 코드·Supabase·Edge Function, 알림 별도 동의·direct v2 등록 악용 방지, v9 라이트·다크 모바일 Web, Android 16KB Release, iOS Simulator Release, 기존 EAS·Android 실기기 검증 기록
+- 결론: 알림 설정의 별도 동의·증명값 분리, 등록 요청 제한, 중단 스위치를 포함한 최신 migration이 로컬 reset·pgTAP·lint를 통과했다. v9 시작 자산·화면·라이트·다크·접근성·딥링크도 기존 자동 검증과 Android 16KB 에뮬레이터·iOS Simulator Release 회귀를 통과했다. 다만 최신 알림 변경의 원격 배포·보안 canary, Android 물리 기기, iPhone 실기기, 실제 APNs·FCM, 운영 서명·스토어 검증은 완료되지 않았다.
 
 ## 1. 최신 자동 검증
 
 | 영역 | 결과 | 판정 |
 |---|---:|---:|
 | Domain 단위 테스트 | 98/98 | 통과 |
-| Web 단위 테스트 | 27/27 | 통과 |
-| Mobile 단위 테스트 | 61/61 | 통과 |
-| Supabase pgTAP | 567/567 | 통과 |
-| Edge Function 단위 테스트 | 31/31 | 통과 |
-| Edge Function format·type check | 24개 파일 | 통과 |
+| Web 단위 테스트 | 29/29 | 통과 |
+| Mobile 단위 테스트 | 99/99 | 통과 |
+| Supabase pgTAP | 695/695 | 통과 |
+| Edge Function 단위 테스트 | 29/29 | 통과 |
+| Edge Function format·type check | 25개 파일 | 통과 |
 
-Domain·Web·Mobile 단위 테스트는 합계 186건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다. 전체 workspace lint·typecheck·test·web build·iOS/Android/Web Expo export와 Expo Doctor 21/21도 통과했다.
+Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다. 전체 workspace lint·typecheck·test·web build·iOS/Android/Web Expo export와 Expo Doctor 21/21도 통과했다.
 
 ## 2. 데이터베이스·보안
 
 | 검증 | 결과 |
 |---|---:|
-| 시드 포함 `supabase db reset` | 통과 |
-| RLS·GRANT·Storage·RPC pgTAP | 567/567 통과 |
+| 최신 migration 포함 `supabase db reset --local --no-seed` | 통과 |
+| RLS·GRANT·Storage·RPC pgTAP | 695/695 통과 |
 | Supabase DB lint | warning/error 0 |
 | 원격 Security Advisor | 오류 0, 관리자 전용 RPC 정적 경고 27건 검토 완료 |
 | Performance Advisor | 보고 이슈 0 |
@@ -31,11 +31,14 @@ Domain·Web·Mobile 단위 테스트는 합계 186건이며 모두 통과했다.
 확인된 주요 보안 경계는 다음과 같다.
 
 - 관리자는 owner가 Auth 사용자를 건별로 수동 승인하며, 마지막 active owner의 비활성화·강등은 차단된다.
-- 법적 문서는 draft·published·withdrawn 상태와 버전·시행일을 가지며 owner만 공개·철회할 수 있다. 웹과 DB 공개 작업은 보유·삭제·국외 처리 및 약관 핵심 항목의 정확한 항목명과 실제 값이 모두 있는지 검증하며, `확인`·`검토`·`확정`·`완료`·`입력`·`기입`·`작성`·`미정`·`추후` 계열의 미완성 값은 거부한다.
+- 법적 문서는 draft·published·withdrawn 상태와 버전·시행일을 가지며 owner만 공개·철회할 수 있다. 웹과 DB 공개 작업은 보유·삭제·국외 처리 및 약관 핵심 항목의 정확한 항목명과 실제 값이 모두 있는지 검증한다. `미정`·`추후`, `확인 필요`·`검토 예정` 같은 명시적 미해결 표현과 `확인`·`검토`·`확정`·`완료`·`입력`·`기입`·`작성`만으로 된 값은 거부하되, 실제 절차를 설명하는 장문 안의 정상 단어는 허용한다.
 - 설교·송리스트·갤러리·안내는 저장만으로 공개되지 않고 owner의 수동 공개 절차를 거친다.
 - 공개된 갤러리·안내 행을 editor가 Data API로 직접 수정·삭제하는 우회는 차단된다.
 - 앱 갤러리는 private `gallery-staging` 경로에서 owner 동의 확인 후 `public-media/app-gallery/`로 옮긴 객체만 공개할 수 있다.
 - 앱 설치 secret은 원문 열을 두지 않고 SHA-256 hash만 저장하며, 알림 private table에 대한 anon·authenticated 직접 권한은 없다.
+- 알림 등록은 Expo token을 JSON 인자가 아닌 custom header로 받고, 기기가 보관하는 증명값보다 한 단계 더 hash한 H2만 DB에 저장한다. 등록은 insert-only이며 기존 설치 ID·provider token takeover를 거부하도록 로컬 검증했다.
+- 요청 출처는 IP 원문 대신 프로젝트 비밀키 HMAC 가명값으로 제한한다. 등록은 1분 제한과 별도로 하루 같은 출처 100회·전체 500회를 상한으로 두며, 잘못된 형식의 Expo token도 카운트한다. 101번째·501번째 차단, 등록 중단 스위치의 typed denial·미생성, anon·authenticated·service_role의 abuse-control table 직접 권한 없음을 pgTAP으로 확인했다.
+- 일일 HMAC rate row는 요청이 이어지는 동안 다음 창으로 갱신될 수 있다. 마지막으로 시작된 일일 창에 추가 요청이 없으면 창 시작 25시간 후 만료하며, 5분 cleanup cron 지연을 포함하면 약 25시간 5분 뒤 삭제된다. 이 기준은 개인정보처리방침 초안과 공개 gate에 반영됐지만, 최종 정책 공개는 법률·실무 결정 후에만 가능하다.
 - development·preview·production 설치정보를 분리하고, 일반·예배 알림은 production 설치에만 발송한다. owner가 특정 기기로 보내는 시험 알림은 development·preview에서도 허용한다.
 - 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용하도록 로컬 구현·검증했다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다. 신규 migration·Edge Function 2개와 변경된 `test-push`는 아직 원격에 적용하지 않았다.
 - 예배 알림은 owner가 미리 승인한 공개 `scheduled|postponed` 예배에 대해 `전날 19:30 KST`와 `당일 1시간 전` 두 예약을 중복 없이 생성하고, 예배·문구 기준 변경 시 재승인을 요구하도록 구현했다. 실제 queue는 예약 시각부터 15분 안에 운영 scheduler가 실행해야 한다.
@@ -105,17 +108,21 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 다음은 로컬 코드 완료와 별개의 배포·운영 게이트다.
 
-1. 신규 시험 알림 연결 migration·딥링크 허용 경로 migration·Edge Function 2개, 변경된 기존 `test-push`, `TEST_PUSH_PAIRING_PEPPER`를 원격 Supabase에 안전 순서로 적용하고 최초 owner Auth 계정·SMTP를 설정
-2. Firebase Android 앱 3종 등록 완료, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결
-3. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
-4. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-5. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
-6. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
-7. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
-8. 개인정보처리방침·이용약관 최종 원문과 시행일 승인(운영주체 `쥬빌리 워십`, 문의·개인정보 `sundoojubileeworship@gmail.com`은 확정·반영 완료)
-9. 원격 cleanup cron이 실제 만료정보를 정책 기간에 맞춰 삭제하는지 최초 대상 발생 후 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
-10. 실제 설교·송리스트를 관리자에서 검수·공개한 뒤 앱의 주제·말씀 구절·곡·아티스트·KEY·공식 YouTube 링크 표시를 검증
-11. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
+1. 별도 동의·direct v2·일일 100/500 상한·등록 중단 스위치 migration, 시험 알림 연결·딥링크 migration·Edge Function, 변경된 앱과 `test-push`, `TEST_PUSH_PAIRING_PEPPER`를 원격 Supabase에 안전 순서로 적용하고 최초 owner Auth 계정·SMTP를 설정
+2. 비운영 custom-header log canary로 Expo token·설치 proof가 API·Postgres log·오류 보고서에 남지 않는지 확인
+3. 외부 요청자가 `cf-connecting-ip`·`x-forwarded-for`를 주입·변조해 출처 bucket을 선택하거나 우회할 수 없는지 원격 테스트. 이 가정이 확인되지 않으면 현재 DB 소스 제한을 운영 보안경계로 간주할 수 없음
+4. DB RPC에 도달하지 않는 malformed URL·body와 분산 공격을 위한 gateway/WAF 제한, 사용량·차단량 alert, 등록 중단 스위치 운영 절차 설정
+5. 비운영 환경 또는 승인된 점검 창에서 중단 스위치와 일일 출처 101번째·전체 501번째 차단, 25시간 만료 설정을 원격 검증
+6. Firebase Android 앱 3종 등록 완료, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결
+7. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
+8. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
+9. 서버 secret이 없는 Vercel Preview와 Production 배포, 운영 연결 QA, 도메인·DNS
+10. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
+11. iOS 실기기·Archive·TestFlight와 Android 실기기·AAB 검증
+12. 개인정보처리방침·이용약관 최종 원문과 시행일 승인. 알림 기능을 만 14세 이상으로 제한하고 지원 문의를 Google Workspace 업무용 계정으로 전환하며 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하는 제품 결정은 승인됐다. 다만 실제 Workspace 주소·도메인·계약/관리 설정, 법적 처리자·담당자·전화번호, 연령 확인의 법률적 충분성, Google의 법적 역할·처리 국가, 국외 처리 근거와 법률 검토는 미확정이므로 정책 공개 게이트는 유지한다.
+13. 원격 cleanup cron이 실제 만료정보를 정책 기간에 맞춰 삭제하는지 최초 대상 발생 후 확인. 완료 전 앱 정책 공개·스토어 개인정보 URL 사용 금지
+14. 실제 설교·송리스트를 관리자에서 검수·공개한 뒤 앱의 주제·말씀 구절·곡·아티스트·KEY·공식 YouTube 링크 표시를 검증
+15. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
 
 ## 7. 최종 판정
 
@@ -126,7 +133,7 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 - iOS 실기기·서명·스토어 배포: **미완료**
 - Expo/EAS 개발 프로젝트·iOS Simulator development build·Android development APK: **완료**
 - Supabase 기존 remote schema·Edge Function·retention cron: **적용 완료, 실제 push·만료정보 삭제 검증 전**
-- 시험 알림 연결 migration·딥링크 허용 경로 migration·Edge Function 2개·변경된 `test-push`·server pepper: **로컬 검증 완료, 원격 미적용**
+- 별도 동의·direct v2·일일 100/500 상한·중단 스위치, 시험 알림 연결·딥링크 migration·Edge Function·앱·server pepper: **로컬 검증 완료, 원격 미적용·canary 전**
 - Vercel·DNS·실제 push: **미완료**
 
 따라서 현재 상태는 **로컬 출시 후보 개발본**이며, **스토어 출시 또는 운영 배포 완료 상태는 아니다**.

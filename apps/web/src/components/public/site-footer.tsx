@@ -40,6 +40,7 @@ export function SiteFooter({ site }: { site: PublicSite }) {
             <li><Link href="/worship" className="hover:text-ivory-50">예배안내</Link></li>
             <li><Link href="/media" className="hover:text-ivory-50">미디어</Link></li>
             <li><Link href="/visit" className="hover:text-ivory-50">오시는 길</Link></li>
+            <li><Link href="/support" className="hover:text-ivory-50">고객지원</Link></li>
             <li><Link href="/privacy" className="hover:text-ivory-50">개인정보 안내</Link></li>
           </ul>
         </div>

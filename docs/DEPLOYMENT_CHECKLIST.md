@@ -1,18 +1,19 @@
 # 배포·스토어 출시 체크리스트
 
-- 기준일: 2026-08-19 KST
+- 기준일: 2026-08-20 KST
 - `[x]`: 현재 checkout에서 검증 완료하거나 날짜·빌드가 명시된 기존 검증 증거 확인
 - `[ ]`: 미완료, 외부 연결 필요 또는 결과 미확인
 
 ## 1. 로컬 코드·데이터베이스 QA
 
 - [x] Domain 단위 테스트 98/98 통과
-- [x] Web 단위 테스트 27/27 통과
-- [x] Mobile 단위 테스트 61/61 통과
-- [x] Supabase pgTAP 567/567 통과
-- [x] Edge Function 테스트 31/31 통과
+- [x] Web 단위 테스트 29/29 통과
+- [x] Mobile 단위 테스트 99/99 통과
+- [x] Supabase pgTAP 695/695 통과
+- [x] Edge Function 테스트 29/29 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
+- [x] 최신 알림 migration을 포함한 `supabase db reset --local --no-seed` 성공
 - [x] DB lint warning/error 0
 - [x] 원격 Security Advisor 오류 0, 관리자 전용 `SECURITY DEFINER` RPC 정적 경고 27건 권한 검토 완료
 - [x] Performance Advisor 보고 이슈 0
@@ -31,8 +32,13 @@
 - [x] 운영주체 `쥬빌리 워십`과 문의·개인정보 이메일 `sundoojubileeworship@gmail.com` 확정·표시
 - [x] `/privacy`에 owner가 공개한 앱 개인정보처리방침 연결과 미공개 스토어 제출 차단 안내
 - [ ] 최초 owner Auth 계정·이메일·복구 담당자 확정
+- [ ] 표시 운영주체와 구분한 개인정보 처리자의 법적 성명·명칭, 보호책임자·고충처리 담당부서·전화번호 확정
+- [ ] 개인용 Gmail 지원 문의의 보유·삭제 기준, Google의 법적 역할·처리 근거·처리 국가 확정
+- [ ] 알림 이용자의 만 14세 이상 제한 또는 법정대리인 동의 절차 확정
+- [ ] 국외 처리 근거·이메일 처리 역할·만 14세 절차를 포함한 법률 전문가 검토 상태 확정
 - [ ] 개인정보 처리방침·이용약관 원문과 시행일 승인
 - [x] 보유 기준 확정: 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 정리
+- [x] 알림 등록 요청의 IP 원문 대신 프로젝트 비밀키 HMAC 가명값만 저장하고, 일일 카운터는 창 시작 후 25시간에 만료(정리 cron 지연 시 최대 약 25시간 5분 잔존) 기준 반영
 - [x] 동일 기준의 cleanup RPC·일일 cron·삭제 회귀 테스트 로컬 구현 및 검증 완료
 - [x] 원격 Supabase에 cleanup migration·일일 cron 적용
 - [x] 원격 cleanup cron 실행 이력 4회 성공 확인
@@ -76,7 +82,19 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] 공개 DTO 조회·원본 비공개 열 차단·함수 method/auth 원격 smoke test
 - [x] 외부 push 비활성 상태로 `PUSH_EXTERNAL_SEND_ENABLED=false` 설정
 - [ ] Vercel 서버 전용 `SUPABASE_SECRET_KEY`, Expo access token 등 운영 secret 설정
-- [ ] 등록 API에 분산 rate limit·gateway 적용
+- [x] 등록 RPC에 1분 요청 출처·전역 제한, 일일 요청 출처 100회·전체 500회 제한, private 등록 중단 스위치 로컬 구현
+- [x] 잘못된 형식의 Expo token 시도도 카운트되고 제한되며, anon·authenticated·service_role이 rate-limit·중단·동의 테이블에 직접 접근할 수 없음을 pgTAP으로 검증
+- [ ] 최신 동의·direct v2·일일 제한·중단 스위치 migration과 앱 호출 변경을 원격 Supabase에 적용
+- [ ] 비운영 canary 값으로 Expo token·설치 proof custom header가 Supabase API·Postgres log, 오류 보고서에 저장되지 않는지 확인
+- [x] 개발·미리보기 재설치 복구를 오너 승인→기기 atomic finalize 2단계로 고정하고, 승인만으로 token unique 예약이 풀리지 않음·기기 미복귀 시 target 미생성·최신 선택만 반영됨을 pgTAP으로 검증
+- [x] 복구 철회는 실제 `withdrawn` 확인 전 SecureStore의 철회용 exact token/proof 연결과 cleanup marker를 보존하며, pending·authorized·expired·감사 삭제 뒤 exact target 및 provisional 응답 유실 fallback을 검증
+- [x] 복구 코드 TTL·철회 전환 시 raw code를 SecureStore에서 제거하고 철회용 최소 token/variant/proof 연결만 재시작 후 유지하며, 관리자 대조값은 untrusted 앱 버전 없이 12자리 설치 지문만 표시
+- [ ] 비운영 exact-token unsubscribe fallback은 takeover·동의 grant·target 생성이 없지만 token 노출 시 알림 해제 DoS가 가능함을 운영자에게 고지하고, production 거부·custom header 로그 비노출을 배포 환경에서 재확인
+- [x] 재설치 복구의 재사용 가능한 verifier/token hash/code digest는 terminal 전환 즉시 scrub하고 unlink-only 감사 메타데이터는 최대 30일 후 삭제하며, 승인자 UUID snapshot은 auth 계정 삭제와 독립적으로 감사기간 동안 유지함을 검증
+- [ ] 공개 Data API에서 사용자가 보낸 `cf-connecting-ip`·`x-forwarded-for`로 rate-limit bucket을 선택하거나 우회할 수 없는지 injection·spoof 원격 테스트
+- [ ] RPC 선택 전에 실패하는 malformed URL·body와 분산 공격을 차단하는 gateway/WAF 제한과 사용량·차단량 alert 설정
+- [ ] 원격에서 중단 스위치를 끈 뒤 `REGISTRATION_DISABLED`·미생성을 확인하고, 운영 대응 절차·재활성 승인자 확정
+- [ ] 비운영 환경 또는 승인된 점검 창에서 일일 출처 101번째·전체 501번째 차단과 25시간 만료 설정을 원격 검증
 - [ ] 실제 iOS·Android Expo push token 등록
 - [x] owner-pairing allowlist·10분 1회용 HMAC 코드·request UUID 멱등성·production 배제 로컬 구현 및 회귀 테스트
 - [x] 앱·웹·DB의 푸시 딥링크를 구현된 허용 경로로 제한하고 직접 DB·RPC 우회를 차단하는 로컬 회귀 테스트
@@ -91,14 +109,17 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 원격 Edge Function은 배포됐지만 `PUSH_EXTERNAL_SEND_ENABLED=false`이며, 실제 push 발송은 현재 활성화되지 않았다.
 
-시험 기기 pairing migration 배포 순서는 고정한다.
+알림 direct v2·시험 기기 pairing migration 배포 순서는 고정한다.
 
 1. `PUSH_EXTERNAL_SEND_ENABLED=false`를 재확인하고 scheduler·dispatch worker를 중지한다.
 2. DB에서 `processing` notification outbox가 0건인지 확인한다. 0건이 아니면 migration을 적용하지 않는다.
-3. migration을 적용하고 production test campaign/outbox 0건, 공개·anon pairing 권한 0건을 검증한다.
-4. `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 설정한 뒤 두 pairing Edge Function, `test-push`, 웹, 앱 순으로 배포한다.
-5. 외부 발송을 계속 비활성화한 상태에서 development/preview 실기기 연결 승인과 단일 큐 생성만 검증한다.
-6. worker를 재개하되 실제 외부 발송 활성화와 최초 실기기 전송은 사용자 별도 승인 후 진행한다.
+3. legacy 알림 행을 목록화하고 0건이 아니면 migration을 중단한다. 0건일 때만 direct v2·별도 동의·악용 방지 migration을 적용한다.
+4. 등록 중단 스위치를 활성화한 상태에서 권한·custom-header log·`cf-connecting-ip` spoof·WAF·alert canary를 완료한다. 어느 항목이든 실패하면 재활성하지 않는다.
+5. 법적 처리자·담당자·연락처·만 14세 절차·국외 처리·지원 채널을 확정하고, 오너 사실확인과 법률 검토가 완료된 개인정보처리방침을 먼저 공개한다. 웹·모바일에서 동일 문서가 store-ready로 보이는지 확인한다.
+6. 비운영 환경·승인된 점검 창에서만 service RPC로 등록 허용을 `true`로 변경한 뒤 일일 100/500 상한과 중단·복구를 검증하고, 즉시 다시 `false`로 두며 production test campaign/outbox 0건과 공개·anon pairing 권한 0건을 확인한다.
+7. `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 설정한 뒤 두 pairing Edge Function, `test-push`, 웹, 앱 순으로 배포한다.
+8. 외부 발송을 계속 비활성화한 상태에서 development/preview 실기기 연결 승인과 단일 큐 생성만 검증한다.
+9. worker를 재개하되 실제 외부 발송 활성화와 최초 실기기 전송은 사용자 별도 승인 후 진행한다.
 
 ## 6. Vercel·도메인
 
@@ -133,10 +154,12 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 다음 중 하나라도 완료되지 않으면 Production 공개나 스토어 제출을 진행하지 않는다.
 
 - [ ] iOS Release·Android 운영 AAB·스토어 서명 검증
-- [ ] 최신 로컬 migration 2개·Edge Function 2개·변경된 `test-push`까지 Supabase remote에 배포하고 비발송 smoke test
+- [ ] 현재 checkout의 미적용 알림 migration·Edge Function·앱 호출 변경을 Supabase remote에 배포하고 비발송 smoke test
+- [ ] custom-header log canary·`cf-connecting-ip` injection/spoof·gateway/WAF·사용량 alert·중단 스위치·일일 100/500 상한 원격 검증
 - [ ] 실제 iOS·Android push 통합 검증
 - [ ] Vercel Preview·Production·DNS 검증
 - [ ] 법적 문서 원문·시행일·스토어 메타데이터 승인
+- [ ] 만 14세 절차·지원 이메일 보유/법적 역할·개인정보 처리자·담당자·국외 처리 근거·법률 검토 확정
 - [x] 보유기간과 동일한 cleanup RPC·cron·테스트 로컬 완료
 - [x] 원격 cleanup cron 적용
 - [x] 원격 cleanup cron 실행 이력 4회 성공 확인

@@ -61,6 +61,8 @@ type FieldProps = {
   max?: string | number;
   step?: string | number;
   readOnly?: boolean;
+  autoComplete?: React.HTMLInputAutoCompleteAttribute;
+  spellCheck?: boolean;
 };
 
 const inputClass =
@@ -76,7 +78,9 @@ export function TextField({
   min,
   max,
   step,
-  readOnly
+  readOnly,
+  autoComplete,
+  spellCheck
 }: FieldProps) {
   const field = useAdminField(name, Boolean(hint));
 
@@ -94,6 +98,8 @@ export function TextField({
         max={max}
         step={step}
         readOnly={readOnly}
+        autoComplete={autoComplete}
+        spellCheck={spellCheck}
         aria-invalid={field.hasError || undefined}
         aria-describedby={field.describedBy}
       />

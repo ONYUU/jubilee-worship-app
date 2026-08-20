@@ -243,10 +243,23 @@ values
     null, null
   );
 
+update private.app_installations
+set sensitive_interest_consent_version = 'sensitive-interest-notifications-v2',
+    sensitive_interest_consented_at = statement_timestamp(),
+    sensitive_interest_disclosure_sha256 =
+      '654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c',
+    sensitive_interest_consent_locale = 'ko-KR',
+    sensitive_interest_age_14_or_over_confirmed_at = statement_timestamp()
+where id::text like '10000000-0000-4000-8000-00000000000%'
+  and disabled_at is null;
+
 insert into private.notification_subscriptions (
   installation_id, worship_reminder, schedule_changes, setlist_updates
 )
-select installation.id, true, true, true
+select installation.id,
+  installation.disabled_at is null,
+  installation.disabled_at is null,
+  installation.disabled_at is null
 from private.app_installations as installation
 where installation.id::text like '10000000-0000-4000-8000-00000000000%';
 
@@ -801,6 +814,8 @@ select lives_ok(
       repeat('2', 64),
       '1.0.1',
       'production',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[retention_stale_reactivated]',
       repeat('8', 64),
       true, false, false

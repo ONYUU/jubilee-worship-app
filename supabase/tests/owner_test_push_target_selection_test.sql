@@ -223,6 +223,17 @@ values
     'ios', '1.0.5-inactive', 'preview', null, null
   );
 
+update private.app_installations
+set sensitive_interest_consent_version = 'sensitive-interest-notifications-v2',
+    sensitive_interest_consented_at = statement_timestamp(),
+    sensitive_interest_disclosure_sha256 =
+      '654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c',
+    sensitive_interest_consent_locale = 'ko-KR',
+    sensitive_interest_age_14_or_over_confirmed_at = statement_timestamp(),
+    test_pairing_secret_hash = secret_hash
+where id::text like 'b%'
+  and disabled_at is null;
+
 insert into private.push_endpoints (
   id, installation_id, expo_push_token, token_hash, platform,
   is_active, disabled_at, disable_reason

@@ -3,12 +3,49 @@ import { HttpError } from "./http.ts";
 const EXPO_SEND_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
 
+// Generic and test notifications use a short provider queue. Worship
+// reminders instead receive the event start as an absolute expiration from
+// the database, because a worker can claim an H-1 reminder up to 15 minutes
+// late and a relative one-hour TTL would then outlive the service start.
+export const JUBILEE_PUSH_TTL_SECONDS = 60 * 60;
+
 export type ExpoMessage = {
   to: string;
   title: string;
   body: string;
   data?: { url: string };
+  ttl?: number;
+  expiration?: number;
 };
+
+export function createExpoMessage(input: {
+  to: string;
+  title: string;
+  body: string;
+  deepLink?: string | null;
+  expiresAt?: string | null;
+}): ExpoMessage {
+  const expirationMillis = input.expiresAt
+    ? Date.parse(input.expiresAt)
+    : Number.NaN;
+  if (input.expiresAt && !Number.isFinite(expirationMillis)) {
+    throw new HttpError(
+      500,
+      "invalid_push_expiration",
+      "Push expiration is not a valid timestamp.",
+    );
+  }
+
+  return {
+    to: input.to,
+    title: input.title,
+    body: input.body,
+    ...(input.expiresAt
+      ? { expiration: Math.floor(expirationMillis / 1_000) }
+      : { ttl: JUBILEE_PUSH_TTL_SECONDS }),
+    ...(input.deepLink ? { data: { url: input.deepLink } } : {}),
+  };
+}
 
 export type ExpoResult = {
   status: "ok" | "error";

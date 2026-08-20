@@ -16,6 +16,7 @@ import type { ActionState } from "@/lib/auth/types";
 import {
   notificationCampaignFormSchema,
   notificationCampaignIdSchema,
+  reinstallRecoveryApprovalFormSchema,
   testPushEdgeRequestBody,
   testPushFormSchema,
   testPushPairingApprovalEdgeRequestBody,
@@ -23,6 +24,7 @@ import {
   worshipReminderScheduleFormSchema,
   worshipReminderScheduleResultSchema
 } from "@/lib/admin/mobile-content-schemas";
+import { reinstallRecoveryCodeDigest } from "@/lib/admin/reinstall-recovery";
 
 function revalidateNotificationPaths() {
   revalidatePath("/admin");
@@ -327,4 +329,57 @@ export async function revokeTestPushTargetAction(
 
   revalidateNotificationPaths();
   return actionSuccess("시험 기기 승인을 해제하고 아직 처리되지 않은 시험 큐를 취소했습니다.");
+}
+
+export async function approveReinstallRecoveryAction(
+  _state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  noStore();
+  const { supabase } = await requireOwner();
+  const parsed = reinstallRecoveryApprovalFormSchema.safeParse({
+    challenge_id: requiredString(formData.get("challenge_id")),
+    recovery_code: requiredString(formData.get("recovery_code"))
+  });
+  if (!parsed.success) return zodActionError(parsed.error);
+
+  // Keep the one-time capability in this server action's memory only. The DB
+  // receives a domain-separated digest and never receives or returns the code.
+  const recoveryCodeDigest = reinstallRecoveryCodeDigest(parsed.data.recovery_code);
+  const { data, error } = await supabase.rpc("approve_owner_reinstall_recovery", {
+    target_challenge_id: parsed.data.challenge_id,
+    target_recovery_code_digest: recoveryCodeDigest
+  });
+  if (error) {
+    if (error.code === "55000") {
+      return actionError("이전 기기의 발송 처리가 끝나지 않아 연결을 바꿀 수 없습니다. 외부 발송을 중지하고 배송 상태를 확인해 주세요.");
+    }
+    return actionError("재설치 복구를 승인하지 못했습니다. 코드 만료·기기 정보 변경 여부를 확인해 주세요.");
+  }
+  if (data !== true) {
+    return actionError("복구 코드가 일치하지 않거나 만료됐습니다. 새 기기에서 새 복구 요청을 만들어 주세요.");
+  }
+
+  revalidateNotificationPaths();
+  return actionSuccess("복구를 승인했습니다. 새 기기 앱에서 완료하면 이전 연결이 폐기되고 새 설치로 교체됩니다.");
+}
+
+export async function rejectReinstallRecoveryAction(
+  _state: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  noStore();
+  const { supabase } = await requireOwner();
+  const challengeId = z.uuid().safeParse(requiredString(formData.get("id")));
+  if (!challengeId.success) return zodActionError(challengeId.error);
+
+  const { data, error } = await supabase.rpc("reject_owner_reinstall_recovery", {
+    target_challenge_id: challengeId.data
+  });
+  if (error || data !== true) {
+    return actionError("재설치 복구 요청을 거절하지 못했습니다. 이미 처리됐거나 만료됐는지 확인해 주세요.");
+  }
+
+  revalidateNotificationPaths();
+  return actionSuccess("재설치 복구 요청을 거절하고 일회용 코드와 대기 중 인증값을 폐기했습니다.");
 }

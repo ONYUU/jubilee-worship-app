@@ -143,8 +143,8 @@ export default async function LegalDocumentsAdminPage({
             <FormSection title="문서 정보" description="효력일이 오늘보다 늦으면 오너가 아직 공개할 수 없습니다.">
               <TextField label="문서 종류" name="document_type_display" defaultValue={TYPE_LABELS[draftType] ?? draftType} readOnly />
               <div className="grid gap-4 sm:grid-cols-2">
-                <TextField label="버전" name="version" required defaultValue={selected?.version ?? todayInSeoul()} hint="예: 2026-08-15, v1.1" />
-                <TextField label="효력일" name="effective_on" type="date" required defaultValue={selected?.effective_on ?? todayInSeoul()} />
+                <TextField label="버전" name="version" required defaultValue={selected?.version ?? template.version ?? todayInSeoul()} hint="예: 1.0.0, 1.1.0" />
+                <TextField label="효력일" name="effective_on" type="date" required defaultValue={selected?.effective_on ?? template.effectiveOn ?? (draftType === "privacy_policy" ? "" : todayInSeoul())} />
               </div>
               <TextField label="제목" name="title" required defaultValue={selected?.title ?? template.title} />
               <TextAreaField label="본문" name="body" required defaultValue={selected?.body ?? template.body} rows={28} hint={`공개 전 법무·개인정보 검토를 완료하고 ${LEGAL_REVIEW_MARKER} 문구를 모두 제거하세요.`} />

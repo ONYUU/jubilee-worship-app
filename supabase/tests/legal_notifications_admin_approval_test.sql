@@ -3,7 +3,35 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(115);
+select plan(116);
+
+create function pg_temp.reviewed_privacy_body(target_note text)
+returns text
+language sql
+as $$
+  select E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n'
+    || target_note || E'\n'
+    || E'알림 제공에만 사용합니다. 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n'
+    || E'SUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 검증값은 재사용할 수 없도록 해시합니다. 신규 등록은 출처별 하루 100회, 전체 하루 500회로 제한하고 일일 가명 카운터는 최대 약 25시간 5분 보유됩니다. 650 Industries, Inc. Expo Apple·Google 처리 미국 Google Workspace 만 14세\n'
+    || E'비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 시험 처리자\n이전 국가: 시험 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 HTTPS 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n'
+    || E'개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자\n개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n전화번호 등 연락처: 032-000-0000\n국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 시험 근거\n지원 문의 보유·삭제 기준: 해결 후 90일\n지원 이메일 제공자의 법적 역할·처리 근거: 독립 처리 역할\n지원 이메일 국외 처리 국가: 시험 국가\n알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 민감정보 별도 동의를 모두 받아 서버 시각으로 기록합니다.\n실제 시행일: 2026-09-01\n오너 최종 사실확인: 2026-09-01 서면 승인\n법률 전문가 검토 상태: 2026-09-01 의견서 수령';
+$$;
+
+select ok(
+  private.legal_document_has_confirmed_value(
+    E'연령 절차: 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 별도 동의를 받아 서버 시각으로 기록합니다.',
+    '연령 절차:'
+  )
+  and not private.legal_document_has_confirmed_value(
+    E'연령 절차: 확인 필요',
+    '연령 절차:'
+  )
+  and not private.legal_document_has_confirmed_value(
+    E'연령 절차: 내용 확인 완료함',
+    '연령 절차:'
+  ),
+  'confirmed-value validation allows factual long-form text but rejects unresolved and process-only placeholders'
+);
 
 -- 1
 select ok(
@@ -121,7 +149,7 @@ select is(
       and privilege_type = 'EXECUTE'
   ),
   13::bigint,
-  'service_role can execute all thirteen Edge and maintenance RPCs'
+  'service_role can execute the thirteen current worker and maintenance RPCs'
 );
 
 -- 11
@@ -341,8 +369,8 @@ select is(
       and procedure.prosecdef
       and 'search_path=""' = any (coalesce(procedure.proconfig, array[]::text[]))
   ),
-  13::bigint,
-  'all service RPCs are security definer functions with a fixed empty search path'
+  17::bigint,
+  'all seventeen service RPC definitions are security definer functions with a fixed empty search path'
 );
 
 -- 27
@@ -409,7 +437,7 @@ select lives_ok(
       document_type, version, title, body, effective_on
     ) values (
       'privacy_policy', '1.0.0', '개인정보 처리방침',
-      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 첫 번째 공개 문서 본문\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있습니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      pg_temp.reviewed_privacy_body('첫 번째 공개 문서 본문'),
       current_date
     )
   $$,
@@ -823,7 +851,7 @@ select lives_ok(
       document_type, version, title, body, effective_on
     ) values (
       'privacy_policy', '2.0.0', '개인정보 처리방침 개정',
-      E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화 두 번째 공개 문서 본문\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있습니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 검증 수탁자\n이전 국가: 검증 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 암호화 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단',
+      pg_temp.reviewed_privacy_body('두 번째 공개 문서 본문'),
       current_date
     )
   $$,
@@ -1128,6 +1156,12 @@ select is(
   'the D-1 reminder has exactly one deduplicated outbox row'
 );
 
+-- The service-role register/update/unregister overloads are intentionally
+-- revoked during the direct Data API v2 cutover. The remaining legacy-core
+-- behavior assertions run as the database owner; separate privilege tests
+-- above verify that deployed Edge code cannot call these overloads.
+reset role;
+
 -- 78
 select lives_ok(
   $$
@@ -1135,6 +1169,8 @@ select lives_ok(
       '85555555-5555-4555-8555-555555555555'::uuid,
       repeat('a', 64), 'ios', '0.1.0',
       'production',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[database_test_token]', repeat('b', 64),
       true, true, true
     )
@@ -1160,8 +1196,10 @@ select throws_ok(
       '86666666-6666-4666-8666-666666666666'::uuid,
       repeat('c', 64), 'android', '0.1.0',
       'production',
+      'sensitive-interest-notifications-v2',
+      true,
       'ExpoPushToken[database_test_token]', repeat('b', 64),
-      false, false, false
+      true, false, false
     )
   $$,
   '23505',
@@ -1174,7 +1212,8 @@ select throws_ok(
   $$
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
-      repeat('f', 64), '0.1.1', 'production', null, null, true, true, true
+      repeat('f', 64), '0.1.1', 'production',
+      'sensitive-interest-notifications-v2', true, null, null, true, true, true
     )
   $$,
   '28000',
@@ -1187,7 +1226,8 @@ select lives_ok(
   $$
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
-      repeat('a', 64), '0.1.1', 'production', null, null, false, true, true
+      repeat('a', 64), '0.1.1', 'production',
+      'sensitive-interest-notifications-v2', true, null, null, false, true, true
     )
   $$,
   'the correct installation secret hash can change notification settings'
