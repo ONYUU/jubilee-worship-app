@@ -1,12 +1,12 @@
 # 출시 후보 개발본 QA 보고서
 
 - 기준일: 2026-08-23 KST
-- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b` Preview artifact의 기존 실기기·Simulator 검증, 현재 작업트리의 출시 설정, Supabase remote, Vercel Production, EAS·Firebase·Apple·Google Play의 실시간 연결 상태
+- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b` Preview artifact의 기존 실기기·Simulator 검증, 출시 기준선 커밋 `3be9fe11f15b5331068290561b23606a3d4daf60`, Supabase remote, Vercel Production, EAS·Firebase·Apple·Google Play의 실시간 연결 상태
 - 결론: 2026-08-23 현재 작업트리에서 Domain 98/98, Web 35/35, Mobile 115/115, Supabase pgTAP 720/720, workspace lint·typecheck·test·production build가 통과했다. 기존 Edge Function 29/29 통과와 원격 migration 15개·Edge Function 8개 활성 검증은 이전 기준선이다. 현재 checkout에는 법적 문서 gate를 보강한 신규 비파괴 전진형 migration 3개가 더 있고, 총 18개 migration의 로컬 reset·test만 통과했으며 원격에는 미적용이다. Android Production EAS keystore는 생성했으나 iOS·Android Production build는 모두 0건이다. Firebase Production 앱과 Google Play 앱, iOS Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key는 없다. 따라서 실제 push·스토어 내부 테스트·정책 공개·최종 스크린샷·심사 제출은 미완료다.
 
-Universal Link·App Link association 파일은 현재 작업트리에 준비했지만 아직
-Production에 배포하지 않았다. 이 파일의 로컬 준비는 운영 서명 앱에서의 링크
-검증 완료를 의미하지 않는다.
+Universal Link·App Link association 파일은 Production에 배포해 HTTPS 응답을
+검증했다. 다만 이 서버 응답 검증은 운영 서명 앱에서의 실기기 링크 검증 완료를
+의미하지 않는다.
 
 ## 1. 최신 자동 검증
 
@@ -120,6 +120,12 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 2026-08-20 Vercel deployment `dpl_954nm6pMVRkGQP17kHyh1c3epB9R`를 Production으로 승격했다. 기본 운영 주소 `https://jubilee-worship.vercel.app`에서 `/`, `/support`, `/privacy`, `/sitemap.xml`이 모두 HTTP 200을 반환했다. `/support`의 문의 안내·만 14세 알림 절차·비밀정보 전송 금지 안내와 `/privacy`의 `noindex`·스토어 제출 금지 표시를 확인했다. 데스크톱 1240px와 모바일 390×844에서 수평 overflow와 사이트 console/page error는 0건이며, Production runtime error·warning도 0건이었다. 홈은 데스크톱과 모바일에 각각 승인된 새 hero 자산을 제공했다.
 
+2026-08-23 Vercel deployment `dpl_4RxDM8gBpXnV4Mr72M9WyAnVn3sR`를
+Production에 배포하고 기본 운영 주소에 alias했다. `/`, `/support`, `/privacy`와
+두 well-known URL 및 루트 AASA URL은 모두 redirect 없이 HTTP 200을 반환했다.
+association 3개 응답은 `application/json; charset=utf-8`이고 저장소 원본과
+byte 단위로 일치했다. `/privacy`의 `noindex, follow`도 유지됐다.
+
 2026-08-19 v9 모바일 Web local export를 390×844 viewport에서 브라우저로 확인했다. 홈·예배·미디어·안내·송리스트, 검색, 주소 복사, 라이트·다크 저장·재로드를 확인했다. 빈 화면·오류 overlay·깨진 이미지·수평 overflow·page error는 없었고, WCAG 자동 접근성 위반과 보이는 44px 미만 터치 대상은 0건이었다. Web에서는 Expo push-token listener가 동작하지 않는다는 공식 모듈 경고 1건만 있었으며 listener는 no-op이다. 이 검증은 네이티브 실기기 검증을 대체하지 않는다.
 
 다음은 2026-08-13 웹 개발본에서 확인한 기존 기준선이다. 최신 관리자·모바일 연동 변경을 반영한 운영 Preview 회귀 검증을 대체하지 않는다.
@@ -141,7 +147,7 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 6. 기존 Development·Preview에 이어 Firebase Production Android 앱을 생성하고, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결. 현재 Production 앱은 미생성이며 등록 폼만 준비돼 외부 생성 확인 대기
 7. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
 8. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-9. Vercel 기본 Production 연결·URL·`SUPABASE_SECRET_KEY`는 설정 완료. Preview 관리자 CRUD 회귀, association 파일 Production 배포, 선두교회 하위 도메인 승인·DNS·TLS·canonical 검증
+9. Vercel 기본 Production 연결·URL·`SUPABASE_SECRET_KEY`와 association 파일 배포·응답 검증은 완료. Preview 관리자 CRUD 회귀, 운영 서명 앱 링크 검증, 선두교회 하위 도메인 승인·DNS·TLS·canonical 검증
 10. Firebase Production 앱·Google Play 앱 생성에 필요한 외부 확인, APNs·FCM, iOS·Android 운영 빌드·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
 11. 현재 연결된 Samsung 실기기의 운영 빌드 검증과 현재 미연결 iPhone의 실기기·Archive·TestFlight 검증
 12. 개인정보처리방침·이용약관 최종 원문과 시행일 승인. 현재 개발본은 알림 기능에 만 14세 자기확인 gate를 두고 지원 이메일 후보를 표시하지만, 최종 이메일 공급자·확정 주소·도메인·계약/관리 설정·처리 국가·삭제 증빙, 법적 처리자·담당자·전화번호, 연령 확인의 법률적 충분성, 각 실제 공급자의 법적 역할·처리 국가, 국외 처리 근거와 법률 검토는 미확정이므로 정책 공개 gate를 유지한다. 최종 주소 확정 시 `SITE.contact_email`, 잠긴 `site_settings(id=1).contact_email` corrective migration, 웹·앱 연락처, 법적 문서·스토어 메타데이터를 한 번에 동일하게 변경한다.
@@ -159,7 +165,7 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 - 원격 설치·endpoint·구독·동의·복구 행 및 실제 push: **모두 0건**
 - Vercel 기본 Production 홈·지원·개인정보·sitemap: **배포·검증 완료**
 - Vercel Production `SUPABASE_SECRET_KEY`·Supabase `TEST_PUSH_PAIRING_PEPPER`: **설정 완료**
-- App Link·Universal Link association 파일: **로컬 준비 완료·Production 배포 전**
+- App Link·Universal Link association 파일: **Production 배포·HTTPS 응답 검증 완료, 운영 서명 실기기 검증 대기**
 - Android Production EAS keystore: **생성 완료**, Production Android build: **0건**
 - Firebase Production 앱·Google Play 앱: **미생성**, 등록 폼 준비 후 외부 확인 대기
 - Android v9 Release APK·16KB Android 15 에뮬레이터·테마·뒤로가기·딥링크: **통과**

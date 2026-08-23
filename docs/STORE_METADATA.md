@@ -77,7 +77,7 @@
 - 실제 push 외부 발송: 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`), 실기기 통합검증 후 별도 승인 필요
 - Vercel 프로젝트와 홈페이지 주소: Production 연결 완료, 기본 URL `https://jubilee-worship.vercel.app`
 - Vercel Production `SUPABASE_SECRET_KEY`: 설정 완료, 값은 문서·저장소에 미기록
-- Universal Link·App Link association 파일: 로컬 준비 완료, Production 배포 전
+- Universal Link·App Link association 파일: Production 배포와 HTTPS 200·JSON 응답 검증 완료, 운영 서명 실기기 검증 대기
 - Android Production EAS keystore: 생성 완료, 지문은 `docs/APP_LINK_ASSOCIATION.md` 참조
 - EAS Production build: 2026-08-23 기준 iOS 0건·Android 0건
 - Firebase Production Android 앱: 미생성, 등록 폼만 준비하고 외부 생성 확인 대기
@@ -99,7 +99,7 @@ Vercel Hobby는 개인·비상업용으로 제한되므로 공식 운영 전 실
 2. 원격 cleanup cron 성공 이력 4회는 확인했으며, 실제 만료정보 삭제를 확인한 뒤 국외 처리 내용까지 오너 승인
 3. Google Play 비공개 테스터 12명 확보 및 14일 연속 테스트·Production access 신청
 4. 개인정보 처리자의 법적 성명·명칭, 책임자·연락처, 최종 지원 이메일, 만 14세 제한 범위를 확정하고 정책 공개
-5. association 파일을 Production에 배포하고 운영 서명 iOS·Android 앱으로 링크 검증
+5. 운영 서명 iOS·Android 앱으로 Universal Link·App Link 실기기 검증
 6. Firebase Production 앱·Google Play 앱을 외부 확인 후 생성하고 APNs·FCM과 내부 테스트 트랙 연결
 7. 최종 스토어 스크린샷·설명·지원 URL·개인정보 URL·연령등급 확정
 8. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인

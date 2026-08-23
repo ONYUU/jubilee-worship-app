@@ -147,12 +147,12 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] Vercel Preview 공개 환경 변수·관리자 변경 차단 설정
 - [ ] Preview에서 공개 DTO·관리자 CRUD·Storage·법적 문서·알림 회귀 검증
 - [ ] Preview Playwright·Lighthouse·Core Web Vitals·외부 링크 재검증
-- [x] Vercel 기본 Production deployment `dpl_954nm6pMVRkGQP17kHyh1c3epB9R` 배포·승격
+- [x] Vercel 최신 Production deployment `dpl_4RxDM8gBpXnV4Mr72M9WyAnVn3sR` 배포·alias 연결
 - [x] `https://jubilee-worship.vercel.app`의 홈·지원·개인정보·sitemap HTTP 200, 모바일·데스크톱 overflow 0, 사이트 console/page error 0 확인
 - [x] 사용자의 기본 Vercel Production 공개 승인 반영
 - [x] Vercel 프로젝트 연결과 기본 Production URL `https://jubilee-worship.vercel.app` 확정
 - [x] Universal Link·App Link association 파일과 응답 헤더를 로컬에 준비
-- [ ] association 파일 Production 배포 및 HTTPS 200·JSON content type 검증
+- [x] association 파일 Production 배포 및 HTTPS 200·redirect 0·JSON content type·원본 일치 검증
 - [ ] 선두교회 하위 도메인 사용 승인
 - [ ] custom domain DNS·TLS·canonical·robots·OG 검증
 

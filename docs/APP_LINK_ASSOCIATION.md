@@ -3,7 +3,8 @@
 - 확인 기준일: 2026-08-23 KST
 - 운영 웹 호스트: `jubilee-worship.vercel.app`
 - 앱 연결 경로: `/worship`, `/worship/*`
-- 상태: 앱 설정은 연결을 선언했으나, 웹 well-known 파일은 배포 전
+- 상태: 웹 association 파일 Production 배포·HTTPS 응답 검증 완료,
+  운영 서명 앱의 실기기 링크 검증 대기
 
 `apps/mobile/app.config.ts`는 `EXPO_PUBLIC_WEB_ORIGIN`이 경로·쿼리 없는
 HTTPS origin이면 다음을 선언한다.
@@ -107,23 +108,26 @@ Preview Android 패키지는 `org.sundoo.jubileeworship.preview`이지만, 현�
 Preview App Link가 필요하면 Preview APK의 실제 서명 지문을 따로
 확인해 두 번째 statement로 추가한다.
 
-## 3. 배포 후 검증
+## 3. 배포·실기기 검증
 
-2026-08-23 현재 다음 세 URL은 모두 HTTP 404다.
+2026-08-23 23:20 KST Vercel Production deployment
+`dpl_4RxDM8gBpXnV4Mr72M9WyAnVn3sR`를
+`https://jubilee-worship.vercel.app`에 연결했다. 다음 세 URL은 모두 redirect
+없이 HTTPS 200과 `application/json; charset=utf-8`을 반환했고, 응답 본문은
+저장소 파일과 byte 단위로 일치했다.
 
 - `/.well-known/assetlinks.json`
 - `/.well-known/apple-app-site-association`
 - `/apple-app-site-association`
 
-배포 후 다음을 모두 확인한다.
+남은 종단 간 검증은 다음과 같다.
 
-1. 두 well-known URL이 redirect 없이 HTTPS 200과 JSON content type을 반환한다.
-2. 운영 서명 iOS 실기기에서 `https://jubilee-worship.vercel.app/worship`를
+1. 운영 서명 iOS 실기기에서 `https://jubilee-worship.vercel.app/worship`를
    눌러 운영 앱으로 연다.
-3. EAS 직접 서명 Android `production-device` APK를 새로 설치한 뒤
+2. EAS 직접 서명 Android `production-device` APK를 새로 설치한 뒤
    `adb shell pm get-app-links org.sundoo.jubileeworship`의 도메인 상태가
    `verified`인지 확인한다.
-4. Play App Signing 활성화 후 Play 앱 서명 SHA-256를 파일에 추가하고,
+3. Play App Signing 활성화 후 Play 앱 서명 SHA-256를 파일에 추가하고,
    Play 트랙 설치본으로 Android 검증을 반복한다.
 
 ## 4. 근거

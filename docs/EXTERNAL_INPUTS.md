@@ -43,7 +43,7 @@
 - Samsung SM-G991N(Android 15) 실기기 연결 확인
 - Expo/EAS `jubilee-worship` 프로젝트와 앱 연결, Preview·Production용 Supabase 공개 환경변수
 - Vercel 프로젝트 연결과 기본 Production URL `https://jubilee-worship.vercel.app`
-- Universal Link·App Link association 파일 로컬 준비(Production 배포 전)
+- Universal Link·App Link association 파일 Production 배포·HTTPS 응답 검증 완료(운영 서명 실기기 검증 대기)
 - 알림 토큰 원문 24시간, 180일 미활동 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 자동 정리 기준
 - 웹용 Hero, 갤러리, 영상 커버, OG, 아이콘
 - 현행 운영 YouTube 채널 URL과 channel ID
