@@ -15,6 +15,9 @@ import {
 
 describe("sensitive-interest notification consent", () => {
   it("accepts only the current exact consent record", () => {
+    expect(CURRENT_SENSITIVE_INTEREST_CONSENT_VERSION).toBe(
+      "sensitive-interest-notifications-v5"
+    );
     expect(hasCurrentSensitiveInterestConsent(CURRENT_SENSITIVE_INTEREST_CONSENT_RECORD)).toBe(true);
     expect(hasCurrentSensitiveInterestConsent(CURRENT_SENSITIVE_INTEREST_CONSENT_VERSION)).toBe(false);
     expect(hasCurrentSensitiveInterestConsent("sensitive-interest-notifications-v0")).toBe(false);
@@ -75,17 +78,33 @@ describe("sensitive-interest notification consent", () => {
       "무작위 설치 식별자",
       "Expo 푸시 토큰",
       "동의 버전",
-      "동의 시각",
-      "Supabase",
-      "Apple 또는 Google",
-      "광고·추적·프로파일링",
+      "서버 동의 시각",
+      "Supabase는",
+      "운영체제 기기 푸시 토큰(APNs 또는 FCM)",
+      "Expo 앱 설치 식별자",
+      "요청 IP 주소·운영체제·오류·성능 정보",
+      "실제 알림 발송 때 Expo는 Expo 푸시 토큰",
+      "Apple 또는 Google은 운영체제 기기 푸시 토큰",
+      "알림 제목·본문·딥링크",
+      "대상 종류·관련 예배 일정",
+      "발송 승인·대기 상태",
+      "설치별 발송 시도",
+      "Expo 티켓·영수증",
+      "광고·추적·이용자 프로파일링",
       "다른 기능",
       "철회",
       "서버 요청이 성공한 시점",
-      "최대 30일",
-      "최대 90일"
+      "Expo의 운영체제 토큰 자동 갱신을 끄고",
+      "APNs 또는 FCM 기기 토큰 등록 해제",
+      "보안저장소에 정리 대기 상태",
+      "30일이 경과한 뒤",
+      "90일이 경과한 뒤",
+      "매일 1회",
+      "작업 지연이나 처리 적체"
     ]) {
       expect(SENSITIVE_INTEREST_CONSENT_DISCLOSURE).toContain(term);
     }
+    expect(SENSITIVE_INTEREST_CONSENT_DISCLOSURE).not.toContain("최대 30일");
+    expect(SENSITIVE_INTEREST_CONSENT_DISCLOSURE).not.toContain("최대 90일");
   });
 });

@@ -75,11 +75,22 @@ describe("legal document templates", () => {
         expect(hasRequiredAppPrivacyDisclosures(template.body)).toBe(false);
         expect(template.body).toContain("최대 24시간 이내에 데이터베이스 토큰 원문과 해시를 삭제");
         expect(template.body).toContain("180일 동안 활동이 확인되지 않은 설치");
-        expect(template.body).toContain("비활성화 후 최대 30일");
-        expect(template.body).toContain("발송 상세기록 최대 90일");
+        expect(template.body).toContain(
+          "비활성화 후 30일이 경과한 항목을 다음 정기 삭제 작업에서 삭제"
+        );
+        expect(template.body).toContain(
+          "발송 상세기록은 90일이 경과한 항목을 다음 정기 삭제 작업에서 삭제"
+        );
+        expect(template.body).toContain(
+          "작업 지연·적체 시 실제 삭제는 다음 정상 실행 이후 완료될 수 있음"
+        );
         expect(template.body).toContain("정기 삭제 주기: 매일 오전 3시 17분(한국시간) 1회");
         expect(template.body).toContain("종교적 관심");
         expect(template.body).toContain("광고·추적·이용자 프로파일링에 사용하지 않습니다");
+        expect(template.body).toContain("운영체제 기기 푸시 토큰(APNs 또는 FCM)");
+        expect(template.body).toContain("Expo 앱 설치 식별자");
+        expect(template.body).toContain("실제 알림 발송 때는 Expo 푸시 토큰");
+        expect(template.body).toContain("Apple·Google 처리:");
         expect(template.body).toContain("「개인정보 보호법」 제15조제1항제1호");
         expect(template.body).toContain("제23조제1항제1호(민감정보 별도 동의)");
         expect(template.body).toContain("수신한 알림의 식별값, 제목·본문, 수신 시각");
@@ -168,6 +179,28 @@ describe("legal document templates", () => {
     expect(hasRequiredAppPrivacyDisclosures(body)).toBe(true);
     expect(hasCompletedPrivacyOperationalDetails(body)).toBe(true);
     expect(isStoreReadyPrivacyPolicy({ document_type: "privacy_policy", body })).toBe(true);
+    for (const criticalDisclosure of [
+      "운영체제 기기 푸시 토큰(APNs 또는 FCM)",
+      "Expo 앱 설치 식별자",
+      "Expo 푸시 토큰을 발급·갱신",
+      "실제 알림 발송 때",
+      "알림 제목·본문·딥링크",
+      "티켓·영수증·오류",
+      "Apple 또는 Google은 운영체제 기기 푸시 토큰",
+      "대상 종류·관련 예배 일정",
+      "발송 승인·대기 상태",
+      "설치별 발송 시도",
+      "Expo의 운영체제 토큰 자동 갱신을 끄고",
+      "APNs 또는 FCM 기기 토큰 등록 해제",
+      "보안저장소에 정리 대기 상태"
+    ]) {
+      const incompleteBody = body.replaceAll(criticalDisclosure, "누락된 처리 항목");
+      expect(hasRequiredAppPrivacyDisclosures(incompleteBody)).toBe(false);
+      expect(isStoreReadyPrivacyPolicy({
+        document_type: "privacy_policy",
+        body: incompleteBody
+      })).toBe(false);
+    }
     for (const unresolvedTransitionClaim of [
       "Gmail 기반 후보·임시 문의 주소",
       "최종 지원 이메일 공급자와 주소로 확정되지 않았습니다",
@@ -254,7 +287,7 @@ describe("legal document templates", () => {
     ))).toBe(false);
     for (const emptyEquivalent of ["N/A:", "NA.", "해당   없음."]) {
       expect(hasCompletedPrivacyOperationalDetails(body.replace(
-        "비활성 정보 보유 기간: 비활성화 후 최대 30일",
+        "비활성 정보 보유 기간: 비활성화 후 30일이 경과한 항목을 다음 정기 삭제 작업에서 삭제",
         `비활성 정보 보유 기간: ${emptyEquivalent}`
       ))).toBe(false);
     }

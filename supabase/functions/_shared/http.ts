@@ -6,7 +6,9 @@ const DEEP_LINK_PATTERN = /^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/;
 const SHA256_HEX_PATTERN = /^[0-9a-f]{64}$/;
 
 export const SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION =
-  "sensitive-interest-notifications-v2";
+  "sensitive-interest-notifications-v5";
+export const SENSITIVE_INTEREST_NOTIFICATION_DISCLOSURE_SHA256 =
+  "575ecb39ce1c1670e169e5fdae28587b09477a765a80c6dcfdb5df2f170a5f0e";
 
 export class HttpError extends Error {
   constructor(

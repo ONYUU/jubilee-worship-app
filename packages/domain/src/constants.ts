@@ -54,11 +54,11 @@ export const PUBLIC_MEDIA_URI_PREFIX = "storage://public-media/" as const;
  * sync with the database and Edge Function contract.
  */
 export const SENSITIVE_INTEREST_NOTIFICATION_CONSENT = {
-  version: "sensitive-interest-notifications-v2",
+  version: "sensitive-interest-notifications-v5",
   policyVersion: "1.0.0",
-  draftedOn: "2026-08-20",
+  draftedOn: "2026-08-24",
   locale: "ko-KR",
-  disclosureSha256: "654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c"
+  disclosureSha256: "575ecb39ce1c1670e169e5fdae28587b09477a765a80c6dcfdb5df2f170a5f0e"
 } as const;
 
 /**

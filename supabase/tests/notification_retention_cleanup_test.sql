@@ -244,10 +244,10 @@ values
   );
 
 update private.app_installations
-set sensitive_interest_consent_version = 'sensitive-interest-notifications-v2',
+set sensitive_interest_consent_version = 'sensitive-interest-notifications-v5',
     sensitive_interest_consented_at = statement_timestamp(),
     sensitive_interest_disclosure_sha256 =
-      '654bf061da34ee1b70092013e093af4952af0488f5d75d227d74b25fb578d37c',
+      '575ecb39ce1c1670e169e5fdae28587b09477a765a80c6dcfdb5df2f170a5f0e',
     sensitive_interest_consent_locale = 'ko-KR',
     sensitive_interest_age_14_or_over_confirmed_at = statement_timestamp()
 where id::text like '10000000-0000-4000-8000-00000000000%'
@@ -814,7 +814,7 @@ select lives_ok(
       repeat('2', 64),
       '1.0.1',
       'production',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[retention_stale_reactivated]',
       repeat('8', 64),

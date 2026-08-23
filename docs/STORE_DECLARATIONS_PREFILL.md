@@ -1,6 +1,6 @@
 # 쥬빌리워십 스토어 선언 사전입력표
 
-- 기준일: 2026-08-23 (Asia/Seoul)
+- 기준일: 2026-08-24 (Asia/Seoul)
 - 대상 버전: iOS·Android `1.0.0`
 - 용도: App Store Connect와 Google Play Console을 열었을 때 현재 코드·데이터 흐름에서 확인된 답을 옮기기 위한 사전입력표
 - 범위: 스토어 콘솔 입력·제출을 수행했다는 증빙이 아니며, 선택한 제출 빌드와 최종 공개 정책을 기준으로 다시 확인해야 한다.
@@ -30,7 +30,7 @@
 | 광고·마케팅 분석 | 없음 | `VERIFY-BUILD` | 저장소에 광고·마케팅 분석 SDK 없음. 최종 IPA/AAB 재확인 필요 |
 | 앱 전체 만 14세 제한 | 아니요 | `READY` | 공개 콘텐츠는 연령 제한 없음 |
 | 알림 등록 만 14세 확인 | 예 | `READY` | 알림 선택 전 자기확인·별도 동의·OS 권한 흐름 구현 |
-| 앱 밖으로 전송되는 알림 정보 | 무작위 설치 ID, 설치 검증값 해시, Expo 푸시 토큰·해시, 플랫폼, 앱 버전·구분, 알림 선택, 동의 버전·해시·언어·시각, 만 14세 이상 확인, 발송·오류 상태 | `READY` | `docs/legal/PRIVACY_RELEASE_GATE.md`, Supabase notification migrations |
+| 앱 밖으로 전송되는 알림 정보 | Supabase: 무작위 설치 ID, 설치 검증값 해시, Expo 푸시 토큰·해시, 플랫폼, 앱 버전·구분, 알림 선택, 동의 버전·해시·언어·시각, 만 14세 이상 확인, 알림 제목·본문·딥링크, 대상 종류·관련 예배 일정, 발송 승인·대기 상태, 설치별 발송 시도, Expo 티켓·영수증, 전달·오류 상태. Expo: 운영체제 기기 푸시 토큰, Expo 앱 설치 ID, 프로젝트·앱 ID, 푸시 서비스 종류·개발/운영 구분, Expo 푸시 토큰, 알림 payload·티켓·영수증·오류. Apple·Google: 운영체제 기기 푸시 토큰, 앱 ID, 알림 payload·전달 메타데이터 | `READY` | 설치된 Expo SDK, `docs/legal/PRIVACY_RELEASE_GATE.md`, Supabase notification migrations |
 | 종교 관련 관심 추론 | 예. 예배·일정·송리스트 알림 선택 | `READY` | 설치 ID와 연결해 서버 저장, 민감정보로 보수적 분류 |
 | 위치·카메라·마이크·광고 ID | 수집하지 않음 | `VERIFY-BUILD` | 코드·권한 설정 기준. 최종 IPA/AAB 재확인 |
 | 제3자 독립 목적 제공 | 현재 코드에서 확인되지 않음 | `BLOCKED-LEGAL` | Supabase·Expo·Apple·Google의 서비스 제공자 예외는 실제 계약·처리 지시 확인 필요 |
@@ -39,7 +39,25 @@
 
 ## 3. Apple App Store Connect
 
-### 3.1 App Privacy 사전입력
+### 3.1 앱 레코드·가격·배포 권장 사전입력
+
+아래 값은 콘솔 입력을 위한 **권장안**이며 사용자 확정값이 아니다. 특히 SKU는 앱 레코드를 만든 뒤 변경할 수 없으므로, `BLOCKED-OWNER`가 해제되기 전에는 앱 레코드 생성·가격·배포 설정을 저장하지 않는다.
+
+| App Store Connect 항목 | 권장 사전입력값 | 상태 | 확인 사항 |
+| --- | --- | --- | --- |
+| Platform | `iOS` | `READY` | 현재 앱 대상 플랫폼 |
+| Primary Language | `Korean` | `READY` | 현재 스토어 문구의 기준 언어 |
+| SKU | `JUBILEE-WORSHIP-IOS` | `BLOCKED-OWNER` | 사용자 확정 후 입력. 앱 레코드 생성 뒤 변경 불가 |
+| User Access | `Full Access` | `BLOCKED-OWNER` | 권장안. App Store Connect 사용자 전체에 앱 접근을 허용할지 계정 소유자가 확정 |
+| Price | `0 (Free)` | `BLOCKED-OWNER` | 권장안. 유료 판매·인앱결제 없음과 일치하는지 사용자 확정 |
+| Distribution Method | `Public` | `BLOCKED-OWNER` | 권장안. 비공개·Unlisted 배포가 아닌 공개 배포 의도 확인 |
+| Availability | `South Korea first` | `BLOCKED-OWNER` | 권장안. 1차 공개 국가를 대한민국으로 제한할지, 이후 국가를 추가할지 사용자 확정 |
+| Version Release | `Manually release this version` | `BLOCKED-OWNER` | 권장안. 심사 통과 뒤 자동 공개하지 않고 별도 승인 후 수동 출시 |
+| Apple silicon Mac availability | `Exclude` | `BLOCKED-OWNER` | 권장안. Mac 전용 검증 전에는 제공하지 않도록 선택 해제 여부 확정 |
+| Apple Vision Pro availability | `Exclude` | `BLOCKED-OWNER` | 권장안. Vision Pro 전용 검증 전에는 제공하지 않도록 선택 해제 여부 확정 |
+| Tax Category | `[현재 콘솔의 무료 앱·소프트웨어 분류 확인]` | `BLOCKED-OWNER` | 계정 소유자가 콘솔의 현행 선택지와 세무 적용 범위를 확인해 확정 |
+
+### 3.2 App Privacy 사전입력
 
 #### 전체 문항
 
@@ -58,17 +76,20 @@
 | Apple 데이터 유형 | Collected | 목적 | Linked to User | Tracking | 상태 | 입력 근거 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Sensitive Info` | `Yes` | `App Functionality` | `Yes` | `No` | `READY` | 종교적 관심을 추론할 수 있는 알림 선택이 설치 ID·푸시 토큰과 연결됨 |
-| `Identifiers > Device ID` | `Yes` | `App Functionality` | `Yes` | `No` | `READY` | 무작위 설치 ID, Expo 푸시 토큰·해시, 설치 검증 해시 |
+| `Identifiers > Device ID` | `Yes` | `App Functionality` | `Yes` | `No` | `READY` | 무작위 설치 ID, Expo 앱 설치 ID, 운영체제 기기 푸시 토큰, Expo 푸시 토큰·해시, 설치 검증 해시 |
+| `Usage Data > Product Interaction` | `Yes` | `App Functionality` | `Yes` | `No` | `READY` | 사용자가 선택한 예배·일정변경·송리스트 알림 종류와 동의 선택을 설치 ID에 연결해 알림 기능을 제공 |
+| `Other Data > Other Data Types` | `Yes` | `App Functionality` | `Yes` | `No` | `READY` | 플랫폼·앱 버전, 동의 버전·언어·시각, 만 14세 이상 확인 여부·서버 확인 시각을 설치 ID에 연결해 기능·동의 상태를 관리 |
 
 입력 전 추가 확인:
 
 | 확인 항목 | 상태 | 처리 기준 |
 | --- | --- | --- |
 | API·보안 로그의 IP, User-Agent, 요청 경로·시각·상태코드 | `BLOCKED-LEGAL` | 실제 수집·마스킹·보유·사용 목적을 확정하고 Apple 데이터 유형을 추가할지 판단 |
-| Supabase·Expo·Apple·Google이 처리하는 추가 데이터 | `BLOCKED-LEGAL` | 실제 계약·SDK·하위처리자 확인 후 필요한 유형을 추가 |
+| Supabase·Expo·Apple·Google이 처리하는 추가 데이터 | `BLOCKED-LEGAL` | 설치된 Expo SDK에서 확인한 운영체제 기기 푸시 토큰·Expo 앱 설치 ID·프로젝트/앱 ID·서비스 구분·알림 payload와 각 공급자 정책상 IP·운영체제·오류·성능 정보를 기준으로, 실제 계약·하위처리자 확인 후 필요한 유형을 추가 |
 | 크래시·진단 SDK | `VERIFY-BUILD` | 제출 IPA의 SDK·Privacy Manifest를 확인하고 `Diagnostics`·`Usage Data` 추가 여부 판단 |
+| 외부 메일 앱으로 보내는 지원 문의 | `BLOCKED-LEGAL` | 앱은 `mailto:`만 열고 문의는 사용자가 외부 메일 앱에서 직접 전송한다. Apple의 선택적 공개 예외 충족 여부 또는 `Contact Info`·`Customer Support` 공개 여부를 최종 지원 절차와 함께 판단 |
 
-### 3.2 App Content·연령등급 설문
+### 3.3 App Content·연령등급 설문
 
 Apple의 등급은 아래 설문 답을 바탕으로 콘솔이 계산한다. 알림만 만 14세 이상으로 제한하는 현재 구조를 앱 전체 `14+` 등급으로 임의 표시하지 않는다.
 
@@ -94,7 +115,7 @@ Apple의 등급은 아래 설문 답을 바탕으로 콘솔이 계산한다. 알
 | 계산 등급 | `[콘솔 계산값 확인]` | `CONDITIONAL` | 콘솔 계산 결과를 임의로 바꾸지 않는다. 예상은 전 세계 `4+`, 한국 `전체 이용가`이지만 실제 콘솔 결과가 우선이다. |
 | 수동 상향 override | `No` 후보 | `BLOCKED-OWNER` | 앱 전체 연령을 상향할 제품·법무 근거가 있는 경우만 변경 |
 
-### 3.3 Export Compliance
+### 3.4 Export Compliance
 
 | 문항 | 사전입력값 | 상태 | 근거·조치 |
 | --- | --- | --- | --- |
@@ -104,7 +125,7 @@ Apple의 등급은 아래 설문 답을 바탕으로 콘솔이 계산한다. 알
 
 `ITSAppUsesNonExemptEncryption=false`는 “암호화를 전혀 사용하지 않는다”는 일반 선언이 아니라, Apple 수출규정상 비면제 암호화를 사용하지 않는다는 앱 설정값이다.
 
-### 3.4 EU Digital Services Act
+### 3.5 EU Digital Services Act
 
 | 문항 | 사전입력값 | 상태 | 확인 사항 |
 | --- | --- | --- | --- |
@@ -118,14 +139,29 @@ Apple의 등급은 아래 설문 답을 바탕으로 콘솔이 계산한다. 알
 
 EU에 배포하지 않더라도 trader status 선언 자체는 요구된다. Apple은 개발자 대신 상인 여부를 판단하지 않으므로 오너·법무가 결정한다.
 
-### 3.5 Content Rights
+### 3.6 대한민국 스토어 규정 정보
+
+대한민국에서 앱을 제공하려면 App Store Connect의 대한민국 규정 정보에 계정 유형별 필수 정보를 제출하고, 표시되는 확인 상태를 완료해야 한다. 실제 개인정보는 이 문서에 적지 않고 콘솔의 보안 입력란과 별도 증빙에만 보관한다.
+
+| 확인 항목 | 사전입력값 | 상태 | 필요 증빙·조치 |
+| --- | --- | --- | --- |
+| Apple Developer 계정의 대한민국 개인·조직 구분 | `[현재 계정 정보 확인]` | `BLOCKED-OWNER` | App Store Connect의 실제 계정 유형과 대한민국 규정 정보 화면 일치 확인 |
+| 대한민국 표시용 이메일 | `[실제 응답 가능한 공개 이메일]` | `BLOCKED-OWNER` | 계정 소유자가 사용할 주소 확정 후 Apple 인증 완료 |
+| 대한민국 표시용 전화번호 | `[실제 응답 가능한 번호]` | `BLOCKED-OWNER` | 계정 소유자가 사용할 번호 확정 후 Apple 인증 완료 |
+| 사업자등록번호(BRN) 적용 여부 | `[해당 여부 확인]` | `BLOCKED-OWNER` | 개인·조직 및 실제 사업자등록 상태에 따라 입력 필요 여부 판단 |
+| 규정 정보 저장·인증 상태 | `[App Store Connect에서 확인]` | `BLOCKED-OWNER` | 대한민국 배포 선택 전 필수값의 저장·인증 완료 화면을 제출 증빙으로 보관 |
+
+### 3.7 Content Rights
 
 | 문항 | 사전입력값 | 상태 | 근거·필요 증빙 |
 | --- | --- | --- | --- |
 | 앱이 제3자 콘텐츠를 포함·표시·접근하는가 | `Yes` | `READY` | 예배 사진·갤러리, 곡명·아티스트 정보, 외부 YouTube·Instagram 콘텐츠에 접근 |
 | 표시·접근할 권리가 있는가 | `[확인 필요]` | `BLOCKED-OWNER` | 홈·Feature Graphic 사진의 공개 동의는 기록되었지만, 심사 빌드의 모든 사진·영상·음원·썸네일·곡 정보의 소유·허락·인물 동의 증빙 필요 |
+| `쥬빌리워십`·`선두교회` 명칭, 공식 로고와 “공식 앱” 표방 권리가 있는가 | `[권리자 승인 문서 확인 필요]` | `BLOCKED-OWNER` | 정확한 앱 이름·로고, Bundle ID·package `org.sundoo.jubileeworship`, Apple·Google 게시자 계정 및 공개 배포 범위를 포함한 권리자 승인 필요 |
 
-### 3.6 App Review 연락처·접근 정보
+명칭·로고·공식 앱 표방 권한은 사진 속 인물 공개 동의와 제3자 미디어 이용 권한과 별개의 증빙으로 관리한다.
+
+### 3.8 App Review 연락처·접근 정보
 
 | 필드 | 사전입력값 | 상태 |
 | --- | --- | --- |
@@ -167,14 +203,17 @@ App Review Notes 붙여넣기 초안:
 | Google 데이터 유형 | Collected | Shared | Ephemeral | Required/Optional | 목적 | 상태 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Personal info > Political or religious beliefs` | `Yes` | `[확인 필요]` | `No` | `Optional` | `App functionality`, `Developer communications` | 수집·선택성·목적은 `READY`; 공유 여부는 `BLOCKED-LEGAL` |
+| `Personal info > Other info` | `Yes` | `[확인 필요]` | `No` | `Optional` | `App functionality` | 만 14세 이상 확인 여부와 동의 메타데이터. 수집·선택성·목적은 `READY`; 공유 여부는 `BLOCKED-LEGAL` |
+| `App activity > App interactions` | `Yes` | `[확인 필요]` | `No` | `Optional` | `App functionality`, `Developer communications` | 사용자가 켠 알림 종류와 동의 선택. 수집·선택성·목적은 `READY`; 공유 여부는 `BLOCKED-LEGAL` |
 | `Device or other IDs` | `Yes` | `[확인 필요]` | `No` | `Optional` | `App functionality`, `Developer communications` | 수집·선택성·목적은 `READY`; 공유 여부는 `BLOCKED-LEGAL` |
 
 입력 방법:
 
-- 알림을 켜지 않아도 앱의 공개 콘텐츠를 이용할 수 있으므로 두 유형 모두 `Optional`로 선택한다.
+- 알림을 켜지 않아도 앱의 공개 콘텐츠를 이용할 수 있으므로 네 유형 모두 `Optional`로 선택한다.
 - 서버에 저장되고 즉시 폐기되지 않으므로 `Ephemeral processing`으로 선택하지 않는다.
 - Supabase·Expo·Apple·Google이 Google의 현행 정의상 개발자의 지시만 따르는 service provider인지 실제 계약으로 확인하기 전에 `Shared = No`를 확정하지 않는다.
 - IP HMAC, API·보안 로그, 발송 이력의 실제 필드·목적·보유기간을 확정한 후 `Approximate location`, `App activity`, `App info and performance` 등을 추가해야 하는지 다시 판단한다.
+- 지원 문의는 앱이 외부 메일 앱의 `mailto:` 작성 화면만 열고 사용자가 직접 전송한다. Google의 사용자 주도 전송·외부 앱 범위에서 Data Safety 공개 대상인지, 최종 지원 공급자·보관 절차와 함께 `BLOCKED-LEGAL`로 판정한다.
 
 ### 4.3 대상 연령대·콘텐츠
 
@@ -234,6 +273,28 @@ IARC는 답변에 따라 등급을 발급하므로 예상 등급을 직접 입�
 예약된 실제 알림은 심사 중 즉시 도착하지 않을 수 있습니다.
 ```
 
+### 4.6 대화면 스토어 자산 선택 항목
+
+| 항목 | 권장 처리 | 상태 | 제출 기준 |
+| --- | --- | --- | --- |
+| 7-inch tablet screenshots | `[사용 여부 선택]` | `CONDITIONAL` | 휴대전화 스크린샷과 별도 선택 항목. 사용 시 최종 Production 빌드의 실제 태블릿 화면을 현행 Play Console 규격에 맞춰 준비 |
+| 10-inch tablet screenshots | `[사용 여부 선택]` | `CONDITIONAL` | 사용 시 최종 Production 빌드·지원 방향·레이아웃과 일치하는 자산만 업로드 |
+| Chromebook screenshots | `[사용 여부 선택]` | `CONDITIONAL` | 실제 Chromebook 지원·검증 범위에 포함할 때만 준비 |
+
+태블릿·Chromebook 스크린샷은 현재 휴대전화용 기본 게시 자산의 완료 여부와 분리한다. 해당 폼팩터 자산을 사용하기로 확정한 경우에만 Play Console이 표시하는 최신 수량·비율·해상도 조건을 적용하고, 실제 기기 화면과 다른 목업은 제출하지 않는다.
+
+### 4.7 Android 개발자 인증·패키지 등록
+
+현재 Play Console은 개인 개발자 계정의 Android 개발자 인증 메뉴에서 패키지 이름 등록 상태를 관리한다. Google Play 배포 앱은 대부분 자동 등록되므로 앱 생성·첫 AAB 처리 뒤 실제 상태를 확인하고, 자동 등록되지 않은 경우에만 콘솔 안내에 따라 수동 등록한다.
+
+| 확인 항목 | 상태 | 제출 전 증빙 |
+| --- | --- | --- |
+| 개발자 신원 인증 상태 | `BLOCKED-OWNER` | Play Console Android 개발자 인증의 ID 상태 |
+| `org.sundoo.jubileeworship` 패키지 등록 | `CONDITIONAL` | 앱 생성·AAB 처리 뒤 자동 등록 여부; 미등록 시 수동 등록 결과 |
+| Play App Signing 키 연결 | `VERIFY-BUILD` | 최종 AAB 업로드 후 Play App Signing 인증서와 package 연결 |
+
+2026년 9월 30일부터 브라질·인도네시아·싱가포르·태국의 참여 스토어에서 지역 적용이 시작되고 2027년 이후 전 세계 확대가 예정되어 있으므로, 대한민국 우선 출시라도 제출 전 등록 상태를 확인한다.
+
 ## 5. 제출 전 BLOCKED 해제표
 
 | 우선순위 | 해제할 항목 | 확정 권한자 | 필요 증빙·결과 |
@@ -245,18 +306,26 @@ IARC는 답변에 따라 등급을 발급하므로 예상 등급을 직접 입�
 | 5 | 종교 관련 알림 선택의 민감정보 동의·국외 처리·만 14세 확인 방식 | 오너·법무 | 동의 문구·방식·철회·법정대리인 요건 검토 |
 | 6 | 알림함·토큰·비활성 설치·발송 기록의 보유·삭제 | 오너·운영자 | iOS·Android 실기기 등록·철회·만료 삭제 증거 |
 | 7 | 앱 내·스토어 사진·영상·음원·썸네일·곡 정보 권리 | 콘텐츠 오너 | 소유·허락·인물 공개 동의·제3자 이용 조건 기록 |
-| 8 | Apple DSA trader status·EU 배포 여부 | 계정 소유자·법무 | Trader 판단 근거와 필요한 주소·전화·이메일 증빙 |
-| 9 | Google 대상 연령대 | 제품 오너 | 공개 콘텐츠 대상과 알림만 14세 제한하는 현재 동작의 정합성 확정 |
-| 10 | Apple Review·IARC 연락 담당자 | 오너 | 실제 응답 가능한 성명·국제형 전화·이메일 |
+| 8 | 공식 명칭·로고·“공식 앱” 표방 권한 | 권리자·계정 소유자 | 정확한 앱 이름·로고·게시자 계정·Bundle ID·package·두 스토어 공개 배포를 포함한 승인 문서 |
+| 9 | Apple 앱 레코드·가격·공개 범위·출시 방식·Mac/Vision 제공 여부 | 계정 소유자 | SKU·User Access 및 무료·공개·한국 우선·수동 출시·Mac/Vision 제외 권장안의 사용자 확정 기록 |
+| 10 | Apple 대한민국 규정 정보 | 계정 소유자 | 계정 유형, 이메일·전화 인증, BRN 적용 여부 및 콘솔 완료 상태 |
+| 11 | Apple DSA trader status·EU 배포 여부 | 계정 소유자·법무 | Trader 판단 근거와 필요한 주소·전화·이메일 증빙 |
+| 12 | Google 대상 연령대 | 제품 오너 | 공개 콘텐츠 대상과 알림만 14세 제한하는 현재 동작의 정합성 확정 |
+| 13 | Apple Review·IARC 연락 담당자 | 오너 | 실제 응답 가능한 성명·국제형 전화·이메일 |
+| 14 | Android 개발자 인증·패키지 등록 | 계정 소유자 | 개발자 ID 인증, package 등록, Play App Signing 키 연결 상태 |
 
 ## 6. 입력 직전 최종 검증 순서
 
 1. 제출할 IPA·AAB의 실제 SDK, 권한, 암호화, 광고 ID, 데이터 전송 경로를 재검토한다.
 2. 제5절의 `BLOCKED` 항목을 권한자 증빙으로 해제한다.
-3. 최종 개인정보처리방침을 공개하고 URL에 공개 전·미정·후보·검토 표식이 없는지 확인한다.
-4. 공개 정책과 실제 빌드를 기준으로 Apple App Privacy·Google Data Safety의 공유·로그 항목을 확정한다.
-5. Apple 연령등급·Google IARC 결과가 최종 공개 콘텐츠와 일치하는지 확인한다.
-6. 실제 심사 담당자·운영 연락처를 입력하고, 저장 후 미완료 항목 표시가 없는지 확인한다.
+3. SKU·User Access와 가격·배포·출시·Mac/Vision 권장안을 사용자가 확정한 뒤에만 Apple 앱 레코드와 배포 설정을 저장한다.
+4. Apple 대한민국 규정 정보의 이메일·전화 인증과 BRN 적용 여부를 확인하고 완료 증빙을 보관한다.
+5. 공식 명칭·로고·“공식 앱” 표방 및 두 스토어 게시 권한 증빙을 확인한다.
+6. 최종 개인정보처리방침을 공개하고 URL에 공개 전·미정·후보·검토 표식이 없는지 확인한다.
+7. 공개 정책과 실제 빌드를 기준으로 Apple App Privacy·Google Data Safety의 공유·로그 항목을 확정한다.
+8. Apple 연령등급·Google IARC 결과가 최종 공개 콘텐츠와 일치하는지 확인한다.
+9. Google 태블릿·Chromebook 자산을 사용하기로 한 경우에만 최종 Production 빌드로 현행 콘솔 규격에 맞춰 준비한다.
+10. 실제 심사 담당자·운영 연락처를 입력하고, 저장 후 미완료 항목 표시가 없는지 확인한다.
 
 ## 7. 검증 근거
 
@@ -271,6 +340,9 @@ IARC는 답변에 따라 등급을 발급하므로 예상 등급을 직접 입�
 - `supabase/migrations/20260820095834_require_notification_age_14_confirmation.sql`
 - `supabase/migrations/20260823132500_align_privacy_operational_gates.sql`
 - `supabase/migrations/20260823143000_lock_legal_contact_to_site_settings.sql`
+- `supabase/migrations/20260823150748_require_sensitive_interest_consent_v3.sql`
+- `supabase/migrations/20260823152830_require_sensitive_interest_consent_v4.sql`
+- `supabase/migrations/20260823154935_require_sensitive_interest_consent_v5.sql`
 
 ### Apple 공식 문서
 
@@ -278,12 +350,21 @@ IARC는 답변에 따라 등급을 발급하므로 예상 등급을 직접 입�
 - App Privacy management: https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/
 - Age rating categories and values: https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/
 - Export compliance: https://developer.apple.com/help/app-store-connect/manage-app-information/overview-of-export-compliance
+- Add a new app: https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/
+- Pricing, availability, tax category and release: https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/overview-of-publishing-your-app-on-the-app-store
+- iPhone·iPad app availability on Mac with Apple silicon: https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/manage-availability-of-iphone-and-ipad-apps-on-macs-with-apple-silicon
+- iPhone·iPad app availability on Apple Vision Pro: https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/manage-availability-of-iphone-and-ipad-apps-on-apple-vision-pro
+- 대한민국 규정 정보: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-korea-compliance-information
+- App Review Guidelines 5.2 Intellectual Property: https://developer.apple.com/app-store/review/guidelines/
 - EU DSA trader requirements: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements/
 - App Review information fields: https://developer.apple.com/documentation/appstoreconnectapi/app-store-review-details
 
 ### Google 공식 문서
 
+- Store listing preview asset requirements: https://support.google.com/googleplay/android-developer/answer/9866151
+- Impersonation policy: https://support.google.com/googleplay/android-developer/answer/9888374
 - Data Safety: https://support.google.com/googleplay/android-developer/answer/10787469?hl=en
+- Android developer verification: https://developer.android.com/developer-verification
 - Target audience and content: https://support.google.com/googleplay/android-developer/answer/9867159?hl=en
 - Content ratings/IARC: https://support.google.com/googleplay/android-developer/answer/9898843?hl=en
 - App access and App Content preparation: https://support.google.com/googleplay/android-developer/answer/9859455?hl=en

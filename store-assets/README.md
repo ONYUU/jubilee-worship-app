@@ -31,8 +31,17 @@ type. It does not generate, remove, replace, or retouch people or objects.
 - `outputs/store-assets/screenshots/android-phone/` — reserved for Production captures
 
 Do not put Preview/Development-build captures in the two screenshot folders.
-Run the validation script before uploading any asset to a store console.
+The default validation is intentionally fail-closed: it checks the two base
+assets and all 12 Production screenshots. Run it before uploading any asset to
+a store console.
 
 ```sh
 bash store-assets/validate-store-assets.sh
+```
+
+During base-asset production only, explicitly skip the not-yet-captured
+screenshots with:
+
+```sh
+bash store-assets/validate-store-assets.sh --base-only
 ```

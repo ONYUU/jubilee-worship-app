@@ -13,6 +13,7 @@ as $$
     || target_note || E'\n'
     || E'개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com\n'
     || E'알림 제공에만 사용합니다. 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 「개인정보 보호법」 제15조제1항제1호 및 제23조제1항제1호(민감정보 별도 동의)를 근거로 합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다. 수신 알림은 기기에 최대 50건·90일 저장하고 서버로 다시 전송하지 않습니다. 자동화된 결정을 하지 않고 광고 SDK를 사용하지 않습니다.\n'
+    || E'운영체제 기기 푸시 토큰(APNs 또는 FCM)과 Expo 앱 설치 식별자를 사용해 Expo 푸시 토큰을 발급·갱신합니다. 실제 알림 발송 때 알림 제목·본문·딥링크, 대상 종류·관련 예배 일정, 발송 승인·대기 상태, 설치별 발송 시도, 티켓·영수증·오류를 처리합니다. Apple 또는 Google은 운영체제 기기 푸시 토큰과 알림 내용을 처리합니다. 철회할 때 Expo의 운영체제 토큰 자동 갱신을 끄고 APNs 또는 FCM 기기 토큰 등록 해제를 요청하며, 실패하면 보안저장소에 정리 대기 상태를 남깁니다.\n'
     || E'SUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 검증값은 재사용할 수 없도록 해시합니다. 신규 등록은 출처별 하루 100회, 전체 하루 500회로 제한하고 일일 가명 카운터는 최대 약 25시간 5분 보유됩니다. 650 Industries, Inc. Expo Apple·Google 처리 미국 만 14세\n'
     || E'공개 콘텐츠·보안 로그의 실제 처리 항목과 보유기간: IP·요청 경로 로그 30일\n공개 콘텐츠·보안 로그 처리의 법적 근거: 개인정보보호법 시험 근거\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n기기 내 저장 자료의 삭제 방법과 운영체제 백업·재설치 설정: 앱 데이터 삭제와 재설치 검증 기록\nSupabase 수신자 연락처: privacy@example.invalid\nExpo 수신자 연락처: privacy@example.invalid\nApple·Google 수신자 연락처 또는 정책 확인 경로: https://example.invalid/privacy\n수탁자: 시험 처리자\n이전 국가: 시험 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 HTTPS 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n'
     || E'개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자\n개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n전화번호 등 연락처: 032-000-0000\n국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 시험 근거\n권리행사 접수·본인 또는 정당한 대리인 확인·처리·회신 방법: 지원 메일 접수 후 설치 증명값 확인\n지원 문의 처리의 법적 근거: 개인정보보호법 시험 근거\n지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com\n지원 이메일 공급자의 법적 역할·처리 근거: 수탁 처리 및 문의 응대 근거\n지원 이메일 공급자의 처리 국가: 시험 국가\n지원 문의 보유·삭제 기준: 해결 후 90일\n지원 문의 보유·삭제 운영 증빙: 매월 1일 삭제 대상 점검 기록\n알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 민감정보 별도 동의를 모두 받아 서버 시각으로 기록합니다.\n실제 시행일: 2026-09-01\n오너 최종 사실확인: 2026-09-01 서면 승인\n법률 전문가 검토 상태: 2026-09-01 의견서 수령';
@@ -258,7 +259,20 @@ select ok(
       '지원 문의 보유·삭제 기준:',
       '지원 문의 보유·삭제 운영 증빙:',
       '지원 이메일 공급자의 법적 역할·처리 근거:',
-      '만 14세'
+      '만 14세',
+      '운영체제 기기 푸시 토큰(APNs 또는 FCM)',
+      'Expo 앱 설치 식별자',
+      'Expo 푸시 토큰을 발급·갱신',
+      '실제 알림 발송 때',
+      '알림 제목·본문·딥링크',
+      '티켓·영수증·오류',
+      'Apple 또는 Google은 운영체제 기기 푸시 토큰',
+      '대상 종류·관련 예배 일정',
+      '발송 승인·대기 상태',
+      '설치별 발송 시도',
+      'Expo의 운영체제 토큰 자동 갱신을 끄고',
+      'APNs 또는 FCM 기기 토큰 등록 해제',
+      '보안저장소에 정리 대기 상태'
     ]::text[]) as required(term)
     where private.legal_document_has_required_app_privacy_disclosures(
       replace(
@@ -1598,7 +1612,7 @@ select lives_ok(
       '85555555-5555-4555-8555-555555555555'::uuid,
       repeat('a', 64), 'ios', '0.1.0',
       'production',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[database_test_token]', repeat('b', 64),
       true, true, true
@@ -1625,7 +1639,7 @@ select throws_ok(
       '86666666-6666-4666-8666-666666666666'::uuid,
       repeat('c', 64), 'android', '0.1.0',
       'production',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[database_test_token]', repeat('b', 64),
       true, false, false
@@ -1642,7 +1656,7 @@ select throws_ok(
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
       repeat('f', 64), '0.1.1', 'production',
-      'sensitive-interest-notifications-v2', true, null, null, true, true, true
+      'sensitive-interest-notifications-v5', true, null, null, true, true, true
     )
   $$,
   '28000',
@@ -1656,7 +1670,7 @@ select lives_ok(
     select public.service_update_app_installation(
       '85555555-5555-4555-8555-555555555555'::uuid,
       repeat('a', 64), '0.1.1', 'production',
-      'sensitive-interest-notifications-v2', true, null, null, false, true, true
+      'sensitive-interest-notifications-v5', true, null, null, false, true, true
     )
   $$,
   'the correct installation secret hash can change notification settings'

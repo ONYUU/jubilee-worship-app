@@ -214,9 +214,46 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     icon: "./assets/images/jubilee/app-icon-official.png",
     ios: {
       bundleIdentifier: identifier,
-      buildNumber: "1",
       icon: "./assets/images/jubilee/app-icon-official.png",
       supportsTablet: false,
+      privacyManifests: {
+        NSPrivacyTracking: false,
+        NSPrivacyTrackingDomains: [],
+        NSPrivacyCollectedDataTypes: [
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeDeviceID",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeSensitiveInfo",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeProductInteraction",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeOtherDataTypes",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          }
+        ]
+      },
       associatedDomains: appLinkHost ? [`applinks:${appLinkHost}`] : undefined,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -231,7 +268,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: identifier,
-      versionCode: 1,
       icon: "./assets/images/jubilee/app-icon-official.png",
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       predictiveBackGestureEnabled: false,
@@ -292,7 +328,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-calendar",
         {
-          calendarPermission: false,
+          calendarPermission:
+            "예배 일정을 캘린더에 추가할 때만 사용하며 기존 일정은 읽거나 외부로 전송하지 않습니다.",
           remindersPermission: false,
           writeOnlyCalendarPermission: false
         }

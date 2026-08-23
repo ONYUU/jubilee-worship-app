@@ -1,6 +1,6 @@
 # 남은 외부 입력
 
-- 기준일: 2026-08-23 KST
+- 기준일: 2026-08-24 KST
 
 스토어 제출 직전 상태까지 진행하는 데 필요한 외부 입력과 확인만 정리한
 목록입니다. 아래 미제공·미확정 값은 문서에서 임의로 확정하지 않습니다.
@@ -29,11 +29,11 @@
 
 - 프로젝트 요청자(쥬빌리워십 팀원)가 공식 로고와 선두교회 소개 사진의 홈페이지·앱 사용 권한을 확인
 - 앱명 `쥬빌리워십`, 앱 내부 운영주체 `쥬빌리 워십`
-- `Jubilee Worship` 조직의 Free `쥬빌리` Supabase 프로젝트(Seoul), 저장소 link, 기존 원격 migration 15개·Edge Function 8개 활성. 현재 로컬은 18개이며 법적 문서 gate 3개는 원격 적용 대기
+- `Jubilee Worship` 조직의 Free `쥬빌리` Supabase 프로젝트(Seoul), 저장소 link, 동의 v5까지 원격 migration 21/21개·Edge Function 8개 적용·활성 및 fail-closed 재검증
 - 원격 retention cron 활성화와 외부 push 발송 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`)
 - Supabase Edge secret `TEST_PUSH_PAIRING_PEPPER` 설정(값은 문서·저장소에 미기록)
 - Vercel Production 서버 전용 `SUPABASE_SECRET_KEY` 설정(값은 문서·저장소에 미기록)
-- 예배 전날 19:30 KST 및 예배 당일 1시간 전 알림 일정
+- 예배 전날 19:30 KST·당일 1시간 전 리마인더, 일정 변경·취소, 송리스트 공개·변경의 네 알림 유형
 - 알림은 예약 시각부터 15분 이내만 발송하고 이후 만료하는 운영 기준
 - Apple 개발자 계정 유형은 개인
 - Apple 개인 계정의 스토어 판매자·개발자명은 계정 소유자의 법적 이름으로 표시
@@ -50,7 +50,7 @@
 - 공식 Instagram, 선두교회 소개·오시는 길 URL
 - 주소, 전화, 지도 place ID
 
-2026-08-23 기준 EAS Production build는 iOS·Android 모두 0건이다. 실제 push,
+2026-08-24 기준 스토어 서명 EAS Production build는 iOS·Android 모두 0건이다. iOS `production-simulator` 검증본은 서명 IPA·TestFlight 증거가 아니다. 실제 push,
 스토어 내부 테스트, 정책 공개와 최종 스토어 스크린샷도 완료되지 않았다.
 
 `jubilee.sundoo.org`와 `worship.sundoo.org`는 등록 대상 독립 도메인이 아니라 선두교회가 생성 권한을 가진 하위 도메인 후보입니다. 현재 DNS에 생성되지 않았으므로 “사용 가능” 또는 “확정 주소”로 표시하지 않습니다.

@@ -3,7 +3,10 @@ import {
   HttpError,
   readJsonObject,
   requiredExpoPushToken,
+  requiredSensitiveInterestNotificationConsent,
   requiredTestAppVariant,
+  SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION,
+  SENSITIVE_INTEREST_NOTIFICATION_DISCLOSURE_SHA256,
   sha256Hex,
 } from "./http.ts";
 import { enforceRegistrationRateLimit } from "./rate-limit.ts";
@@ -25,6 +28,39 @@ Deno.test("Expo token validation accepts current and legacy prefixes", () => {
     requiredExpoPushToken("ExponentPushToken[legacy_123]"),
     "ExponentPushToken[legacy_123]",
   );
+});
+
+Deno.test("sensitive-interest consent validation accepts only v5", () => {
+  assertEquals(
+    SENSITIVE_INTEREST_NOTIFICATION_CONSENT_VERSION,
+    "sensitive-interest-notifications-v5",
+  );
+  assertEquals(
+    SENSITIVE_INTEREST_NOTIFICATION_DISCLOSURE_SHA256,
+    "575ecb39ce1c1670e169e5fdae28587b09477a765a80c6dcfdb5df2f170a5f0e",
+  );
+  assertEquals(
+    requiredSensitiveInterestNotificationConsent(
+      "sensitive-interest-notifications-v5",
+    ),
+    "sensitive-interest-notifications-v5",
+  );
+  for (
+    const staleVersion of [
+      "sensitive-interest-notifications-v4",
+      "sensitive-interest-notifications-v3",
+      "sensitive-interest-notifications-v2",
+    ]
+  ) {
+    try {
+      requiredSensitiveInterestNotificationConsent(staleVersion);
+      throw new Error("expected the stale consent version to be rejected");
+    } catch (error) {
+      assert(error instanceof HttpError);
+      assertEquals(error.status, 400);
+      assertEquals(error.code, "sensitive_interest_consent_required");
+    }
+  }
 });
 
 Deno.test("test app variant validation accepts only development and preview", () => {

@@ -16,10 +16,12 @@ export function createNotificationMutationQueue(): NotificationMutationQueue {
 }
 
 export function shouldRetryPendingNotificationCleanup(
-  cleanupPending: boolean,
-  hasCredentials: boolean
+  cleanupPending: boolean
 ): boolean {
-  return cleanupPending && hasCredentials;
+  // Cleanup also disables Expo's persisted native-token auto-registration,
+  // which can remain pending even after server credentials were never created
+  // or were already removed.
+  return cleanupPending;
 }
 
 export function notificationCleanupRequiresRecoveryCancel(

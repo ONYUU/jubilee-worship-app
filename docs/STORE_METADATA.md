@@ -1,6 +1,6 @@
 # 쥬빌리워십 스토어·운영 메타데이터
 
-상태 기준일: 2026-08-23 (Asia/Seoul)
+상태 기준일: 2026-08-24 (Asia/Seoul)
 
 ## 확정값 및 확인 대기 값
 
@@ -11,17 +11,20 @@
 | 앱 내부 운영주체 표시 | 쥬빌리 워십 |
 | 문의 이메일 | `sundoojubileeworship@gmail.com` 후보, 사용자 최종 확정 대기 |
 | 개인정보 문의 이메일 | `sundoojubileeworship@gmail.com` 후보, 사용자 최종 확정 대기 |
-| 예배 알림 1 | 예배 전날 19:30 KST |
-| 예배 알림 2 | 예배 당일 시작 1시간 전 |
+| 예배 리마인더 1 | 예배 전날 19:30 KST |
+| 예배 리마인더 2 | 예배 당일 시작 1시간 전 |
+| 일정 변경·취소 알림 | 오너가 문구·대상·딥링크를 확인하고 승인한 경우 |
+| 송리스트 공개·변경 알림 | 오너가 문구·대상·딥링크를 확인하고 승인한 경우 |
 | 알림 지연 처리 | 예약 시각부터 15분 이내만 발송, 이후 만료 |
 | Apple 개발자 계정 유형 | 개인 |
 | Google Play 개발자 계정 유형 | 개인, 2025년 등록 |
 | 푸시 토큰 원문 | 알림 해제·무효 판정 후 최대 24시간 |
-| 비활성 설치 정보 | 180일 미활동 시 비활성화, 이후 최대 30일 |
-| 발송 상세기록 | 최대 90일 |
+| 비활성 설치 정보 | 180일 미활동 시 비활성화, 이후 30일이 경과한 항목을 다음 일일 cleanup에서 삭제 |
+| 발송 상세기록 | 90일이 경과한 항목을 다음 일일 cleanup에서 삭제 |
 | 자동 정리 | 매일 1회 |
 
-두 예배 알림은 사용자가 예배 알림을 직접 켠 경우에만 발송한다. 오너가
+위 네 유형의 알림은 사용자가 해당 선택을 직접 켠 경우에만 발송한다. 예배
+리마인더는 전날·당일 문구를 한 번에 오너가 승인하며, 나머지 알림도 오너가
 문구와 대상을 수동 승인한 뒤 scheduler와 발송 worker가 처리한다.
 
 현재 개발본은 알림 기능에만 만 14세 자기확인 gate를 적용한다. 이 제한을
@@ -72,14 +75,14 @@
 - Google Play 공개 개발자명: `쥬빌리 워십` 예정, Console 검토 필요
 - 테스트 기기: Samsung SM-G991N(Android 15) 연결, 등록된 iPhone은 현재 Mac에 미연결
 - Supabase: `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트, Seoul 리전으로 생성 확인
-- 이 저장소의 Supabase 원격 연결: 완료. 기존 원격 migration 15개·Edge Function 8개·retention cron은 활성이며, 현재 로컬 18개 중 법적 문서 gate 3개는 원격 적용 대기
+- 이 저장소의 Supabase 원격 연결: 완료. 2026-08-24 확인 시점에 동의 v5까지 원격 migration 21/21개·Edge Function 8개·retention cron 적용·활성 확인
 - Supabase Edge secret `TEST_PUSH_PAIRING_PEPPER`: 설정 완료, 값은 문서·저장소에 미기록
 - 실제 push 외부 발송: 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`), 실기기 통합검증 후 별도 승인 필요
 - Vercel 프로젝트와 홈페이지 주소: Production 연결 완료, 기본 URL `https://jubilee-worship.vercel.app`
 - Vercel Production `SUPABASE_SECRET_KEY`: 설정 완료, 값은 문서·저장소에 미기록
 - Universal Link·App Link association 파일: Production 배포와 HTTPS 200·JSON 응답 검증 완료, 운영 서명 실기기 검증 대기
 - Android Production EAS keystore: 생성 완료, 지문은 `docs/APP_LINK_ASSOCIATION.md` 참조
-- EAS Production build: 2026-08-23 기준 iOS 0건·Android 0건
+- 스토어 서명 EAS Production build: 2026-08-24 기준 iOS 0건·Android 0건. iOS `production-simulator` 검증본 1건은 서명 IPA·TestFlight 증거가 아님
 - Firebase Production Android 앱: 미생성, 등록 폼만 준비하고 외부 생성 확인 대기
 - Google Play 앱: 미생성, 폼 기본값만 준비하고 외부 선언·생성 확인 대기
 - iOS 서명 자격 증명: Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key 없음

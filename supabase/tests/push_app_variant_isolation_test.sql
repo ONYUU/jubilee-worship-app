@@ -142,7 +142,7 @@ select throws_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000006', repeat('6', 64),
       'ios', '1.0.0', 'staging',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[variant_invalid]', repeat('6', 64), true, true, true
     )
@@ -157,7 +157,7 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000001', repeat('1', 64),
       'ios', '1.0.0', 'production',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[variant_production]', repeat('a', 64), true, true, true
     )
@@ -170,7 +170,7 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
       'ios', '1.0.0', 'preview',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[variant_preview]', repeat('b', 64), true, true, true
     )
@@ -183,7 +183,7 @@ select lives_ok(
     select public.service_register_app_installation(
       '71000000-0000-4000-8000-000000000003', repeat('3', 64),
       'android', '1.0.0', 'development',
-      'sensitive-interest-notifications-v2',
+      'sensitive-interest-notifications-v5',
       true,
       'ExpoPushToken[variant_development]', repeat('c', 64), true, true, true
     )
@@ -211,7 +211,7 @@ select throws_ok(
   $$
     select public.service_update_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
-      '1.0.1', 'production', 'sensitive-interest-notifications-v2',
+      '1.0.1', 'production', 'sensitive-interest-notifications-v5',
       true,
       null, null, true, true, true
     )
@@ -225,7 +225,7 @@ select lives_ok(
   $$
     select public.service_update_app_installation(
       '71000000-0000-4000-8000-000000000002', repeat('2', 64),
-      '1.0.1', 'preview', 'sensitive-interest-notifications-v2',
+      '1.0.1', 'preview', 'sensitive-interest-notifications-v5',
       true,
       null, null, true, true, true
     )

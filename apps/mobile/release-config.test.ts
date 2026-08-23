@@ -60,6 +60,8 @@ describe("release configuration", () => {
     expect(config.scheme).toBe("jubileeworship");
     expect(config.ios?.bundleIdentifier).toBe("org.sundoo.jubileeworship");
     expect(config.android?.package).toBe("org.sundoo.jubileeworship");
+    expect(config.ios?.buildNumber).toBeUndefined();
+    expect(config.android?.versionCode).toBeUndefined();
     expect(config.ios?.associatedDomains).toEqual([
       "applinks:jubilee-worship.vercel.app"
     ]);
@@ -82,6 +84,47 @@ describe("release configuration", () => {
       "me.everything.badger.permission.BADGE_COUNT_READ",
       "me.everything.badger.permission.BADGE_COUNT_WRITE"
     ]));
+  });
+
+  it("declares the notification data collected by the app in the iOS privacy manifest", () => {
+    const collectedDataTypes = productionConfig().ios?.privacyManifests
+      ?.NSPrivacyCollectedDataTypes;
+
+    expect(collectedDataTypes).toEqual([
+      {
+        NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeDeviceID",
+        NSPrivacyCollectedDataTypeLinked: true,
+        NSPrivacyCollectedDataTypeTracking: false,
+        NSPrivacyCollectedDataTypePurposes: [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeSensitiveInfo",
+        NSPrivacyCollectedDataTypeLinked: true,
+        NSPrivacyCollectedDataTypeTracking: false,
+        NSPrivacyCollectedDataTypePurposes: [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeProductInteraction",
+        NSPrivacyCollectedDataTypeLinked: true,
+        NSPrivacyCollectedDataTypeTracking: false,
+        NSPrivacyCollectedDataTypePurposes: [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeOtherDataTypes",
+        NSPrivacyCollectedDataTypeLinked: true,
+        NSPrivacyCollectedDataTypeTracking: false,
+        NSPrivacyCollectedDataTypePurposes: [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      }
+    ]);
+    expect(productionConfig().ios?.privacyManifests?.NSPrivacyTracking).toBe(false);
   });
 
   it("declares Android 11 package visibility for the exact external URI schemes", () => {

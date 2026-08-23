@@ -7,6 +7,12 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 import { resolveNotificationAppVariant } from "./app-variant";
+import {
+  clearCleanupStorageIfCredentialsMatch,
+  parseStoredInstallationCredentials,
+  prepareNotificationWithdrawalState,
+  type StoredInstallationCredentials
+} from "./cleanup-state";
 import { classifyNotificationDataApiResult } from "./data-api-result";
 import { isInvalidInstallationError, NotificationSetupError } from "./errors";
 import {
@@ -16,6 +22,7 @@ import {
   shouldReportNotificationRegistered,
   shouldRetryPendingNotificationCleanup
 } from "./mutation-queue";
+import { stopNotificationProviderRegistration } from "./provider-registration";
 import {
   createReinstallRecoveryCapability,
   createReinstallRecoveryCancelBody,
@@ -64,11 +71,7 @@ export type NotificationPreferences = {
   setlistUpdates: boolean;
 };
 
-type InstallationCredentials = {
-  installationId: string;
-  installationSecret: string;
-  registrationState: "pending" | "committed";
-};
+type InstallationCredentials = StoredInstallationCredentials;
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   worshipReminder: false,
@@ -86,43 +89,24 @@ function isPreferences(value: unknown): value is NotificationPreferences {
   );
 }
 
-function isCredentials(
-  value: unknown
-): value is Omit<InstallationCredentials, "registrationState"> & {
-  registrationState?: "pending" | "committed";
-} {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.installationId === "string" &&
-    /^[0-9a-f-]{36}$/i.test(candidate.installationId) &&
-    typeof candidate.installationSecret === "string" &&
-    candidate.installationSecret.length >= 32 &&
-    candidate.installationSecret.length <= 128 &&
-    (
-      candidate.registrationState === undefined
-      || candidate.registrationState === "pending"
-      || candidate.registrationState === "committed"
-    )
-  );
-}
-
 async function readCredentials(): Promise<InstallationCredentials | null> {
   if (Platform.OS === "web") return null;
+  let raw: string | null;
   try {
-    const raw = await SecureStore.getItemAsync(INSTALLATION_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isCredentials(parsed)) return null;
-    return {
-      installationId: parsed.installationId,
-      installationSecret: parsed.installationSecret,
-      // Credentials written before the two-phase marker existed are verified
-      // with the server before the UI may call them registered.
-      registrationState: parsed.registrationState ?? "pending"
-    };
+    raw = await SecureStore.getItemAsync(INSTALLATION_KEY);
   } catch {
-    return null;
+    throw new NotificationSetupError(
+      "알림 설치 인증정보를 기기 보안저장소에서 읽지 못했습니다.",
+      "notification_credentials_local_storage_failed"
+    );
+  }
+  try {
+    return parseStoredInstallationCredentials(raw);
+  } catch {
+    throw new NotificationSetupError(
+      "알림 설치 인증정보가 손상되어 서버 해제 상태를 확인할 수 없습니다.",
+      "notification_credentials_local_storage_failed"
+    );
   }
 }
 
@@ -223,14 +207,18 @@ async function markCredentialsCommittedIfCurrent(
 async function clearCredentialsAndPendingIfCurrent(
   expected: InstallationCredentials
 ): Promise<boolean> {
-  const current = await readCredentials();
-  if (!isSameInstallationCredential(expected, current)) return false;
-  await Promise.all([
-    clearCredentials(),
-    clearCleanupPending(),
-    clearPendingReinstallRecovery()
-  ]);
-  return true;
+  return clearCleanupStorageIfCredentialsMatch({
+    expected,
+    readCredentials,
+    clearConsent: clearSensitiveInterestConsent,
+    clearPreferences: () => AsyncStorage.setItem(
+      PREFERENCES_KEY,
+      JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+    ),
+    clearPendingRecovery: clearPendingReinstallRecovery,
+    clearCredentials,
+    clearCleanupMarker: clearCleanupPending
+  });
 }
 
 async function writeSensitiveInterestConsent(): Promise<void> {
@@ -267,6 +255,19 @@ async function readCleanupPending(): Promise<boolean> {
     // A marker read failure must not permit a new registration.
     return true;
   }
+}
+
+async function prepareLocalNotificationWithdrawal(): Promise<void> {
+  // Each local write is independent: one storage backend failure must not
+  // prevent the others from recording an immediate fail-closed withdrawal.
+  await prepareNotificationWithdrawalState({
+    clearConsent: clearSensitiveInterestConsent,
+    clearPreferences: () => AsyncStorage.setItem(
+      PREFERENCES_KEY,
+      JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+    ),
+    writeCleanupMarker: writeCleanupPending
+  });
 }
 
 async function createInstallationCredentials(): Promise<InstallationCredentials> {
@@ -593,9 +594,9 @@ async function cancelReinstallRecoveryRemote(
   }
 }
 
-async function completeRemoteNotificationCleanup(
+async function requestRemoteNotificationCleanup(
   credentials: InstallationCredentials
-): Promise<boolean> {
+): Promise<void> {
   const reinstallRecovery = await readPendingReinstallRecovery();
   if (reinstallRecovery) {
     if (reinstallRecovery.mode !== "withdrawal") {
@@ -619,27 +620,79 @@ async function completeRemoteNotificationCleanup(
       if (!isInvalidInstallationError(error)) throw error;
     }
   }
-  await clearCredentialsAndPendingIfCurrent(credentials);
+}
+
+async function completeNotificationCleanup(
+  credentials: InstallationCredentials | null
+): Promise<boolean> {
+  let firstError: unknown = null;
+
+  if (credentials) {
+    try {
+      await requestRemoteNotificationCleanup(credentials);
+    } catch (error) {
+      firstError = error;
+    }
+  }
+
+  if (Platform.OS === "ios" || Platform.OS === "android") {
+    try {
+      await stopNotificationProviderRegistration(Notifications);
+    } catch (error) {
+      firstError ??= error;
+    }
+  }
+
+  if (firstError) throw firstError;
+
+  if (credentials) {
+    if (!await clearCredentialsAndPendingIfCurrent(credentials)) {
+      // A newer installation appeared after this cleanup started. Its durable
+      // marker must remain so a later serialized pass reconciles that state.
+      return false;
+    }
+  } else {
+    // A recovery capability without credentials still identifies possible
+    // remote state. It cannot be safely cancelled without the installation
+    // proof, so never erase it or the durable cleanup marker as if complete.
+    if (await readPendingReinstallRecovery()) {
+      throw new NotificationSetupError(
+        "알림 서버 연결 해제에 필요한 설치 인증정보를 확인할 수 없습니다.",
+        "notification_credentials_local_storage_failed"
+      );
+    }
+    await clearSensitiveInterestConsent();
+    await AsyncStorage.setItem(
+      PREFERENCES_KEY,
+      JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+    );
+    await clearCleanupPending();
+  }
   return true;
 }
 
 async function reconcilePendingCleanupInternal(): Promise<boolean> {
-  const [cleanupPending, credentials] = await Promise.all([
-    readCleanupPending(),
-    readCredentials()
-  ]);
-  if (!shouldRetryPendingNotificationCleanup(cleanupPending, Boolean(credentials))) {
-    if (cleanupPending && !credentials) {
-      await Promise.all([
-        clearCleanupPending(),
-        clearPendingReinstallRecovery()
-      ]);
+  const cleanupPending = await readCleanupPending();
+  if (!shouldRetryPendingNotificationCleanup(cleanupPending)) return false;
+
+  let credentials: InstallationCredentials | null;
+  try {
+    credentials = await readCredentials();
+  } catch {
+    // The remote registration state is unknown. Provider cleanup is still
+    // safe to attempt, but the durable marker must remain.
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      try {
+        await stopNotificationProviderRegistration(Notifications);
+      } catch {
+        // A later app start retries both operations.
+      }
     }
-    return false;
+    return true;
   }
 
   try {
-    if (!await completeRemoteNotificationCleanup(credentials!)) return true;
+    if (!await completeNotificationCleanup(credentials)) return true;
   } catch {
     return true;
   }
@@ -882,18 +935,23 @@ async function registerInstallation(
         error = recoveryError;
       }
     }
-    if (
-      error instanceof NotificationSetupError
-      && error.code === "notification_recovery_local_storage_failed"
-    ) {
-      throw error;
-    }
-    await writeCleanupPending();
     try {
-      await completeRemoteNotificationCleanup(credentials);
+      await writeCleanupPending();
     } catch {
-      // Fail closed; startup retries with the same credentials and any
-      // recovery-only token stored in SecureStore.
+      // Continue with remote/provider cleanup even if SecureStore is currently unavailable.
+    }
+    try {
+      await completeNotificationCleanup(credentials);
+    } catch {
+      // Fail closed; startup retries provider cleanup, the same credentials,
+      // and any recovery-only token stored in SecureStore.
+      await Promise.allSettled([
+        clearSensitiveInterestConsent(),
+        AsyncStorage.setItem(
+          PREFERENCES_KEY,
+          JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+        )
+      ]);
     }
     throw error;
   }
@@ -1005,9 +1063,46 @@ async function loadNotificationPreferencesInternal(): Promise<{
       reinstallRecovery: pendingCleanupRecovery
     };
   }
-  let [storedPreferences, credentials, storedConsent, reinstallRecovery] = await Promise.all([
-    readPreferences(),
-    readCredentials(),
+  let storedPreferences = await readPreferences();
+  let credentials: InstallationCredentials | null;
+  try {
+    credentials = await readCredentials();
+  } catch {
+    // Unknown credentials may still represent an active Supabase endpoint.
+    // Disable the local intent and provider registration, but retain every
+    // remote-cleanup capability and never report cleanup as complete.
+    await Promise.allSettled([
+      clearSensitiveInterestConsent(),
+      AsyncStorage.setItem(
+        PREFERENCES_KEY,
+        JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+      ),
+      writeCleanupPending()
+    ]);
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      try {
+        await stopNotificationProviderRegistration(Notifications);
+      } catch {
+        // The unreadable credential and best-effort marker keep registration
+        // fail closed; the next app start retries provider cleanup.
+      }
+      return {
+        preferences: DEFAULT_NOTIFICATION_PREFERENCES,
+        registered: false,
+        consented: false,
+        permission: (await Notifications.getPermissionsAsync()).status,
+        reinstallRecovery: null
+      };
+    }
+    return {
+      preferences: DEFAULT_NOTIFICATION_PREFERENCES,
+      registered: false,
+      consented: false,
+      permission: "unsupported",
+      reinstallRecovery: null
+    };
+  }
+  let [storedConsent, reinstallRecovery] = await Promise.all([
     readSensitiveInterestConsent(),
     readPendingReinstallRecovery()
   ]);
@@ -1021,13 +1116,15 @@ async function loadNotificationPreferencesInternal(): Promise<{
       wantsNotifications
     )
   ) {
-    await unregisterNotificationsInternal();
+    const cleanup = await unregisterNotificationsInternal();
     storedPreferences = DEFAULT_NOTIFICATION_PREFERENCES;
     storedConsent = null;
-    credentials = null;
-    reinstallRecovery = null;
     consented = false;
     preferences = DEFAULT_NOTIFICATION_PREFERENCES;
+    if (!cleanup.cleanupPending) {
+      credentials = null;
+      reinstallRecovery = null;
+    }
   }
   if (
     credentials
@@ -1043,10 +1140,17 @@ async function loadNotificationPreferencesInternal(): Promise<{
     credentials = reconciled.credentials;
     reinstallRecovery = reconciled.reinstallRecovery;
   }
-  if (!consented && credentials) {
-    await writeCleanupPending();
+  if (
+    !consented
+    && (credentials || Platform.OS === "ios" || Platform.OS === "android")
+  ) {
     try {
-      if (await completeRemoteNotificationCleanup(credentials)) {
+      await writeCleanupPending();
+    } catch {
+      // Continue with cleanup; known credentials still allow a remote unlink.
+    }
+    try {
+      if (await completeNotificationCleanup(credentials)) {
         credentials = null;
         reinstallRecovery = null;
       }
@@ -1057,14 +1161,9 @@ async function loadNotificationPreferencesInternal(): Promise<{
   if (!consented) {
     await Promise.all([
       clearSensitiveInterestConsent(),
-      ...(!credentials ? [clearPendingReinstallRecovery()] : []),
+      ...(!credentials && !reinstallRecovery ? [clearPendingReinstallRecovery()] : []),
       AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES))
     ]);
-    if (!credentials) reinstallRecovery = null;
-  }
-  if (reinstallRecovery && !credentials) {
-    await clearPendingReinstallRecovery();
-    reinstallRecovery = null;
   }
   const cleanupPending = await readCleanupPending();
   const registered = shouldReportNotificationRegistered({
@@ -1161,10 +1260,6 @@ async function syncNotificationPreferencesInternal(
 }> {
   const wantsNotifications = Object.values(preferences).some(Boolean);
   const cleanupStillPending = await reconcilePendingCleanupInternal();
-  let [credentials, reinstallRecovery] = await Promise.all([
-    readCredentials(),
-    readPendingReinstallRecovery()
-  ]);
   if (wantsNotifications && cleanupStillPending) {
     throw new NotificationSetupError(
       "이전 알림 등록 해제를 재시도한 뒤 다시 켜 주세요.",
@@ -1173,32 +1268,45 @@ async function syncNotificationPreferencesInternal(
   }
 
   if (!wantsNotifications) {
-    await Promise.all([
-      clearSensitiveInterestConsent(),
-      AsyncStorage.setItem(
-        PREFERENCES_KEY,
-        JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
-      ),
-      ...(credentials
-        ? [writeCleanupPending()]
-        : [clearCleanupPending(), clearPendingReinstallRecovery()])
-    ]);
-    if (credentials) {
-      try {
-        if (!await completeRemoteNotificationCleanup(credentials)) {
-          return {
-            registered: false,
-            cleanupPending: true,
-            reinstallRecovery: await readPendingReinstallRecovery()
-          };
+    await prepareLocalNotificationWithdrawal();
+    let credentials: InstallationCredentials | null;
+    try {
+      credentials = await readCredentials();
+    } catch {
+      await Promise.allSettled([
+        clearSensitiveInterestConsent(),
+        AsyncStorage.setItem(
+          PREFERENCES_KEY,
+          JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+        )
+      ]);
+      if (Platform.OS === "ios" || Platform.OS === "android") {
+        try {
+          await stopNotificationProviderRegistration(Notifications);
+        } catch {
+          // The caller receives cleanupPending and can retry after storage is available.
         }
-      } catch {
+      }
+      return {
+        registered: false,
+        cleanupPending: true,
+        reinstallRecovery: null
+      };
+    }
+    try {
+      if (!await completeNotificationCleanup(credentials)) {
         return {
           registered: false,
           cleanupPending: true,
           reinstallRecovery: await readPendingReinstallRecovery()
         };
       }
+    } catch {
+      return {
+        registered: false,
+        cleanupPending: true,
+        reinstallRecovery: await readPendingReinstallRecovery()
+      };
     }
     return {
       registered: false,
@@ -1206,6 +1314,11 @@ async function syncNotificationPreferencesInternal(
       reinstallRecovery: null
     };
   }
+
+  let [credentials, reinstallRecovery] = await Promise.all([
+    readCredentials(),
+    readPendingReinstallRecovery()
+  ]);
 
   const storedConsent = await readSensitiveInterestConsent();
   const consent = isCurrentSensitiveInterestConsentRecord(affirmativeConsent)
@@ -1330,24 +1443,44 @@ async function syncNotificationPreferencesInternal(
       }
     }
   } catch (error) {
-    if (
-      error instanceof NotificationSetupError
-      && error.code === "notification_recovery_local_storage_failed"
-    ) {
-      throw error;
+    try {
+      await writeCleanupPending();
+    } catch {
+      // Cleanup is still attempted below.
     }
-    const activeCredentials = await readCredentials();
-    await Promise.all([
-      clearSensitiveInterestConsent(),
-      AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)),
-      ...(activeCredentials ? [writeCleanupPending()] : [clearCleanupPending()])
-    ]);
-    if (activeCredentials) {
+    let activeCredentials: InstallationCredentials | null = null;
+    let credentialsUnknown = false;
+    try {
+      activeCredentials = await readCredentials();
+    } catch {
+      credentialsUnknown = true;
+    }
+    if (credentialsUnknown) {
+      await Promise.allSettled([
+        clearSensitiveInterestConsent(),
+        AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES))
+      ]);
+      if (Platform.OS === "ios" || Platform.OS === "android") {
+        try {
+          await stopNotificationProviderRegistration(Notifications);
+        } catch {
+          // Unknown remote state remains fail closed for a later retry.
+        }
+      }
+    } else {
       try {
-        await completeRemoteNotificationCleanup(activeCredentials);
+        await completeNotificationCleanup(activeCredentials);
       } catch {
-        // The cleanup marker, credentials, and any recovery token/code remain
-        // in SecureStore so startup can retry the privacy withdrawal.
+        // The cleanup marker, any credentials, and any recovery token/code remain
+        // in SecureStore so startup can retry the privacy withdrawal and provider
+        // token cleanup.
+        await Promise.allSettled([
+          clearSensitiveInterestConsent(),
+          AsyncStorage.setItem(
+            PREFERENCES_KEY,
+            JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+          )
+        ]);
       }
     }
     throw error;
@@ -1373,25 +1506,33 @@ export function syncNotificationPreferences(
 }
 
 async function unregisterNotificationsInternal(): Promise<{ cleanupPending: boolean }> {
-  const credentials = await readCredentials();
-  await Promise.all([
-    clearSensitiveInterestConsent(),
-    AsyncStorage.setItem(
-      PREFERENCES_KEY,
-      JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
-    ),
-    ...(credentials
-      ? [writeCleanupPending()]
-      : [clearCleanupPending(), clearPendingReinstallRecovery()])
-  ]);
-  if (credentials) {
-    try {
-      if (!await completeRemoteNotificationCleanup(credentials)) {
-        return { cleanupPending: true };
+  await prepareLocalNotificationWithdrawal();
+  let credentials: InstallationCredentials | null;
+  try {
+    credentials = await readCredentials();
+  } catch {
+    await Promise.allSettled([
+      clearSensitiveInterestConsent(),
+      AsyncStorage.setItem(
+        PREFERENCES_KEY,
+        JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)
+      )
+    ]);
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      try {
+        await stopNotificationProviderRegistration(Notifications);
+      } catch {
+        // The unknown server state remains fail closed and is retried later.
       }
-    } catch {
+    }
+    return { cleanupPending: true };
+  }
+  try {
+    if (!await completeNotificationCleanup(credentials)) {
       return { cleanupPending: true };
     }
+  } catch {
+    return { cleanupPending: true };
   }
   return { cleanupPending: false };
 }

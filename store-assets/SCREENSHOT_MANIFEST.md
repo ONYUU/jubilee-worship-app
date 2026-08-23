@@ -23,3 +23,8 @@ verified on the target device.
 - No personal notification content, carrier-identifying text, or stale D-day
   values.
 - The first three images must clearly show the actual app UI and core functions.
+
+`bash store-assets/validate-store-assets.sh` requires exactly the six filenames
+above in each platform folder and fails on missing, extra, incorrectly sized,
+non-PNG, non-8-bit, or alpha-channel files. Use `--base-only` only before final
+Production captures exist; that mode is not store-upload evidence.

@@ -1,6 +1,6 @@
 # 배포·스토어 출시 체크리스트
 
-- 기준일: 2026-08-23 KST
+- 기준일: 2026-08-24 KST
 - `[x]`: 현재 checkout에서 검증 완료하거나 날짜·빌드가 명시된 기존 검증 증거 확인
 - `[ ]`: 미완료, 외부 연결 필요 또는 결과 미확인
 
@@ -8,13 +8,13 @@
 
 - [x] Domain 단위 테스트 98/98 통과
 - [x] Web 단위 테스트 35/35 통과
-- [x] Mobile 단위 테스트 115/115 통과
-- [x] Supabase pgTAP 720/720 통과
-- [x] Edge Function 테스트 29/29 통과
+- [x] Mobile 단위 테스트 134/134 통과
+- [x] Supabase pgTAP 723/723 통과
+- [x] Edge Function 테스트 30/30 통과
 - [x] Edge Function format·type check 통과
 - [x] 시드 포함 `supabase db reset` 성공
-- [x] 최신 법적 문서 gate migration을 포함한 로컬 migration 18개 `supabase db reset --local --no-seed` 성공
-- [x] DB lint warning/error 0
+- [x] 공급자별 흐름·토큰 철회·Supabase 발송기록을 분리 고지한 민감정보 알림 동의 v5 migration을 포함한 로컬 migration 21개 `supabase db reset --local --no-seed` 성공
+- [x] 앱 소유 `public`, `private` schema DB lint warning/error 0(`extensions`의 pgTAP 자체 진단은 범위 제외)
 - [x] 원격 Security Advisor의 `SECURITY DEFINER` 실행 RPC 경고를 내부 인증·HMAC·rate-limit gate 기준으로 검토 완료(경고 0으로 간주하지 않음)
 - [x] Performance Advisor 보고 이슈 0
 - [x] 로컬 migration 재현 schema와 현재 로컬 `public`, `private`, `storage` schema diff 불일치 0
@@ -29,7 +29,7 @@
 - [x] `gallery-staging` private bucket과 `public-media/app-gallery/` owner 공개 경로
 - [x] 인물·이용 동의 감사 필드와 locator 변경 시 동의·공개 자동 해제
 - [x] 법적 문서 버전·시행일·owner 공개·철회 구조
-- [x] 웹·DB 공개 gate의 필수 고지 37개·금지 문구 8개·개인정보 라벨 30개·약관 라벨 6개 exact parity 검증
+- [x] 웹·DB 공개 gate의 필수 고지 50개·금지 문구 8개·개인정보 라벨 30개·약관 라벨 6개 exact parity 검증
 - [x] 정책·약관 문의 이메일을 앱 `SITE.contact_email`과 잠긴 DB `site_settings(id=1).contact_email`에 대소문자까지 일치시키는 fail-closed gate 로컬 검증
 - [x] 표시 운영주체 `쥬빌리 워십` 확인
 - [x] `/privacy`의 정책 미공개·`noindex`·스토어 제출 차단 안내를 Production에서 확인
@@ -54,7 +54,7 @@
 - [x] Android 15 16KB page-size 에뮬레이터 앱 기동
 - [x] 홈 인디케이터·제스처 내비게이션 안전영역을 덮어쓰던 하단 탭바 고정 높이·아래 여백 제거
 - [x] Android 태블릿·폴더블 최소 반응형 기준으로 720dp 최대 폭 단일 열·액션 행 자동 줄바꿈 구현
-- [ ] API 36 Pixel Tablet·Fold 에뮬레이터 실행 회전·분할 화면·상태 유지 검증
+- [x] API 36 Pixel Tablet·Fold 에뮬레이터 실행 회전·분할 화면·상태 유지 검증
 - [x] Samsung SM-G991N(Android 15)에 2026-08-16 EAS development APK(commit `9159518`) 설치·4개 탭·송리스트·캘린더 선택기·길찾기 선택창·공유 시트 확인
 - [x] 같은 기존 실기기 빌드의 송리스트에서 화면 버튼·시스템 Back·가장자리 제스처로 예배 화면 복귀 확인
 - [x] commit `aaeed5e` EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`를 Samsung SM-G991N에 replace install하고 공식 아이콘·새 홈 사진·4개 탭·테마 유지·3종 Back·만 14세 gate·crash/ANR 0건 확인
@@ -95,8 +95,8 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트를 Seoul 리전에 생성
 - [x] 단일 원격 프로젝트를 통합검수 후 초기 운영으로 사용하고 일상 reset·seed·CI는 로컬에서만 수행하는 기준 확정
 - [x] `20260820100035`까지 기존 Supabase remote migration 15개 적용·검증(이전 원격 기준선)
-- [ ] 신규 법적 문서 gate migration 3개(`20260823130815`, `20260823132500`, `20260823143000`) 원격 적용·직접 RPC·runtime fail-closed 재검증
-- [x] Edge Function 8개 배포 및 legacy 등록·갱신·해제 endpoint HTTP 410 확인
+- [x] 신규 법적 문서 gate·민감정보 동의 v3/v4/v5 migration 6개(`20260823130815`, `20260823132500`, `20260823143000`, `20260823150748`, `20260823152830`, `20260823154935`) 원격 적용·직접 RPC·runtime fail-closed 재검증
+- [x] Edge Function 8개를 동의 v5 공유 계약으로 재배포하고 legacy 등록·갱신·해제 endpoint HTTP 410 재확인
 - [x] 공개 DTO 조회·원본 비공개 열 차단·함수 method/auth 원격 smoke test
 - [x] 외부 push 비활성 상태 `PUSH_EXTERNAL_SEND_ENABLED=false`를 digest로 재확인
 - [x] Vercel Production 서버 전용 `SUPABASE_SECRET_KEY` 설정
@@ -104,7 +104,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] 등록 RPC에 1분 요청 출처·전역 제한, 일일 요청 출처 100회·전체 500회 제한, private 등록 중단 스위치 로컬 구현
 - [x] 잘못된 형식의 Expo token 시도도 카운트되고 제한되며, anon·authenticated·service_role이 rate-limit·중단·동의 테이블에 직접 접근할 수 없음을 pgTAP으로 검증
 - [x] 별도 동의·direct v2·일일 제한·중단 스위치·재설치 복구 migration과 앱 호출 변경을 원격 적용
-- [x] direct v2 synthetic canary에서 HTTP 200·`REGISTRATION_DISABLED`·관련 원격 행 0건 확인
+- [x] 동의 v5 전환 후 direct v2 synthetic canary에서 `REGISTRATION_DISABLED`·관련 원격 행 0건 확인
 - [x] synthetic Expo token·설치 proof·installation UUID가 Supabase 통합 로그에 남지 않고, API Gateway 범위 custom-header 이름 검색도 0건임을 확인
 - [x] 개발·미리보기 재설치 복구를 오너 승인→기기 atomic finalize 2단계로 고정하고, 승인만으로 token unique 예약이 풀리지 않음·기기 미복귀 시 target 미생성·최신 선택만 반영됨을 pgTAP으로 검증
 - [x] 복구 철회는 실제 `withdrawn` 확인 전 SecureStore의 철회용 exact token/proof 연결과 cleanup marker를 보존하며, pending·authorized·expired·감사 삭제 뒤 exact target 및 provisional 응답 유실 fallback을 검증
@@ -134,7 +134,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 
 1. [x] `PUSH_EXTERNAL_SEND_ENABLED=false`, scheduler·dispatch worker 비활성, notification outbox·legacy 행 0건 확인
 2. [x] 기존 원격 migration 15개·Edge Function 8개 적용, legacy endpoint 410, 등록 중단·미생성·Supabase custom-header log canary 확인
-3. [ ] 신규 법적 문서 gate migration 3개 원격 적용 후 정책 공개·알림 등록 직접 RPC가 동일하게 fail closed하는지 확인
+3. [x] 신규 법적 문서 gate·민감정보 동의 v3/v4/v5 migration 6개 원격 적용 후 정책 미공개·알림 등록 직접 RPC가 동일하게 fail closed하는지 확인
 4. [ ] `cf-connecting-ip` injection/spoof, gateway/WAF, 사용량·차단량 alert, 일일 101번째·전체 501번째 및 25시간 만료 원격 검증
 5. [ ] 법적 처리자·담당자·연락처·최종 이메일 공급자·만 14세 절차·국외 처리 근거를 확정하고 검토 완료 정책 공개
 6. [x] `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 설정
@@ -160,6 +160,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 ## 7. EAS·스토어
 
 - [x] Expo/EAS `jubilee-worship` 프로젝트 연결과 Preview·Production용 Supabase 공개 환경 변수 설정
+- [x] EAS 원격 버전 관리와 Production 자동 증가를 사용하고, 소스의 고정 buildNumber/versionCode를 제거해 최종 산출물의 실제 값을 기준으로 기록
 - [x] iOS Simulator development build 생성·설치·홈/예배/미디어 실행 확인
 - [x] Android development APK 생성과 개발용 패키지·서명 확인
 - [x] iOS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7` 생성·clean install·핵심 회귀 통과
@@ -171,9 +172,18 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] Android Production EAS keystore 생성
 - [x] iOS `production-simulator` EAS build `583708c5-d674-4524-863c-36ae40db46f8` 생성·설치·핵심 회귀(서명·IPA·TestFlight 대체 아님)
 - [x] Expo SDK 57의 UIScene 지원 경계 확인 후 Production iOS EAS image를 Xcode 26.6으로 고정
+- [x] Production iOS prebuild의 `PrivacyInfo.xcprivacy`에 Device ID·Sensitive Info·Product Interaction·Other Data Types를 linked·non-tracking·App Functionality로 생성 확인
+- [x] iOS 16에서만 캘린더 권한을 확인·요청하고 iOS 17 이상·Android에서는 권한 없이 시스템 일정 작성 화면을 여는 코드·자동 테스트 완료
+- [ ] iOS 16 실기기 또는 16.x 런타임에서 캘린더 권한 허용·거절·일정 작성 화면 검증
 - [ ] App Store용 iOS Production build와 Android Production APK·AAB 생성
+- [ ] 최종 IPA·AAB에서 실제 CFBundleVersion/versionCode를 읽어 App Store Connect·Play Console·QA 보고서에 동일하게 기록
 - [ ] Firebase Production Android 앱 생성(등록 폼만 준비, 외부 생성 확인 대기)
 - [ ] Google Play Console 앱 생성(등록 폼 기본값만 준비, 외부 선언·생성 확인 대기)
+- [ ] Play 앱 생성 후 Android 개발자 인증에서 `org.sundoo.jubileeworship` 패키지 자동 등록 여부와 개발자·서명키 연결 상태 확인
+- [ ] App Store 앱 레코드 생성 전 SKU `JUBILEE-WORSHIP-IOS`·User Access `Full Access` 권장안 사용자 확정
+- [ ] App Store 가격 `0 (Free)`·공개 배포·대한민국 우선·수동 출시·Tax Category·Mac/Vision 제외 권장안 사용자 확정
+- [ ] Apple 대한민국 규정 정보의 계정 유형·이메일·전화 인증·BRN 적용 여부 확인
+- [ ] `쥬빌리워십`·`선두교회` 명칭, 공식 로고와 “공식 앱” 표방을 두 스토어에서 사용할 권리자 승인 증빙 확보
 - [ ] APNs·FCM 자격 증명 설정과 iOS·Android 실기기 원격 알림 검증
 - [ ] iOS·Android 운영 서명 빌드 생성
 - [ ] TestFlight·Google Play 내부 테스트 배포
@@ -182,12 +192,13 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [ ] App Store Privacy·Google Play Data safety·알림 권한 설명 완성
 - [x] Google Play 아이콘·Feature Graphic 기본 자산 준비
 - [ ] 최종 스토어 스크린샷·앱 설명·지원 URL·개인정보 URL·연령등급 확정
+- [ ] Google Play 7-inch·10-inch tablet·Chromebook 스크린샷 사용 여부 결정(선택 시 최종 Production 빌드와 현행 콘솔 규격으로 준비)
 - [ ] `/privacy`에 검토 마커·미정값이 없고, 확정 운영주체·이메일·보유·삭제·국외 처리 실제값을 포함한 owner 공개 앱 정책이 표시되는지 확인
 - [ ] 공개 정책의 보유기간과 실제 cleanup RPC·cron 설정이 일치하고 만료 정보가 삭제되는지 운영 Preview에서 확인
 - [ ] 스토어 최종 제출 전 사용자 승인
 - [ ] App Store·Google Play 심사 제출
 
-2026-08-23 현재 Samsung SM-G991N(Android 15)은 연결되어 있으나 iPhone은
+2026-08-24 현재 Samsung SM-G991N(Android 15)은 연결되어 있으나 iPhone은
 Mac에 연결되어 있지 않다. 실제 push, 스토어 내부 테스트, 정책 공개와 최종
 스토어 스크린샷은 완료되지 않았다.
 
@@ -197,13 +208,16 @@ Mac에 연결되어 있지 않다. 실제 push, 스토어 내부 테스트, 정�
 
 - [ ] iOS Release·Android 운영 AAB·스토어 서명 검증
 - [x] 기존 알림 migration·Edge Function·앱 호출 변경의 Supabase remote fail-closed smoke test 완료(이전 원격 기준선)
-- [ ] 현재 checkout의 신규 법적 문서 gate migration 3개 원격 적용·직접 RPC·runtime 재검증
+- [x] 현재 checkout의 신규 법적 문서 gate·민감정보 동의 v3/v4/v5 migration 6개 원격 적용·직접 RPC·runtime 재검증
 - [x] Supabase custom-header log canary 완료
 - [ ] `cf-connecting-ip` injection/spoof·gateway/WAF·사용량 alert·일일 100/500 상한 원격 검증
 - [ ] 실제 iOS·Android push 통합 검증
 - [x] Vercel 기본 Production 홈·지원·개인정보·sitemap 검증
 - [ ] Vercel Preview 관리자 회귀·custom domain·DNS 검증
 - [ ] 법적 문서 원문·시행일·스토어 메타데이터 승인
+- [ ] App Store SKU·User Access·가격·공개 범위·출시 방식·Tax Category·Mac/Vision 제공 여부 사용자 확정
+- [ ] Apple 대한민국 규정 정보 인증·적용 여부 확인
+- [ ] 공식 명칭·로고·“공식 앱” 표방 및 두 스토어 게시 권한 증빙 확보
 - [ ] 만 14세 절차·지원 이메일 보유/법적 역할·개인정보 처리자·담당자·국외 처리 근거·법률 검토 확정
 - [x] 보유기간과 동일한 cleanup RPC·cron·테스트 로컬 완료
 - [x] 원격 cleanup cron 적용

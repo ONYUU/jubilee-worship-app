@@ -39,14 +39,13 @@ describe("notification mutation serialization", () => {
     expect(states).toEqual(["refresh-start", "refresh-register", "withdraw"]);
   });
 
-  it("requires startup cleanup only when both marker and credentials remain", () => {
-    expect(shouldRetryPendingNotificationCleanup(true, true)).toBe(true);
-    expect(shouldRetryPendingNotificationCleanup(true, false)).toBe(false);
-    expect(shouldRetryPendingNotificationCleanup(false, true)).toBe(false);
+  it("retries provider cleanup whenever the durable marker remains", () => {
+    expect(shouldRetryPendingNotificationCleanup(true)).toBe(true);
+    expect(shouldRetryPendingNotificationCleanup(false)).toBe(false);
   });
 
   it("retries recovery cancellation after a failed withdrawal or app restart", () => {
-    expect(shouldRetryPendingNotificationCleanup(true, true)).toBe(true);
+    expect(shouldRetryPendingNotificationCleanup(true)).toBe(true);
     expect(notificationCleanupRequiresRecoveryCancel(true)).toBe(true);
     expect(notificationCleanupRequiresRecoveryCancel(false)).toBe(false);
   });
