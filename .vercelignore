@@ -1,0 +1,32 @@
+# Local source control, credentials, dependencies, and generated output
+/.git/
+/.github/
+/.vercel/
+.env*
+**/node_modules
+**/.next
+**/.vinext
+**/.wrangler
+**/.expo
+**/.eas
+**/.gradle
+**/dist
+**/coverage
+**/playwright-report
+**/test-results
+**/*.tsbuildinfo
+
+# The Vercel project builds only apps/web and packages/domain.
+/apps/mobile/
+/design/
+/docs/
+/outputs/
+/reference/
+/store-assets/
+/supabase/
+/work/
+
+# Web-only development and visual-review artifacts
+/apps/web/e2e/
+/apps/web/outputs/
+/apps/web/public/images/brand/logo-official-master-4096-source-locked.png
