@@ -18,6 +18,7 @@ Universal Link·App Link association 파일은 Production에 배포해 HTTPS 응
 | Supabase pgTAP | 720/720 | 통과 |
 | Edge Function 단위 테스트 | 29/29 | 통과 |
 | Edge Function format·type check | 25개 파일 | 통과 |
+| Production dependency audit baseline | High 2, Moderate·Critical 0 | Expo Metro의 패치 미출시 `image-size` 두 권고만 허용, 신규 권고 0 |
 
 Domain·Web·Mobile 단위 테스트는 합계 248건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다. 최신 법적 문서 gate·네이티브 안전영역·반응형 변경 후 workspace lint·typecheck·test·웹 production build, iOS/Android/Web Expo export, Expo Doctor 21/21, Expo 의존성 정합성 검사를 다시 통과했다.
 
