@@ -153,6 +153,7 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] Vercel 프로젝트 연결과 기본 Production URL `https://jubilee-worship.vercel.app` 확정
 - [x] Universal Link·App Link association 파일과 응답 헤더를 로컬에 준비
 - [x] association 파일 Production 배포 및 HTTPS 200·redirect 0·JSON content type·원본 일치 검증
+- [x] Google Digital Asset Links API·Apple AASA CDN의 운영 package/appID·서명 지문·경로 수집 검증
 - [ ] 선두교회 하위 도메인 사용 승인
 - [ ] custom domain DNS·TLS·canonical·robots·OG 검증
 
@@ -164,10 +165,13 @@ Simulator Release는 통과했지만 무서명 빌드의 알림 Keychain entitle
 - [x] iOS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7` 생성·clean install·핵심 회귀 통과
 - [x] 운영 앱 이름·Bundle ID·서버 설정으로 Mac 검수할 `production-simulator` 프로필 추가(서명·TestFlight를 대체하지 않음)
 - [x] Android Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d` 생성·Samsung SM-G991N replace install·핵심 회귀·만 14세 gate·Fatal/ANR 0건 확인
+- [x] API 36·16KB Pixel Tablet·Pixel 9 Pro Fold 개발 변형 조기 QA(회전·분할·축소·posture·테마 유지·crash/ANR 0)
 - [x] `EXPO_PUBLIC_WEB_ORIGIN=https://jubilee-worship.vercel.app`을 Preview·Production 프로필에 설정
 - [x] 독립 실행 가능한 정적 Production config 검사와 EAS Production 환경 주입 iOS·Android 사전검사 명령 추가
 - [x] Android Production EAS keystore 생성
-- [ ] EAS Production build 생성(2026-08-23 기준 iOS 0건·Android 0건)
+- [x] iOS `production-simulator` EAS build `583708c5-d674-4524-863c-36ae40db46f8` 생성·설치·핵심 회귀(서명·IPA·TestFlight 대체 아님)
+- [x] Expo SDK 57의 UIScene 지원 경계 확인 후 Production iOS EAS image를 Xcode 26.6으로 고정
+- [ ] App Store용 iOS Production build와 Android Production APK·AAB 생성
 - [ ] Firebase Production Android 앱 생성(등록 폼만 준비, 외부 생성 확인 대기)
 - [ ] Google Play Console 앱 생성(등록 폼 기본값만 준비, 외부 선언·생성 확인 대기)
 - [ ] APNs·FCM 자격 증명 설정과 iOS·Android 실기기 원격 알림 검증

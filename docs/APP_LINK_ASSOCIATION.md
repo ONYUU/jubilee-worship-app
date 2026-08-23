@@ -120,6 +120,12 @@ Preview App Link가 필요하면 Preview APK의 실제 서명 지문을 따로
 - `/.well-known/apple-app-site-association`
 - `/apple-app-site-association`
 
+같은 날 Google Digital Asset Links API는 위 웹 origin에서 운영 package와 EAS
+keystore SHA-256가 일치하는 statement를 HTTP 200으로 반환했다. Apple AASA
+CDN도 HTTP 200과 `Apple-From` well-known 원본을 반환했고, appID와 paths가
+배포 파일과 일치했다. 따라서 서버 측 게시·외부 수집은 확인됐으며, 남은 범위는
+각 운영 서명 앱의 종단 간 실행 검증이다.
+
 남은 종단 간 검증은 다음과 같다.
 
 1. 운영 서명 iOS 실기기에서 `https://jubilee-worship.vercel.app/worship`를

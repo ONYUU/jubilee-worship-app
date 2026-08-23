@@ -1,8 +1,8 @@
 # 출시 후보 개발본 QA 보고서
 
 - 기준일: 2026-08-23 KST
-- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b` Preview artifact의 기존 실기기·Simulator 검증, 출시 기준선 커밋 `3be9fe11f15b5331068290561b23606a3d4daf60`, Supabase remote, Vercel Production, EAS·Firebase·Apple·Google Play의 실시간 연결 상태
-- 결론: 2026-08-23 현재 작업트리에서 Domain 98/98, Web 35/35, Mobile 115/115, Supabase pgTAP 720/720, workspace lint·typecheck·test·production build가 통과했다. 기존 Edge Function 29/29 통과와 원격 migration 15개·Edge Function 8개 활성 검증은 이전 기준선이다. 현재 checkout에는 법적 문서 gate를 보강한 신규 비파괴 전진형 migration 3개가 더 있고, 총 18개 migration의 로컬 reset·test만 통과했으며 원격에는 미적용이다. Android Production EAS keystore는 생성했으나 iOS·Android Production build는 모두 0건이다. Firebase Production 앱과 Google Play 앱, iOS Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key는 없다. 따라서 실제 push·스토어 내부 테스트·정책 공개·최종 스크린샷·심사 제출은 미완료다.
+- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b` Preview artifact의 기존 실기기·Simulator 검증, 출시 기준선 커밋 `73666286a4590a62f481ba62ea62a1541e5872e5`, Supabase remote, Vercel Production, EAS·Firebase·Apple·Google Play의 실시간 연결 상태
+- 결론: 2026-08-23 현재 작업트리에서 Domain 98/98, Web 35/35, Mobile 115/115, Supabase pgTAP 720/720, workspace lint·typecheck·test·production build가 통과했다. 기존 Edge Function 29/29 통과와 원격 migration 15개·Edge Function 8개 활성 검증은 이전 기준선이다. 현재 checkout에는 법적 문서 gate를 보강한 신규 비파괴 전진형 migration 3개가 더 있고, 총 18개 migration의 로컬 reset·test만 통과했으며 원격에는 미적용이다. Android Production EAS keystore와 iOS Production Simulator build는 생성했으나 App Store 서명 IPA, Android Production APK·AAB는 없다. Firebase Production 앱과 Google Play 앱, iOS Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key도 없다. 따라서 실제 push·스토어 내부 테스트·정책 공개·최종 스크린샷·심사 제출은 미완료다.
 
 Universal Link·App Link association 파일은 Production에 배포해 HTTPS 응답을
 검증했다. 다만 이 서버 응답 검증은 운영 서명 앱에서의 실기기 링크 검증 완료를
@@ -68,6 +68,8 @@ Domain·Web·Mobile 단위 테스트는 합계 248건이며 모두 통과했다.
 | Android 뒤로가기 회귀 | 성공 | 화면 버튼·시스템 Back·가장자리 제스처 모두 송리스트에서 예배로 복귀 |
 | EAS Preview APK build `f60bcbcc-de16-457b-99cd-d3a9460df37d` | 성공 | commit `aaeed5e`, Samsung SM-G991N replace install·핵심 회귀·만 14세 gate·Fatal/ANR 0건 |
 | Preview APK 정적 검증 | 성공 | SHA-256 `2f9773412dbd040dd368fd115f636f31dfe258a4c9c033c3abdc51c56c641f07`, target API 36, v2 서명, 64-bit arm64/x86_64 ELF·ZIP 16KB 정렬 |
+| API 36 16KB Pixel Tablet 조기 QA | 성공 | 4탭·테마 저장·회전·50:50 분할·864×1600 축소·복원, crash/ANR 0 |
+| API 36 16KB Pixel 9 Pro Fold 조기 QA | 성공 | 펼침·반접힘·접힘·외부화면·재펼침·회전·상태 유지, crash/ANR 0 |
 | Google Play target API 정책 | 충족 | 2026-08-31부터 신규 앱 API 36 이상 필요, 현재 target API 36 |
 | Android Production EAS keystore | 생성 완료 | Production package용; SHA-256는 `docs/APP_LINK_ASSOCIATION.md` 참조 |
 | EAS Production Android build | 미완료 | 2026-08-23 기준 0건 |
@@ -86,6 +88,17 @@ Domain·Web·Mobile 단위 테스트는 합계 248건이며 모두 통과했다.
 
 2026-08-20 EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`(commit `aaeed5e`, package `org.sundoo.jubileeworship.preview`)를 Samsung SM-G991N(Android 15/API 35)에 replace install했다. 공식 launcher icon, 새 홈 예배 사진, 4개 탭, 라이트·다크 강제종료 후 유지, 송리스트의 화면 버튼·시스템 Back·왼쪽 edge Back을 확인했다. 알림 종류 선택 전 만 14세 확인과 별도 동의가 먼저 표시되고, `별도 동의하고 알림 켜기`를 누른 뒤에만 Android 권한창이 표시됐다. 미확인·권한 거절 시 선택은 모두 꺼진 상태로 복구됐다. OS 권한을 시험용으로 허용한 뒤에는 Firebase 설정 부재로 `Default FirebaseApp is not initialized` 단계에서 중단돼 서버 RPC 및 FCM token 생성에는 도달하지 못했다. 원격 등록·정책 gate는 계속 꺼져 있고 관련 DB 행과 실제 push는 0건이다. 최종 logcat과 ApplicationExitInfo의 crash·ANR는 0건이며 권한은 다시 철회했다. SM-G991N의 page size는 4KB이므로 이 기기에서 16KB runtime을 검증한 것은 아니며, APK의 64-bit ELF와 ZIP 정렬을 정적으로 검증했다.
 
+2026-08-23에는 API 36·16KB Google Play ARM64 이미지로 Pixel Tablet과 Pixel 9
+Pro Fold AVD를 별도 생성해 개발 변형 Release APK를 조기 검수했다. APK는 target
+API 36, runtime page size 16,384 bytes이며 ZIP 16KB 정렬과 ARM64 라이브러리
+25개의 `PT_LOAD >= 0x4000`을 통과했다. Tablet은 4개 탭·라이트/다크 저장·
+회전·50:50 분할화면·864×1600 축소·복원을, Fold는 펼침→반접힘→접힘
+→외부화면→재펼침·회전과 같은 PID·탭·테마 유지를 통과했다. 각 clean
+final logcat과 ApplicationExitInfo에서 쥬빌리 앱 crash·ANR는 0건이었다. 이는
+`org.sundoo.jubileeworship.dev` 개발 변형·debug 인증서·로컬 콘텐츠 APK의
+조기 결과이므로 Firebase·Supabase 운영 설정이 포함된 최종 `production-device`
+서명 APK에서 같은 매트릭스를 반복해야 한다.
+
 ## 4. iOS 검증
 
 | 항목 | 결과 | 판정 |
@@ -102,8 +115,10 @@ Domain·Web·Mobile 단위 테스트는 합계 248건이며 모두 통과했다.
 | iOS Dynamic Type 실행 중 변경·콜드 재실행 | 성공 | 현재 화면 유지, 한글 글리프 잘림 없음 |
 | development·preview custom scheme 분리 | 성공 | `jubileeworship-dev`·`jubileeworship-preview` |
 | Apple Team·Production Bundle ID | 확인 | Team `N84F73NX4K`, `org.sundoo.jubileeworship` |
+| EAS Production Simulator build `583708c5-d674-4524-863c-36ae40db46f8` | 생성·설치·독립 실행 성공 | commit `7366628`, 앱 `1.0.0` build `1`, iPhone 17 Simulator(iOS 26.5) |
+| Production Simulator 핵심 회귀 | 성공 | 홈·예배 상세·송리스트·미디어 검색·안내·알림함·알림 미동의·라이트/다크 저장 |
 | iOS Distribution Certificate·Provisioning Profile·APNs·ASC API key | 없음 | 생성·설정 필요 |
-| EAS Production iOS build | 미완료 | 2026-08-23 기준 0건 |
+| App Store용 EAS Production iOS build | 미완료 | Simulator 산출물은 Distribution 서명·IPA·TestFlight를 대체하지 않음 |
 | iOS 실기기·Archive·TestFlight | 미완료 | 등록 기기는 있으나 현재 iPhone 미연결, 서명 자격 증명 필요 |
 
 iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없이 홈을 실행했다. 앱을 종료한 후 `jubileeworship://notifications`로 다시 열어 알림함 도착을 확인했고, Fatal·Unhandled·bundle URL 오류와 크래시 보고서는 없었다. 2026-08-16에는 별도의 EAS Simulator development build를 iPhone 17 Simulator에 설치하고 Metro에 연결해 홈·예배·미디어 화면을 확인했다. development build는 개발 검수용이며 독립 Release·실기기·스토어 빌드를 대체하지 않는다. 무서명 Simulator 빌드의 알림 Keychain entitlement는 실제 서명된 EAS 실기기 빌드에서 재검증해야 한다.
@@ -113,6 +128,27 @@ iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없�
 2026-08-17에는 EAS Preview Simulator build `870d1615-ac38-4353-a4fa-c73913266d52`(commit `09c84da`)를 iPhone 17 Simulator(iOS 26.5)에 단독 설치했다. 원격 Supabase에서 2026-09-04 예배와 최근 영상을 읽어 홈에 표시했으며, 앱을 종료한 뒤 `jubileeworship://notifications`로 콜드 진입하고 화면의 이전 버튼으로 홈에 복귀했다. `jubileeworship://notification-settings` 진입·복귀도 성공했고, 시뮬레이터에는 실기기에서만 사용하는 시험 알림 연결 코드가 노출되지 않았다. 최근 실행 로그의 Fatal·Unhandled·exception·bundle URL 오류는 0건이었다.
 
 2026-08-20 EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`(commit `aaeed5e`, bundle `org.sundoo.jubileeworship.preview`)을 iPhone 17 Pro Simulator에 clean install했다. artifact SHA-256은 `39eacb096d85de7521a92aab1b1ec2a3f1f0e6cb989ac1874fde9e60814b235f`이다. 공식 launcher icon, 새 홈 예배 사진, 4개 탭, 라이트·다크 저장 및 재실행 유지를 확인했다. 만 14세 확인 전에는 별도 동의 버튼이 비활성화되고 확인 후 활성화됐으며, 동의 뒤에는 Simulator에서 실기기 전용 기능으로 fail-closed 처리됐다. Fatal·crash report는 0건이고 실제 push는 수행하지 않았다. 재설치 복구 UI는 등록된 실기기 token이 없어 직접 진입하지 못했으며, targeted test 27/27과 production 복구 거부로 보완 검증했다.
+
+2026-08-23 EAS Production Simulator build `583708c5-d674-4524-863c-36ae40db46f8`
+(commit `7366628`, bundle `org.sundoo.jubileeworship`, 앱 `1.0.0` build `1`)을
+iPhone 17 Simulator(iOS 26.5)에 설치해 Metro 없이 실행했다. 승인된 홈 사진,
+다가오는 예배, 예배 상세, 준비 중 송리스트, 미디어와 검색 결과·빈 결과, 안내,
+알림함, 알림 설정의 만 14세 확인 전 동의 버튼 비활성화, 미동의 복귀를 확인했다.
+라이트→다크 변경 뒤 강제 종료·재실행에도 다크 설정이 유지됐고 검수 후 라이트로
+복원했다. 개인정보 화면은 의도한 차단 상태인 `개인정보 처리방침 공개 전입니다`를
+표시하므로 스토어 개인정보 URL로는 아직 사용할 수 없다. 실제 민감정보·설치 ID·
+푸시 토큰 전송과 OS 권한 허용은 별도 승인 전이라 수행하지 않았다. 검수 중 앱 종료,
+Unhandled JS, bundle URL 오류나 crash는 없었다. 로그에는 향후 iOS에서 UIScene
+lifecycle이 필요하다는 런타임 경고와 Simulator UIFocus·haptic·network 계층
+진단이 있었다. [Apple TN3187](https://developer.apple.com/documentation/technotes/tn3187-migrating-to-the-uikit-scene-based-life-cycle)
+기준 이 경고는 iOS 26 SDK의 현재 실행·제출 차단은 아니지만 iOS 27 최신 SDK
+빌드부터 UIScene 미채택 앱은 실행되지 않는다. Expo SDK 57은
+[완전한 UIScene lifecycle을 지원하지 않으므로](https://github.com/expo/expo/issues/47570#issuecomment-4903598460)
+manifest만 추가하지 않고,
+이번 제출용 EAS iOS image를 `macos-tahoe-26.5-xcode-26.6`으로 고정했다. 정식
+Expo 지원 릴리스로 업그레이드할 때 SceneDelegate·manifest·앱 수명주기·딥링크·
+알림 회귀를 다시 검증해야 한다. 이 산출물은 Simulator용 무서명 앱이므로
+Distribution 서명·IPA·실제 iPhone·APNs·TestFlight 검증을 대체하지 않는다.
 
 Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내부 빌드는 Apple 서명 자격 증명 입력 단계에서 중단했다. Apple 비밀번호·2단계 인증값은 저장소나 채팅에 남기지 않고 사용자가 로컬 터미널에 직접 입력한 뒤 재개한다.
 
@@ -124,7 +160,16 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 Production에 배포하고 기본 운영 주소에 alias했다. `/`, `/support`, `/privacy`와
 두 well-known URL 및 루트 AASA URL은 모두 redirect 없이 HTTP 200을 반환했다.
 association 3개 응답은 `application/json; charset=utf-8`이고 저장소 원본과
-byte 단위로 일치했다. `/privacy`의 `noindex, follow`도 유지됐다.
+byte 단위로 일치했다. Google Digital Asset Links API는 운영 package와 EAS
+keystore 지문을, Apple AASA CDN은 운영 appID와 `/worship` 경로를 각각 HTTP
+200으로 반환했다. `/privacy`의 `noindex, follow`도 유지됐다.
+
+같은 Production을 390×844 viewport에서 다시 열어 hero·예배 일정·미디어·갤러리까지
+스크롤 검증했다. `scrollWidth=390`으로 수평 overflow가 없었고, 승인된 대체텍스트가
+있는 이미지 9개가 모두 `complete=true`와 유효한 natural width를 반환했다.
+page error와 console error는 각각 0건이었다. 초기 full-page 캡처에서 viewport 밖
+lazy gallery가 skeleton으로 보였지만 해당 구역을 실제로 스크롤한 뒤 모두 로드되어
+오류가 아님을 확인했다.
 
 2026-08-19 v9 모바일 Web local export를 390×844 viewport에서 브라우저로 확인했다. 홈·예배·미디어·안내·송리스트, 검색, 주소 복사, 라이트·다크 저장·재로드를 확인했다. 빈 화면·오류 overlay·깨진 이미지·수평 overflow·page error는 없었고, WCAG 자동 접근성 위반과 보이는 44px 미만 터치 대상은 0건이었다. Web에서는 Expo push-token listener가 동작하지 않는다는 공식 모듈 경고 1건만 있었으며 listener는 no-op이다. 이 검증은 네이티브 실기기 검증을 대체하지 않는다.
 
@@ -169,6 +214,8 @@ byte 단위로 일치했다. `/privacy`의 `noindex, follow`도 유지됐다.
 - Android Production EAS keystore: **생성 완료**, Production Android build: **0건**
 - Firebase Production 앱·Google Play 앱: **미생성**, 등록 폼 준비 후 외부 확인 대기
 - Android v9 Release APK·16KB Android 15 에뮬레이터·테마·뒤로가기·딥링크: **통과**
+- Android API 36·16KB Tablet·Fold·분할화면·posture 조기 QA: **통과**, 최종 운영 APK 반복 대기
+- iOS Production Simulator build·핵심 기능 회귀: **통과**, App Store 서명·실기기·TestFlight는 **미완료**
 - Android EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`·Samsung SM-G991N: **replace install·핵심 화면·테마·Back·만 14세 gate·Fatal/ANR 0건 통과**
 - iOS EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`: **clean install·핵심 화면·테마·만 14세 gate·fail-closed 통과**
 - iOS Team·Bundle ID: **확인**, 배포 인증서·profile·APNs·ASC API key: **없음**
