@@ -1,28 +1,32 @@
 # 출시 후보 개발본 QA 보고서
 
-- 기준일: 2026-08-20 KST
-- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b`의 로컬 코드·GitHub CI, Supabase remote migration·8개 Edge Function·fail-closed canary, Vercel Production, iOS EAS Preview Simulator 및 Android EAS Preview·Samsung 실기기 검증
-- 결론: Domain 98/98, Web 29/29, Mobile 99/99, Supabase pgTAP 695/695, Edge Function 29/29와 전체 lint·typecheck·build·export가 통과했고, PR #11 CI도 모두 통과했다. Supabase remote migration은 15/15 일치하고 8개 Edge Function을 배포했으며, `registration_enabled=false`, 정책 미공개, legacy 등록 API 410, direct v2 canary `REGISTRATION_DISABLED`, 관련 원격 행 0건으로 fail-closed 상태를 확인했다. Vercel Production의 홈·지원·개인정보 페이지, iOS EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`, Android EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`의 Samsung SM-G991N 실기기 검증을 완료했다. 다만 Android Preview에는 Firebase 설정이 없어 FCM token 생성 전 단계에서 중단됐고, 실제 APNs·FCM 발송, iPhone 실기기, 운영 서명·스토어 트랙·심사 제출은 완료되지 않았다.
+- 기준일: 2026-08-23 KST
+- 범위: 커밋 `aaeed5ebb208d9a222eb89e953d9fbacb4c7c65b` Preview artifact의 기존 실기기·Simulator 검증, 현재 작업트리의 출시 설정, Supabase remote, Vercel Production, EAS·Firebase·Apple·Google Play의 실시간 연결 상태
+- 결론: 2026-08-23 현재 작업트리에서 Domain 98/98, Web 35/35, Mobile 115/115, Supabase pgTAP 720/720, workspace lint·typecheck·test·production build가 통과했다. 기존 Edge Function 29/29 통과와 원격 migration 15개·Edge Function 8개 활성 검증은 이전 기준선이다. 현재 checkout에는 법적 문서 gate를 보강한 신규 비파괴 전진형 migration 3개가 더 있고, 총 18개 migration의 로컬 reset·test만 통과했으며 원격에는 미적용이다. Android Production EAS keystore는 생성했으나 iOS·Android Production build는 모두 0건이다. Firebase Production 앱과 Google Play 앱, iOS Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key는 없다. 따라서 실제 push·스토어 내부 테스트·정책 공개·최종 스크린샷·심사 제출은 미완료다.
+
+Universal Link·App Link association 파일은 현재 작업트리에 준비했지만 아직
+Production에 배포하지 않았다. 이 파일의 로컬 준비는 운영 서명 앱에서의 링크
+검증 완료를 의미하지 않는다.
 
 ## 1. 최신 자동 검증
 
 | 영역 | 결과 | 판정 |
 |---|---:|---:|
 | Domain 단위 테스트 | 98/98 | 통과 |
-| Web 단위 테스트 | 29/29 | 통과 |
-| Mobile 단위 테스트 | 99/99 | 통과 |
-| Supabase pgTAP | 695/695 | 통과 |
+| Web 단위 테스트 | 35/35 | 통과 |
+| Mobile 단위 테스트 | 115/115 | 통과 |
+| Supabase pgTAP | 720/720 | 통과 |
 | Edge Function 단위 테스트 | 29/29 | 통과 |
 | Edge Function format·type check | 25개 파일 | 통과 |
 
-Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다. 전체 workspace lint·typecheck·test·web build·iOS/Android/Web Expo export와 Expo Doctor 21/21도 통과했다.
+Domain·Web·Mobile 단위 테스트는 합계 248건이며 모두 통과했다. 이 수치는 DB pgTAP과 Edge Function 테스트를 포함하지 않는다. 최신 법적 문서 gate·네이티브 안전영역·반응형 변경 후 workspace lint·typecheck·test·웹 production build, iOS/Android/Web Expo export, Expo Doctor 21/21, Expo 의존성 정합성 검사를 다시 통과했다.
 
 ## 2. 데이터베이스·보안
 
 | 검증 | 결과 |
 |---|---:|
 | 최신 migration 포함 `supabase db reset --local --no-seed` | 통과 |
-| RLS·GRANT·Storage·RPC pgTAP | 695/695 통과 |
+| RLS·GRANT·Storage·RPC pgTAP | 720/720 통과 |
 | Supabase DB lint | warning/error 0 |
 | 원격 Security Advisor | `SECURITY DEFINER` 실행 RPC 경고 존재; 내부 인증·HMAC·rate-limit gate 검토 완료(경고 0으로 간주하지 않음) |
 | Performance Advisor | 보고 이슈 0 |
@@ -31,7 +35,7 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 확인된 주요 보안 경계는 다음과 같다.
 
 - 관리자는 owner가 Auth 사용자를 건별로 수동 승인하며, 마지막 active owner의 비활성화·강등은 차단된다.
-- 법적 문서는 draft·published·withdrawn 상태와 버전·시행일을 가지며 owner만 공개·철회할 수 있다. 웹과 DB 공개 작업은 보유·삭제·국외 처리 및 약관 핵심 항목의 정확한 항목명과 실제 값이 모두 있는지 검증한다. `미정`·`추후`, `확인 필요`·`검토 예정` 같은 명시적 미해결 표현과 `확인`·`검토`·`확정`·`완료`·`입력`·`기입`·`작성`만으로 된 값은 거부하되, 실제 절차를 설명하는 장문 안의 정상 단어는 허용한다.
+- 법적 문서는 draft·published·withdrawn 상태와 버전·시행일을 가지며 owner만 공개·철회할 수 있다. 웹과 DB 직접 RPC는 동일한 필수 고지 37개·금지 문구 8개·개인정보 운영 라벨 30개·약관 라벨 6개를 검증한다. 정책·약관 문의 이메일은 앱 상수와 잠긴 `site_settings(id=1).contact_email`에 대소문자까지 일치해야 한다. 공급자 항목 내 동일 주소, 전화번호, 수신자 HTTPS URL 또는 이메일, 법적 명칭, 약관의 주소+전화 형식도 필드별로 검증하므로 모든 marker를 같은 승인 기록으로 바꾸는 우회는 거부된다. `N/A:`·`NA.`·공백 변형 `해당 없음`과 계약·법률검토의 미래형 미확정 문구도 웹과 DB에서 거부한다. 이 검증은 형식과 문구의 완성도를 확인하며, 실제 연락처·계약·법적 근거의 진실성은 owner 증빙과 법률 검토로 확정해야 한다.
 - 설교·송리스트·갤러리·안내는 저장만으로 공개되지 않고 owner의 수동 공개 절차를 거친다.
 - 공개된 갤러리·안내 행을 editor가 Data API로 직접 수정·삭제하는 우회는 차단된다.
 - 앱 갤러리는 private `gallery-staging` 경로에서 owner 동의 확인 후 `public-media/app-gallery/`로 옮긴 객체만 공개할 수 있다.
@@ -40,11 +44,11 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 - 요청 출처는 IP 원문 대신 프로젝트 비밀키 HMAC 가명값으로 제한한다. 등록은 1분 제한과 별도로 하루 같은 출처 100회·전체 500회를 상한으로 두며, 잘못된 형식의 Expo token도 카운트한다. 101번째·501번째 차단, 등록 중단 스위치의 typed denial·미생성, anon·authenticated·service_role의 abuse-control table 직접 권한 없음을 pgTAP으로 확인했다.
 - 일일 HMAC rate row는 요청이 이어지는 동안 다음 창으로 갱신될 수 있다. 마지막으로 시작된 일일 창에 추가 요청이 없으면 창 시작 25시간 후 만료하며, 5분 cleanup cron 지연을 포함하면 약 25시간 5분 뒤 삭제된다. 이 기준은 개인정보처리방침 초안과 공개 gate에 반영됐지만, 최종 정책 공개는 법률·실무 결정 후에만 가능하다.
 - development·preview·production 설치정보를 분리하고, 일반·예배 알림은 production 설치에만 발송한다. owner가 특정 기기로 보내는 시험 알림은 development·preview에서도 허용한다.
-- 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용하도록 구현·검증했으며, 관련 migration과 Edge Function을 원격에 적용했다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다. 다만 `TEST_PUSH_PAIRING_PEPPER`와 최초 owner가 없고 등록 중단 상태이므로 실제 연결 승인·시험 push는 수행하지 않았다.
+- 시험 기기는 실기기에서 생성한 10분 만료 HMAC 연결 코드를 active owner가 수동 승인한 development·preview endpoint만 허용하도록 구현·검증했으며, 관련 migration과 Edge Function을 원격에 적용했다. raw 코드·설치 secret·Expo token은 관리자 목록과 DB에 노출하지 않고, 요청 UUID 재시도는 멱등하게 처리한다. `TEST_PUSH_PAIRING_PEPPER`는 설정했지만 최초 owner가 없고 등록 중단 상태이므로 실제 연결 승인·시험 push는 수행하지 않았다.
 - 예배 알림은 owner가 미리 승인한 공개 `scheduled|postponed` 예배에 대해 `전날 19:30 KST`와 `당일 1시간 전` 두 예약을 중복 없이 생성하고, 예배·문구 기준 변경 시 재승인을 요구하도록 구현했다. 실제 queue는 예약 시각부터 15분 안에 운영 scheduler가 실행해야 한다.
 - 알림 데이터 cleanup은 토큰 원문 최대 24시간, 180일 미활동 설치 비활성화, 비활성 설치정보 30일, 발송 상세 90일 기준으로 구현했다. 일일 cron, 멱등 실행, 직접 권한 차단, 경계값 삭제를 로컬 DB에서 검증했고 원격 cron을 활성화했다. 원격 실행 이력 4회는 성공했지만 만료 대상이 0건이어서 실제 만료정보 삭제 증거는 아직 없다.
 
-원격 migration은 로컬과 15/15 일치하고 Edge Function 8개가 배포됐다. legacy 등록·갱신·해제 endpoint는 HTTP 410이며, direct v2 synthetic canary는 HTTP 200과 `REGISTRATION_DISABLED`를 반환했다. `registration_enabled=false`, `policy_ready=false`, 법적 문서·설치·endpoint·구독·동의·복구 관련 행은 모두 0건이고 실제 push는 0건이다. Supabase 통합 로그에서 synthetic token·proof·installation UUID는 검색되지 않았고, API Gateway 범위에서 custom-header 이름도 0건이었다.
+원격 migration 15개·Edge Function 8개·legacy endpoint 410·direct v2 `REGISTRATION_DISABLED`는 이전 원격 기준선 검증 결과다. 현재 checkout의 `20260823130815`, `20260823132500`, `20260823143000` migration은 로컬 reset과 pgTAP을 통과했지만 원격에 적용하지 않았다. 따라서 원격이 현재 로컬 18개 migration과 일치한다고 표시하면 안 된다. 기존 원격은 `registration_enabled=false`, `policy_ready=false`, 법적 문서·설치·endpoint·구독·동의·복구 관련 행 및 실제 push 0건으로 확인된 상태였다.
 
 ## 3. Android 검증
 
@@ -64,11 +68,19 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 | Android 뒤로가기 회귀 | 성공 | 화면 버튼·시스템 Back·가장자리 제스처 모두 송리스트에서 예배로 복귀 |
 | EAS Preview APK build `f60bcbcc-de16-457b-99cd-d3a9460df37d` | 성공 | commit `aaeed5e`, Samsung SM-G991N replace install·핵심 회귀·만 14세 gate·Fatal/ANR 0건 |
 | Preview APK 정적 검증 | 성공 | SHA-256 `2f9773412dbd040dd368fd115f636f31dfe258a4c9c033c3abdc51c56c641f07`, target API 36, v2 서명, 64-bit arm64/x86_64 ELF·ZIP 16KB 정렬 |
+| Google Play target API 정책 | 충족 | 2026-08-31부터 신규 앱 API 36 이상 필요, 현재 target API 36 |
+| Android Production EAS keystore | 생성 완료 | Production package용; SHA-256는 `docs/APP_LINK_ASSOCIATION.md` 참조 |
+| EAS Production Android build | 미완료 | 2026-08-23 기준 0건 |
 | Android FCM 원격 알림 | 미완료 | `GOOGLE_SERVICES_JSON` 미설정으로 Firebase 초기화 단계에서 중단; token·실제 push·receipt 0건 |
-| Store 서명 AAB·Play 내부 테스트 | 미완료 | Google Play 연결 필요 |
+| Store 서명 AAB·Play 내부 테스트 | 미완료 | Play 앱 미생성; 등록 폼 기본값만 준비하고 외부 선언·생성 확인 대기 |
 | Play 비공개 테스트 12명·14일·Production access | 미완료 | 2025년 생성 개인 개발자 계정 필수 게이트 |
 
 생성된 파일은 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`에 있다. 최신 v9 Release는 16KB 페이지 정렬, 라이트·다크 시작 화면, 테마 저장, 4개 탭, 송리스트 빈 상태, 주소 복사, 뒤로가기, 글자 크기 1.5, development 딥링크를 Android 15 16KB 에뮬레이터에서 확인했다. 이 APK는 development/debug 인증서 기반이며 Google Play 업로드, 스토어 서명, 최신 v9의 물리 기기 검증 또는 스토어 승인을 의미하지 않는다.
+
+2026-08-23에는 Production package용 Android EAS keystore를 생성했다. 이는
+운영 서명 자격 증명 준비에 해당하며 AAB 생성·Play 업로드·Play App Signing
+완료를 의미하지 않는다. 같은 시점에 Samsung SM-G991N(Android 15)은 Mac에
+연결되어 있지만 Firebase Production 앱은 아직 생성하지 않았다.
 
 2026-08-16 EAS development build `9d6ba4af-ad4c-419b-9319-7506100f0160`(commit `9159518`)을 Samsung SM-G991N(Android 15)에 설치했다. 4개 탭과 송리스트를 확인했고, 이전 빌드에서 시스템 Back이 앱을 종료하던 문제를 `predictiveBackGestureEnabled=false`로 수정한 뒤 화면 버튼·시스템 Back·가장자리 제스처가 모두 예배 화면으로 복귀함을 확인했다. 캘린더 선택기, 길찾기 선택창, Android 공유 시트도 열렸으며 저장·지도 선택·외부 공유 전송은 수행하지 않았다. Fatal·Unhandled JS 오류는 없었다. 이 결과물은 development client이므로 운영 서명 AAB와 실제 FCM 알림 검증을 대체하지 않는다.
 
@@ -89,7 +101,10 @@ Domain·Web·Mobile 단위 테스트는 합계 226건이며 모두 통과했다.
 | v9 홈·4탭·송리스트 빈 상태·주소 복사 | 성공 | 실제 송리스트 공개 데이터 표시는 미검증, Clipboard 실제 값·성공 피드백 포함 |
 | iOS Dynamic Type 실행 중 변경·콜드 재실행 | 성공 | 현재 화면 유지, 한글 글리프 잘림 없음 |
 | development·preview custom scheme 분리 | 성공 | `jubileeworship-dev`·`jubileeworship-preview` |
-| iOS 실기기·Archive·TestFlight | 미완료 | Apple 계정·서명 필요 |
+| Apple Team·Production Bundle ID | 확인 | Team `N84F73NX4K`, `org.sundoo.jubileeworship` |
+| iOS Distribution Certificate·Provisioning Profile·APNs·ASC API key | 없음 | 생성·설정 필요 |
+| EAS Production iOS build | 미완료 | 2026-08-23 기준 0건 |
+| iOS 실기기·Archive·TestFlight | 미완료 | 등록 기기는 있으나 현재 iPhone 미연결, 서명 자격 증명 필요 |
 
 iPhone 17 Pro Simulator(iOS 26.5)에서 Release 앱을 설치한 뒤 Metro 없이 홈을 실행했다. 앱을 종료한 후 `jubileeworship://notifications`로 다시 열어 알림함 도착을 확인했고, Fatal·Unhandled·bundle URL 오류와 크래시 보고서는 없었다. 2026-08-16에는 별도의 EAS Simulator development build를 iPhone 17 Simulator에 설치하고 Metro에 연결해 홈·예배·미디어 화면을 확인했다. development build는 개발 검수용이며 독립 Release·실기기·스토어 빌드를 대체하지 않는다. 무서명 Simulator 빌드의 알림 Keychain entitlement는 실제 서명된 EAS 실기기 빌드에서 재검증해야 한다.
 
@@ -118,35 +133,42 @@ Expo에 등록된 iPhone 테스트 기기는 확인했지만, 실기기용 내�
 
 다음은 로컬 코드 완료와 별개의 배포·운영 게이트다.
 
-1. 최초 owner Auth 계정·SMTP를 설정하고 `TEST_PUSH_PAIRING_PEPPER`를 서버 secret으로 구성한 뒤 development·preview 실기기 pairing을 검증
+1. `TEST_PUSH_PAIRING_PEPPER` 서버 secret은 설정 완료. 최초 owner Auth 계정·SMTP를 설정한 뒤 development·preview 실기기 pairing을 검증
 2. Supabase custom-header log canary는 완료했으나, 실제 owner·복구 흐름에서 raw 재설치 복구 코드가 Vercel runtime/error log에 남지 않는지 별도 canary 수행
 3. 외부 요청자가 `cf-connecting-ip`·`x-forwarded-for`를 주입·변조해 출처 bucket을 선택하거나 우회할 수 없는지 원격 테스트. 이 가정이 확인되지 않으면 현재 DB 소스 제한을 운영 보안경계로 간주할 수 없음
 4. DB RPC에 도달하지 않는 malformed URL·body와 분산 공격을 위한 gateway/WAF 제한, 사용량·차단량 alert, 등록 중단 스위치 운영 절차 설정
 5. 비운영 환경 또는 승인된 점검 창에서 중단 스위치와 일일 출처 101번째·전체 501번째 차단, 25시간 만료 설정을 원격 검증
-6. Firebase Android 앱 3종 등록 완료, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결
+6. 기존 Development·Preview에 이어 Firebase Production Android 앱을 생성하고, `google-services.json` EAS Secret File 및 최소권한 FCM V1 자격 증명 연결. 현재 Production 앱은 미생성이며 등록 폼만 준비돼 외부 생성 확인 대기
 7. Expo 실제 push 발송·receipt·`DeviceNotRegistered` 실기기 확인
 8. 전날 19:30·당일 1시간 전 알림을 예약 시각부터 15분 안에 queue할 외부 scheduler 활성화
-9. Vercel 기본 Production 배포는 완료했으나 Preview 관리자 CRUD 회귀, 서버 전용 secret 구성, 선두교회 하위 도메인 승인·DNS·TLS·canonical 검증
-10. APNs·FCM, iOS·Android 실기기 서명·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
-11. iOS 실기기·Archive·TestFlight와 Android 운영 서명 AAB·Play 내부 테스트 설치·실기기 검증
-12. 개인정보처리방침·이용약관 최종 원문과 시행일 승인. 알림 기능을 만 14세 이상으로 제한하고 지원 문의를 Google Workspace 업무용 계정으로 전환하며 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하는 제품 결정은 승인됐다. 다만 실제 Workspace 주소·도메인·계약/관리 설정, 법적 처리자·담당자·전화번호, 연령 확인의 법률적 충분성, Google의 법적 역할·처리 국가, 국외 처리 근거와 법률 검토는 미확정이므로 정책 공개 게이트는 유지한다.
+9. Vercel 기본 Production 연결·URL·`SUPABASE_SECRET_KEY`는 설정 완료. Preview 관리자 CRUD 회귀, association 파일 Production 배포, 선두교회 하위 도메인 승인·DNS·TLS·canonical 검증
+10. Firebase Production 앱·Google Play 앱 생성에 필요한 외부 확인, APNs·FCM, iOS·Android 운영 빌드·내부 테스트 트랙, Play 비공개 테스트 12명·14일과 Production access
+11. 현재 연결된 Samsung 실기기의 운영 빌드 검증과 현재 미연결 iPhone의 실기기·Archive·TestFlight 검증
+12. 개인정보처리방침·이용약관 최종 원문과 시행일 승인. 현재 개발본은 알림 기능에 만 14세 자기확인 gate를 두고 지원 이메일 후보를 표시하지만, 최종 이메일 공급자·확정 주소·도메인·계약/관리 설정·처리 국가·삭제 증빙, 법적 처리자·담당자·전화번호, 연령 확인의 법률적 충분성, 각 실제 공급자의 법적 역할·처리 국가, 국외 처리 근거와 법률 검토는 미확정이므로 정책 공개 gate를 유지한다. 최종 주소 확정 시 `SITE.contact_email`, 잠긴 `site_settings(id=1).contact_email` corrective migration, 웹·앱 연락처, 법적 문서·스토어 메타데이터를 한 번에 동일하게 변경한다.
 13. 원격 cleanup cron이 실제 만료정보를 정책 기간에 맞춰 삭제하는지 최초 대상 발생 후 확인. 완료 전 store-ready 개인정보처리방침 공개·스토어 개인정보 URL 사용 금지
 14. 실제 설교·송리스트를 관리자에서 검수·공개한 뒤 앱의 주제·말씀 구절·곡·아티스트·KEY·공식 YouTube 링크 표시를 검증
 15. App Store·Google Play 정책 문서, 스크린샷, 메타데이터, 심사 제출
 
 ## 7. 최종 판정
 
-- 로컬 DB·Edge·자동 테스트: **통과**
+- 로컬 DB reset·pgTAP 720/720·DB lint·workspace 자동 테스트: **통과**
 - 커밋 `aaeed5e` 기준 GitHub PR #11 CI: **모두 통과**
-- Supabase remote migration 15/15·Edge Function 8개·legacy 410·direct v2 fail-closed canary: **적용·검증 완료**
+- Supabase 기존 remote migration 15개·Edge Function 8개·legacy 410·direct v2 fail-closed canary: **이전 기준선 적용·검증 완료**
+- 법적 문서 gate 신규 migration 3개: **로컬 통과·원격 미적용**
 - Supabase 등록·정책 gate: **`registration_enabled=false`, `policy_ready=false` 유지**
 - 원격 설치·endpoint·구독·동의·복구 행 및 실제 push: **모두 0건**
 - Vercel 기본 Production 홈·지원·개인정보·sitemap: **배포·검증 완료**
+- Vercel Production `SUPABASE_SECRET_KEY`·Supabase `TEST_PUSH_PAIRING_PEPPER`: **설정 완료**
+- App Link·Universal Link association 파일: **로컬 준비 완료·Production 배포 전**
+- Android Production EAS keystore: **생성 완료**, Production Android build: **0건**
+- Firebase Production 앱·Google Play 앱: **미생성**, 등록 폼 준비 후 외부 확인 대기
 - Android v9 Release APK·16KB Android 15 에뮬레이터·테마·뒤로가기·딥링크: **통과**
 - Android EAS Preview build `f60bcbcc-de16-457b-99cd-d3a9460df37d`·Samsung SM-G991N: **replace install·핵심 화면·테마·Back·만 14세 gate·Fatal/ANR 0건 통과**
 - iOS EAS Preview Simulator build `5756d596-dc2e-478f-aacc-e094b8f78bb7`: **clean install·핵심 화면·테마·만 14세 gate·fail-closed 통과**
-- iOS 실기기·서명·스토어 배포: **미완료**
+- iOS Team·Bundle ID: **확인**, 배포 인증서·profile·APNs·ASC API key: **없음**
+- iPhone: **현재 미연결**, iOS Production build: **0건**
 - 실제 APNs·FCM·운영 서명·스토어 트랙·심사 제출: **미완료**
-- 법적 개인정보처리방침·Google Workspace 실제 주소·계약/관리 설정: **미확정**
+- 법적 개인정보처리방침·최종 지원 이메일 공급자·확정 주소·계약/관리 설정: **미확정**
+- 정책 공개·최종 스토어 스크린샷·내부 테스트: **미완료**
 
-따라서 현재 상태는 **원격 fail-closed 배포와 iOS Preview Simulator 및 Android Preview의 핵심 화면·동의 gate·비발송 상태 검증까지 완료한 출시 후보 개발본**이며, **실제 알림 운영 또는 App Store·Google Play 제출 완료 상태는 아니다**.
+따라서 현재 상태는 **기존 원격 fail-closed 배포와 iOS Preview Simulator 및 Android Preview 검증은 있지만, 최신 법적 문서 공개·알림 등록 gate는 로컬에만 있는 출시 후보 개발본**이며, **실제 알림 운영 또는 App Store·Google Play 제출 완료 상태는 아니다**.

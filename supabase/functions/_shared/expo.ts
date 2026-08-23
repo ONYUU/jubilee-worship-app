@@ -8,12 +8,16 @@ const EXPO_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
 // the database, because a worker can claim an H-1 reminder up to 15 minutes
 // late and a relative one-hour TTL would then outlive the service start.
 export const JUBILEE_PUSH_TTL_SECONDS = 60 * 60;
+export const JUBILEE_ANDROID_NOTIFICATION_CHANNEL_ID = "worship-updates";
 
 export type ExpoMessage = {
   to: string;
   title: string;
   body: string;
   data?: { url: string };
+  channelId: typeof JUBILEE_ANDROID_NOTIFICATION_CHANNEL_ID;
+  sound: "default";
+  priority: "high";
   ttl?: number;
   expiration?: number;
 };
@@ -40,6 +44,9 @@ export function createExpoMessage(input: {
     to: input.to,
     title: input.title,
     body: input.body,
+    channelId: JUBILEE_ANDROID_NOTIFICATION_CHANNEL_ID,
+    sound: "default",
+    priority: "high",
     ...(input.expiresAt
       ? { expiration: Math.floor(expirationMillis / 1_000) }
       : { ttl: JUBILEE_PUSH_TTL_SECONDS }),

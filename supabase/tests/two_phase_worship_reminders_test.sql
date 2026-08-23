@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(78);
+select plan(79);
 
 select has_table(
   'private', 'worship_reminder_schedules',
@@ -266,22 +266,30 @@ select lives_ok(
     ) values
       (
         'privacy_policy', 'two-phase-incomplete', '불완전 개인정보처리방침',
-        E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n- 비활성 정보 보유 기간: 최종 확정\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매월\n- 수탁자: 검증 수탁자\n- 이전 국가: 검증 국가\n- 이전 항목: 검증 항목\n- 이전 시점 및 방법: 검증 방법\n- 국외 처리 보유 기간: 검증 기간\n- 이전 거부 방법 및 효과: 검증 효과',
+        E'쥬빌리 워십 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n- 비활성 정보 보유 기간: 최종 확정\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매월\n- 수탁자: 검증 수탁자\n- 이전 국가: 검증 국가\n- 이전 항목: 검증 항목\n- 이전 시점 및 방법: 검증 방법\n- 국외 처리 보유 기간: 검증 기간\n- 이전 거부 방법 및 효과: 검증 효과',
         current_date
       ),
       (
         'terms_of_service', 'two-phase-placeholder', '불완전 이용약관',
-        E'쥬빌리 워십 sundoojubileeworship@gmail.com\n* 준거법: 대한민국 법률\n* 관할: 미정\n* 면책 범위: 검증 범위\n* 미성년자 이용 안내: 보호자와 함께 이용',
+        E'서비스 문의: sundoojubileeworship@gmail.com\n' ||
+        E'쥬빌리 워십\n* 준거법: 대한민국 법률\n* 관할: 미정\n* 면책 범위: 검증 범위\n* 미성년자 이용 안내: 보호자와 함께 이용\n* 서비스 제공자의 법적 성명 또는 명칭: 시험 운영자\n* 주소 및 전화번호: 인천광역시 서구, 032-000-0000',
+        current_date
+      ),
+      (
+        'terms_of_service', 'two-phase-provider-bypass', '제공자 누락 이용약관',
+        E'쥬빌리 워십\n- 준거법: 대한민국 법률\n- 관할: 인천지방법원\n- 면책 범위: 법령이 허용하는 범위\n- 미성년자 이용 안내: 보호자와 함께 이용',
         current_date
       ),
       (
         'terms_of_service', 'two-phase-complete', '완성 이용약관',
-        E'쥬빌리 워십 sundoojubileeworship@gmail.com\n- 준거법: 대한민국 법률\n- 관할: 인천지방법원\n- 면책 범위: 법령이 허용하는 범위\n- 미성년자 이용 안내: 보호자와 함께 이용',
+        E'서비스 문의: sundoojubileeworship@gmail.com\n' ||
+        E'쥬빌리 워십\n- 준거법: 대한민국 법률\n- 관할: 인천지방법원\n- 면책 범위: 법령이 허용하는 범위\n- 미성년자 이용 안내: 보호자와 함께 이용\n- 서비스 제공자의 법적 성명 또는 명칭: 시험 운영자\n- 주소 및 전화번호: 인천광역시 서구, 032-000-0000',
         current_date
       ),
       (
         'privacy_policy', 'two-phase-privacy-complete', '완성 개인정보처리방침',
-        E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\nSUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 하루 100회 하루 500회 25시간 5분 재사용할 수 없도록 650 Industries, Inc. Apple·Google 처리 미국 Google Workspace 만 14세\n- 비활성 정보 보유 기간: 30일\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매일 1회\n- 수탁자: Supabase 및 Expo\n- 이전 국가: 미국\n- 이전 항목: 설치 식별자 및 푸시 토큰\n- 이전 시점 및 방법: 서비스 이용 시 암호화 전송\n- 국외 처리 보유 기간: 비활성화 후 30일\n- 이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n- 개인정보 처리자의 법적 성명 또는 명칭: 테스트 운영자\n- 개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n- 전화번호 등 연락처: 032-000-0000\n- 국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 테스트 근거\n- 지원 문의 보유·삭제 기준: 해결 후 90일\n- 지원 이메일 제공자의 법적 역할·처리 근거: 독립 처리 역할\n- 지원 이메일 국외 처리 국가: 테스트 국가\n- 알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 법정대리인 서면 절차\n- 실제 시행일: 2026-09-01\n- 오너 최종 사실확인: 2026-09-01 서면 승인\n- 법률 전문가 검토 상태: 2026-09-01 의견서 수령',
+        E'개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com\n' ||
+        E'쥬빌리 워십 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n알림 제공에만 사용합니다. 예배 알림 선택은 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 「개인정보 보호법」 제15조제1항제1호 및 제23조제1항제1호(민감정보 별도 동의)를 근거로 합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다. 수신 알림은 기기에 최대 50건·90일 저장하고 서버로 다시 전송하지 않습니다. 자동화된 결정을 하지 않고 광고 SDK를 사용하지 않습니다.\nSUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 하루 100회 하루 500회 25시간 5분 재사용할 수 없도록 650 Industries, Inc. Apple·Google 처리 미국 만 14세\n- 공개 콘텐츠·보안 로그의 실제 처리 항목과 보유기간: IP·요청 경로 로그 30일\n- 공개 콘텐츠·보안 로그 처리의 법적 근거: 개인정보보호법 테스트 근거\n- 비활성 정보 보유 기간: 30일\n- 발송 기록 보유 기간: 90일\n- 정기 삭제 주기: 매일 1회\n- 기기 내 저장 자료의 삭제 방법과 운영체제 백업·재설치 설정: 앱 데이터 삭제와 재설치 검증 기록\n- Supabase 수신자 연락처: privacy@example.invalid\n- Expo 수신자 연락처: privacy@example.invalid\n- Apple·Google 수신자 연락처 또는 정책 확인 경로: https://example.invalid/privacy\n- 수탁자: Supabase 및 Expo\n- 이전 국가: 미국\n- 이전 항목: 설치 식별자 및 푸시 토큰\n- 이전 시점 및 방법: 서비스 이용 시 암호화 전송\n- 국외 처리 보유 기간: 비활성화 후 30일\n- 이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n- 개인정보 처리자의 법적 성명 또는 명칭: 테스트 운영자\n- 개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n- 전화번호 등 연락처: 032-000-0000\n- 국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 테스트 근거\n- 권리행사 접수·본인 또는 정당한 대리인 확인·처리·회신 방법: 지원 메일 접수 후 설치 증명값 확인\n- 지원 문의 처리의 법적 근거: 개인정보보호법 테스트 근거\n- 지원 이메일 공급자 및 확정 주소: 테스트메일(Test Mail) sundoojubileeworship@gmail.com\n- 지원 이메일 공급자의 법적 역할·처리 근거: 수탁 처리 및 문의 응대 근거\n- 지원 이메일 공급자의 처리 국가: 테스트 국가\n- 지원 문의 보유·삭제 기준: 해결 후 90일\n- 지원 문의 보유·삭제 운영 증빙: 매월 1일 삭제 대상 점검 기록\n- 알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 법정대리인 서면 절차\n- 실제 시행일: 2026-09-01\n- 오너 최종 사실확인: 2026-09-01 서면 승인\n- 법률 전문가 검토 상태: 2026-09-01 의견서 수령',
         current_date
       )
   $sql$,
@@ -513,6 +521,16 @@ select throws_ok(
   $$,
   '23514', 'Legal document identity and disclosure review is incomplete',
   'direct terms publication rejects an unresolved labeled value'
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'two-phase-provider-bypass')
+    )
+  $$,
+  '23514', 'Legal document identity and disclosure review is incomplete',
+  'direct terms publication rejects missing legal provider identity and address labels'
 );
 
 select is(

@@ -335,7 +335,7 @@ function projectId(): string {
 function appVersion(): string {
   const marketingVersion = Constants.nativeAppVersion
     ?? Constants.expoConfig?.version
-    ?? "0.1.0";
+    ?? "1.0.0";
   const buildVersion = Constants.nativeBuildVersion;
   return (buildVersion
     ? `${marketingVersion}+${buildVersion}`
@@ -683,6 +683,7 @@ async function expoPushToken(
     await Notifications.setNotificationChannelAsync("worship-updates", {
       name: "예배 소식",
       importance: Notifications.AndroidImportance.DEFAULT,
+      sound: "default",
       vibrationPattern: [0, 250, 150, 250],
       lightColor: "#27658F"
     });

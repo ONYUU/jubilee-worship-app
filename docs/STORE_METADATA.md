@@ -1,15 +1,16 @@
 # 쥬빌리워십 스토어·운영 메타데이터
 
-확정일: 2026-08-15 (Asia/Seoul)
+상태 기준일: 2026-08-23 (Asia/Seoul)
 
-## 확정값
+## 확정값 및 확인 대기 값
 
 | 항목 | 값 |
 | --- | --- |
 | 앱 표시 이름 | 쥬빌리워십 |
+| 첫 공개 마케팅 버전 | `1.0.0` |
 | 앱 내부 운영주체 표시 | 쥬빌리 워십 |
-| 문의 이메일 | sundoojubileeworship@gmail.com |
-| 개인정보 문의 이메일 | sundoojubileeworship@gmail.com |
+| 문의 이메일 | `sundoojubileeworship@gmail.com` 후보, 사용자 최종 확정 대기 |
+| 개인정보 문의 이메일 | `sundoojubileeworship@gmail.com` 후보, 사용자 최종 확정 대기 |
 | 예배 알림 1 | 예배 전날 19:30 KST |
 | 예배 알림 2 | 예배 당일 시작 1시간 전 |
 | 알림 지연 처리 | 예약 시각부터 15분 이내만 발송, 이후 만료 |
@@ -22,6 +23,10 @@
 
 두 예배 알림은 사용자가 예배 알림을 직접 켠 경우에만 발송한다. 오너가
 문구와 대상을 수동 승인한 뒤 scheduler와 발송 worker가 처리한다.
+
+현재 개발본은 알림 기능에만 만 14세 자기확인 gate를 적용한다. 이 제한을
+앱 전체로 확대할지는 사용자 최종 확정 전이므로 스토어 연령 정보를 확정하지
+않는다.
 
 ## 이름 확인
 
@@ -40,6 +45,8 @@
 - Apple App Review Guidelines: https://developer.apple.com/app-store/review/guidelines/
 - Google Play 스토어 등록 권장사항: https://support.google.com/googleplay/android-developer/answer/13393723
 - Google Play 개인 계정 테스트 요건: https://support.google.com/googleplay/android-developer/answer/14151465
+- Google Play target API 일정: https://support.google.com/googleplay/android-developer/answer/11926878
+- Google Play package 등록: https://support.google.com/googleplay/android-developer/answer/16984799
 
 ## 스토어 개인정보 공개 초안
 
@@ -60,12 +67,22 @@
 - Apple 스토어 판매자·개발자명: 개인 계정 소유자의 법적 이름으로 표시
 - Google Play Console 계정: 개인 계정, 2025년 등록
 - Google Play 정식 공개 게이트: 12명 이상이 14일 연속 참여하는 비공개 테스트 후 Production access 신청 필요
+- Google Play 개발자 연락처 이메일·전화번호: Console에서 인증 표시 확인; Android 실제 기기 인증 상태는 별도 확인 필요
+- Android 개발자 인증: 현재 등록 package 없음; 새 Play 앱 생성 시 `org.sundoo.jubileeworship` 자동 등록 예정
 - Google Play 공개 개발자명: `쥬빌리 워십` 예정, Console 검토 필요
-- iOS·Android 실제 테스트 기기: 사용자 준비 완료
+- 테스트 기기: Samsung SM-G991N(Android 15) 연결, 등록된 iPhone은 현재 Mac에 미연결
 - Supabase: `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트, Seoul 리전으로 생성 확인
-- 이 저장소의 Supabase 원격 연결: 완료, migration 9개 적용·Edge Function 6개 활성·retention cron 활성
+- 이 저장소의 Supabase 원격 연결: 완료. 기존 원격 migration 15개·Edge Function 8개·retention cron은 활성이며, 현재 로컬 18개 중 법적 문서 gate 3개는 원격 적용 대기
+- Supabase Edge secret `TEST_PUSH_PAIRING_PEPPER`: 설정 완료, 값은 문서·저장소에 미기록
 - 실제 push 외부 발송: 비활성(`PUSH_EXTERNAL_SEND_ENABLED=false`), 실기기 통합검증 후 별도 승인 필요
-- Vercel 프로젝트와 홈페이지 주소: 미연결
+- Vercel 프로젝트와 홈페이지 주소: Production 연결 완료, 기본 URL `https://jubilee-worship.vercel.app`
+- Vercel Production `SUPABASE_SECRET_KEY`: 설정 완료, 값은 문서·저장소에 미기록
+- Universal Link·App Link association 파일: 로컬 준비 완료, Production 배포 전
+- Android Production EAS keystore: 생성 완료, 지문은 `docs/APP_LINK_ASSOCIATION.md` 참조
+- EAS Production build: 2026-08-23 기준 iOS 0건·Android 0건
+- Firebase Production Android 앱: 미생성, 등록 폼만 준비하고 외부 생성 확인 대기
+- Google Play 앱: 미생성, 폼 기본값만 준비하고 외부 선언·생성 확인 대기
+- iOS 서명 자격 증명: Distribution Certificate·Provisioning Profile·APNs key·App Store Connect API key 없음
 - 최초 오너 이메일: 운영 DB 연결 시 사용자에게 요청
 
 개발·검수 단계에서는 Supabase Free와 Vercel의 `*.vercel.app` 주소를 사용할
@@ -81,8 +98,14 @@ Vercel Hobby는 개인·비상업용으로 제한되므로 공식 운영 전 실
 1. Apple 개인 계정의 스토어 개발자명은 법적 이름으로 표시되므로 실제 표시명을 App Store Connect에서 확인
 2. 원격 cleanup cron 성공 이력 4회는 확인했으며, 실제 만료정보 삭제를 확인한 뒤 국외 처리 내용까지 오너 승인
 3. Google Play 비공개 테스터 12명 확보 및 14일 연속 테스트·Production access 신청
-4. Vercel Preview 배포 후 개인정보처리방침·고객지원 URL 등록
-5. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
+4. 개인정보 처리자의 법적 성명·명칭, 책임자·연락처, 최종 지원 이메일, 만 14세 제한 범위를 확정하고 정책 공개
+5. association 파일을 Production에 배포하고 운영 서명 iOS·Android 앱으로 링크 검증
+6. Firebase Production 앱·Google Play 앱을 외부 확인 후 생성하고 APNs·FCM과 내부 테스트 트랙 연결
+7. 최종 스토어 스크린샷·설명·지원 URL·개인정보 URL·연령등급 확정
+8. `.com` 또는 `.org` 후보의 권리·가격·갱신 조건을 구매 시점에 재확인
+
+실제 push, 스토어 내부 테스트, 정책 공개와 최종 스토어 스크린샷은 아직
+완료되지 않았다.
 
 비밀번호, Supabase secret key, Apple·Google 인증서와 서명키는 문서·채팅·
 공개 GitHub에 기록하지 않는다. 각 서비스의 보안 저장소와 환경변수에만 둔다.

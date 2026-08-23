@@ -146,11 +146,12 @@ function createStyles(colors: ThemeColors) {
     publishRow: {
       marginTop: spacing.xxs,
       flexDirection: "row",
+      flexWrap: "wrap",
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.sm
     },
-    publishMeta: { ...typography.caption, color: colors.muted },
+    publishMeta: { ...typography.caption, color: colors.muted, flexShrink: 1 },
     changedBadge: {
       borderRadius: radii.sm,
       paddingHorizontal: spacing.xs,

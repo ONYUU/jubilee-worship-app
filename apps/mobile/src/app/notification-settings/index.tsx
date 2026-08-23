@@ -648,7 +648,7 @@ function createStyles(colors: ThemeColors) {
     backgroundColor: colors.activeSoft
   },
   statusIconActive: { backgroundColor: colors.successSoft },
-  copy: { flex: 1, gap: 3 },
+  copy: { flex: 1, minWidth: 0, gap: 3 },
   title: { ...typography.heading, color: colors.text },
   description: { ...typography.caption, color: colors.muted },
   option: {
@@ -688,7 +688,8 @@ function createStyles(colors: ThemeColors) {
     ...typography.heading,
     color: colors.text,
     textAlign: "center",
-    letterSpacing: 2
+    letterSpacing: 2,
+    flexShrink: 1
   },
   privacy: { ...typography.caption, color: colors.muted, textAlign: "center", paddingHorizontal: spacing.md },
   modalBackdrop: {

@@ -32,9 +32,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.navigation,
           borderTopColor: colors.line,
-          height: 82,
-          paddingTop: 8,
-          paddingBottom: 12
+          paddingTop: 8
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
         sceneStyle: { backgroundColor: colors.background }

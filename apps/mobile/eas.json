@@ -24,7 +24,8 @@
       "environment": "preview",
       "env": {
         "APP_VARIANT": "preview",
-        "EXPO_PUBLIC_CONTENT_SOURCE": "supabase"
+        "EXPO_PUBLIC_CONTENT_SOURCE": "supabase",
+        "EXPO_PUBLIC_WEB_ORIGIN": "https://jubilee-worship.vercel.app"
       }
     },
     "preview-simulator": {
@@ -35,10 +36,37 @@
     },
     "production": {
       "autoIncrement": true,
+      "distribution": "store",
       "environment": "production",
       "env": {
         "APP_VARIANT": "production",
-        "EXPO_PUBLIC_CONTENT_SOURCE": "supabase"
+        "EXPO_PUBLIC_CONTENT_SOURCE": "supabase",
+        "EXPO_PUBLIC_WEB_ORIGIN": "https://jubilee-worship.vercel.app"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production-device": {
+      "extends": "production",
+      "autoIncrement": false,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production-simulator": {
+      "extends": "production",
+      "autoIncrement": false,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
       }
     }
   },

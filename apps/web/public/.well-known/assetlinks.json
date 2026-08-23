@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.sundoo.jubileeworship",
+      "sha256_cert_fingerprints": [
+        "24:DF:6F:0B:4D:89:23:5E:B9:37:D4:D2:A0:47:62:47:80:08:12:04:C4:5B:BF:0E:00:D7:5F:13:67:07:DE:E7"
+      ]
+    }
+  }
+]

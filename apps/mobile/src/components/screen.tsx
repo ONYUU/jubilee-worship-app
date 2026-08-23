@@ -1,6 +1,7 @@
 import { useContent } from "@/features/content/content-provider";
 import { getLastUpdatedLabel } from "@/features/content/selectors";
 import { useAppThemeStyles } from "@/theme/theme-provider";
+import { centeredScreenContentStyle } from "@/theme/responsive-layout";
 import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Fragment, type PropsWithChildren } from "react";
 import { Platform, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -17,7 +18,7 @@ export function Screen({ children }: PropsWithChildren) {
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -27,17 +28,19 @@ export function Screen({ children }: PropsWithChildren) {
           />
         }
       >
-        <Fragment key={textLayoutKey}>
-          {usingCache || isOffline ? (
-            <View accessibilityRole="alert" style={styles.offlineBanner}>
-              <Text style={styles.offlineText}>
-                {isOffline ? "오프라인 저장본을 표시합니다" : "저장된 콘텐츠를 먼저 표시합니다"}
-                {content ? ` · ${getLastUpdatedLabel(content)} 업데이트` : ""}
-              </Text>
-            </View>
-          ) : null}
-          {children}
-        </Fragment>
+        <View style={styles.content}>
+          <Fragment key={textLayoutKey}>
+            {usingCache || isOffline ? (
+              <View accessibilityRole="alert" style={styles.offlineBanner}>
+                <Text style={styles.offlineText}>
+                  {isOffline ? "오프라인 저장본을 표시합니다" : "저장된 콘텐츠를 먼저 표시합니다"}
+                  {content ? ` · ${getLastUpdatedLabel(content)} 업데이트` : ""}
+                </Text>
+              </View>
+            ) : null}
+            {children}
+          </Fragment>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -46,7 +49,9 @@ export function Screen({ children }: PropsWithChildren) {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { flexGrow: 1 },
   content: {
+    ...centeredScreenContentStyle,
     flexGrow: 1,
     paddingHorizontal: spacing.md,
     paddingBottom: 120,

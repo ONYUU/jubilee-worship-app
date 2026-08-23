@@ -6,6 +6,10 @@ import { useContent } from "@/features/content/content-provider";
 import { resolveMediaSource } from "@/features/content/media-source";
 import { openExternalUrl } from "@/features/links/open-external-url";
 import { useAppThemeStyles } from "@/theme/theme-provider";
+import {
+  compactActionItemStyle,
+  wrappingRowStyle
+} from "@/theme/responsive-layout";
 import { radii, spacing, typography, type ThemeColors, type ThemeMode } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -245,8 +249,8 @@ function createStyles(colors: ThemeColors) {
     place: { ...typography.heading, color: colors.text },
     body: { ...typography.body, color: colors.muted },
     copyFeedback: { ...typography.caption, color: colors.active, textAlign: "center" },
-    quickActions: { flexDirection: "row", gap: spacing.xxs },
-    quickActionCell: { flex: 1 },
+    quickActions: { ...wrappingRowStyle, gap: spacing.xxs },
+    quickActionCell: compactActionItemStyle,
     guideSection: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line },
     guideItem: {
       minHeight: 68,
@@ -275,9 +279,9 @@ function createStyles(colors: ThemeColors) {
     rowDivider: { borderTopWidth: 1, borderTopColor: colors.line },
     rowPressed: { backgroundColor: colors.raised },
     themeSection: { gap: spacing.xs },
-    themeOptions: { flexDirection: "row", gap: spacing.xs },
+    themeOptions: { ...wrappingRowStyle, gap: spacing.xs },
     themeOption: {
-      flex: 1,
+      ...compactActionItemStyle,
       minHeight: 52,
       paddingHorizontal: spacing.sm,
       borderRadius: radii.sm,

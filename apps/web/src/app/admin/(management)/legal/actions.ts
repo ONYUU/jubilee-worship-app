@@ -116,16 +116,16 @@ export async function publishLegalDocumentAction(_state: ActionState, formData: 
     return actionError(`본문의 ${LEGAL_REVIEW_MARKER} 항목을 모두 확정·제거한 뒤 공개해 주세요.`);
   }
   if (!hasConfirmedServiceIdentity(draft.body)) {
-    return actionError("본문에 확정된 운영주체(쥬빌리 워십)와 문의·개인정보 이메일을 모두 표시해야 공개할 수 있습니다.");
+    return actionError("본문에 확정된 서비스 운영주체(쥬빌리 워십)를 표시해야 공개할 수 있습니다. 지원 이메일은 공급자 및 확정 주소 필수 항목에서 별도로 검증합니다.");
   }
   if (draft.document_type === "privacy_policy" && !hasRequiredAppPrivacyDisclosures(draft.body)) {
-    return actionError("앱 개인정보처리방침에는 설치 식별자·푸시 토큰·알림 선택·보유·비활성화 처리 내용을 모두 명시해야 공개할 수 있습니다.");
+    return actionError("앱 개인정보처리방침에 설치 식별자·푸시 토큰·민감정보 동의·기기 저장·자동화된 결정·광고 SDK 등 필수 고지를 모두 명시하고, 후보·임시·미확정 지원 이메일 전환 문구를 최종 확정 내용으로 교체해야 공개할 수 있습니다.");
   }
   if (draft.document_type === "privacy_policy" && !hasCompletedPrivacyOperationalDetails(draft.body)) {
-    return actionError("보유 기간·삭제 주기·국외 처리 9개 항목의 정확한 항목명과 실제 값을 모두 확정해야 공개할 수 있습니다.");
+    return actionError("보유 기간·삭제 주기·기기 저장·권리행사·국외 처리·지원 이메일 공급자와 운영 증빙 등 필수 항목을 확정하고, 정책 문의 이메일을 현재 앱·홈페이지 설정값과 대소문자까지 일치시켜야 공개할 수 있습니다.");
   }
   if (draft.document_type === "terms_of_service" && !hasCompletedTermsOperationalDetails(draft.body)) {
-    return actionError("준거법·관할·면책 범위·미성년자 이용 안내의 정확한 항목명과 실제 값을 모두 확정해야 공개할 수 있습니다.");
+    return actionError("서비스 제공자의 법적 명칭·주소·전화번호와 준거법·관할·면책 범위·미성년자 이용 안내를 확정하고, 약관 문의 이메일을 현재 앱·홈페이지 설정값과 대소문자까지 일치시켜야 공개할 수 있습니다.");
   }
 
   const { error } = await supabase.rpc("publish_legal_document", { target_document_id: id.data });

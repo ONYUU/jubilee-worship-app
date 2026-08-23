@@ -12,6 +12,7 @@ import {
 } from "@/features/content/selectors";
 import { addEventToCalendar, openMapChoices } from "@/features/events/actions";
 import { useAppThemeStyles } from "@/theme/theme-provider";
+import { actionItemStyle, wrappingRowStyle } from "@/theme/responsive-layout";
 import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -278,8 +279,8 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm
     },
-    quickActions: { flexDirection: "row", gap: spacing.xs },
-    actionCell: { flex: 1 },
+    quickActions: { ...wrappingRowStyle, gap: spacing.xs },
+    actionCell: actionItemStyle,
     pressed: { opacity: 0.72 }
   });
 }

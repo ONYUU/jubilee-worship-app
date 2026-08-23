@@ -3,18 +3,26 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(116);
+select plan(140);
 
 create function pg_temp.reviewed_privacy_body(target_note text)
 returns text
 language sql
 as $$
-  select E'쥬빌리 워십 sundoojubileeworship@gmail.com 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n'
+  select E'쥬빌리 워십 설치 식별자 푸시 토큰 알림 선택 보유 비활성화\n'
     || target_note || E'\n'
-    || E'알림 제공에만 사용합니다. 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다.\n'
-    || E'SUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 검증값은 재사용할 수 없도록 해시합니다. 신규 등록은 출처별 하루 100회, 전체 하루 500회로 제한하고 일일 가명 카운터는 최대 약 25시간 5분 보유됩니다. 650 Industries, Inc. Expo Apple·Google 처리 미국 Google Workspace 만 14세\n'
-    || E'비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n수탁자: 시험 처리자\n이전 국가: 시험 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 HTTPS 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n'
-    || E'개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자\n개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n전화번호 등 연락처: 032-000-0000\n국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 시험 근거\n지원 문의 보유·삭제 기준: 해결 후 90일\n지원 이메일 제공자의 법적 역할·처리 근거: 독립 처리 역할\n지원 이메일 국외 처리 국가: 시험 국가\n알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 민감정보 별도 동의를 모두 받아 서버 시각으로 기록합니다.\n실제 시행일: 2026-09-01\n오너 최종 사실확인: 2026-09-01 서면 승인\n법률 전문가 검토 상태: 2026-09-01 의견서 수령';
+    || E'개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com\n'
+    || E'알림 제공에만 사용합니다. 종교적 관심을 추론할 수 있어 별도 동의를 받고 동의 버전과 동의 시각을 기록합니다. 「개인정보 보호법」 제15조제1항제1호 및 제23조제1항제1호(민감정보 별도 동의)를 근거로 합니다. 이름·이메일·광고 식별자와 결합하지 않고 광고·추적·이용자 프로파일링에 사용하지 않습니다. 수신 알림은 기기에 최대 50건·90일 저장하고 서버로 다시 전송하지 않습니다. 자동화된 결정을 하지 않고 광고 SDK를 사용하지 않습니다.\n'
+    || E'SUPABASE PTE. LTD. 대한민국 서울(ap-northeast-2) Supabase Data API 분산 요청 제한 검증값은 재사용할 수 없도록 해시합니다. 신규 등록은 출처별 하루 100회, 전체 하루 500회로 제한하고 일일 가명 카운터는 최대 약 25시간 5분 보유됩니다. 650 Industries, Inc. Expo Apple·Google 처리 미국 만 14세\n'
+    || E'공개 콘텐츠·보안 로그의 실제 처리 항목과 보유기간: IP·요청 경로 로그 30일\n공개 콘텐츠·보안 로그 처리의 법적 근거: 개인정보보호법 시험 근거\n비활성 정보 보유 기간: 30일\n발송 기록 보유 기간: 90일\n정기 삭제 주기: 매일 1회\n기기 내 저장 자료의 삭제 방법과 운영체제 백업·재설치 설정: 앱 데이터 삭제와 재설치 검증 기록\nSupabase 수신자 연락처: privacy@example.invalid\nExpo 수신자 연락처: privacy@example.invalid\nApple·Google 수신자 연락처 또는 정책 확인 경로: https://example.invalid/privacy\n수탁자: 시험 처리자\n이전 국가: 시험 국가\n이전 항목: 설치 식별자 및 푸시 토큰\n이전 시점 및 방법: 서비스 이용 시 HTTPS 전송\n국외 처리 보유 기간: 30일\n이전 거부 방법 및 효과: 알림 해제 시 알림 기능 중단\n'
+    || E'개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자\n개인정보 보호책임자 또는 고충처리 담당부서: 개인정보팀\n전화번호 등 연락처: 032-000-0000\n국외 처리 법적 근거(법률 검토 후 확정): 개인정보보호법 시험 근거\n권리행사 접수·본인 또는 정당한 대리인 확인·처리·회신 방법: 지원 메일 접수 후 설치 증명값 확인\n지원 문의 처리의 법적 근거: 개인정보보호법 시험 근거\n지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com\n지원 이메일 공급자의 법적 역할·처리 근거: 수탁 처리 및 문의 응대 근거\n지원 이메일 공급자의 처리 국가: 시험 국가\n지원 문의 보유·삭제 기준: 해결 후 90일\n지원 문의 보유·삭제 운영 증빙: 매월 1일 삭제 대상 점검 기록\n알림의 만 14세 이상 제한 또는 법정대리인 동의 절차: 최초 활성화 전에 ‘만 14세 이상입니다’ 확인과 민감정보 별도 동의를 모두 받아 서버 시각으로 기록합니다.\n실제 시행일: 2026-09-01\n오너 최종 사실확인: 2026-09-01 서면 승인\n법률 전문가 검토 상태: 2026-09-01 의견서 수령';
+$$;
+
+create function pg_temp.reviewed_terms_body()
+returns text
+language sql
+as $$
+  select E'쥬빌리 워십\n서비스 문의: sundoojubileeworship@gmail.com\n서비스 제공자의 법적 성명 또는 명칭: 시험 운영자\n주소 및 전화번호: 대한민국 인천광역시 부평구 예시로 123, 032-123-4567\n준거법: 대한민국 법령\n관할: 민사소송법상 관할 법원\n면책 범위: 관련 법령이 허용하는 범위\n미성년자 이용 안내: 알림은 만 14세 이상만 이용';
 $$;
 
 select ok(
@@ -29,8 +37,429 @@ select ok(
   and not private.legal_document_has_confirmed_value(
     E'연령 절차: 내용 확인 완료함',
     '연령 절차:'
+  )
+  and not private.legal_document_has_confirmed_value(
+    E'연령 절차: N/A:',
+    '연령 절차:'
+  )
+  and not private.legal_document_has_confirmed_value(
+    E'연령 절차: 해당   없음.',
+    '연령 절차:'
   ),
-  'confirmed-value validation allows factual long-form text but rejects unresolved and process-only placeholders'
+  'confirmed-value validation allows factual text but rejects placeholders and TypeScript-equivalent empty values'
+);
+
+select ok(
+  private.legal_document_has_sensitive_notification_disclosure(
+    pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증')
+  )
+  and position(
+    'Google Workspace' in pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증')
+  ) = 0
+  and position(
+    'sundoojubileeworship@gmail.com'
+    in pg_get_functiondef(
+      'private.legal_document_has_valid_privacy_contacts(text)'::regprocedure
+    )
+  ) = 0,
+  'provider-neutral privacy disclosure passes while the validator contains no provider-specific address hard-code'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    replace(
+      pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증'),
+      '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com',
+      '지원 이메일 공급자 및 확정 주소: [[오너 확인 필요]]'
+    )
+  ),
+  'support provider and confirmed address rejects an owner-review placeholder'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    replace(
+      pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증'),
+      '지원 이메일 공급자의 법적 역할·처리 근거: 수탁 처리 및 문의 응대 근거',
+      '지원 이메일 공급자의 법적 역할·처리 근거: 검토 예정'
+    )
+  ),
+  'support provider legal role and basis rejects a review placeholder'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    replace(
+      pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증'),
+      '지원 이메일 공급자의 처리 국가: 시험 국가',
+      '지원 이메일 공급자의 처리 국가: 미정'
+    )
+  ),
+  'support provider processing country rejects an unresolved value'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    replace(
+      pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증'),
+      '지원 문의 보유·삭제 기준: 해결 후 90일',
+      '지원 문의 보유·삭제 기준: 해당 없음'
+    )
+  ),
+  'support retention and deletion rule rejects a not-applicable value'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    replace(
+      pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증'),
+      '지원 문의 보유·삭제 운영 증빙: 매월 1일 삭제 대상 점검 기록',
+      '지원 문의 보유·삭제 운영 증빙: 최종 확인 완료'
+    )
+  ),
+  'support retention and deletion evidence rejects a process-only placeholder'
+);
+
+select ok(
+  not private.legal_document_has_sensitive_notification_disclosure(
+    pg_temp.reviewed_privacy_body('공급자 중립 게이트 검증')
+      || E'\n지원 이메일 공급자 및 확정 주소: 중복공급자 duplicate@example.invalid'
+  ),
+  'support provider and confirmed address rejects duplicate exact labels'
+);
+
+select ok(
+  position(
+    'Google Workspace'
+    in pg_get_functiondef('public.publish_legal_document(bigint)'::regprocedure)
+  ) = 0
+  and position(
+    'sundoojubileeworship@gmail.com'
+    in pg_get_functiondef('public.publish_legal_document(bigint)'::regprocedure)
+  ) = 0
+  and position(
+    'Google Workspace'
+    in pg_get_functiondef(
+      'private.current_store_ready_privacy_policy_exists()'::regprocedure
+    )
+  ) = 0
+  and position(
+    'sundoojubileeworship@gmail.com'
+    in pg_get_functiondef(
+      'private.current_store_ready_privacy_policy_exists()'::regprocedure
+    )
+  ) = 0
+  and position(
+    'sundoojubileeworship@gmail.com'
+    in pg_get_functiondef(
+      'private.legal_document_has_valid_terms_provider_details(text)'::regprocedure
+    )
+  ) = 0,
+  'direct publish and store-ready gate definitions contain no provider-specific support hard-code'
+);
+
+select ok(
+  private.legal_document_has_completed_privacy_operational_details(
+    pg_temp.reviewed_privacy_body('전체 운영 라벨 검증')
+  ),
+  'database operational helper accepts a policy containing every TypeScript privacy operational label'
+);
+
+select ok(
+  not exists (
+    select 1
+    from unnest(array[
+      '공개 콘텐츠·보안 로그의 실제 처리 항목과 보유기간:',
+      '공개 콘텐츠·보안 로그 처리의 법적 근거:',
+      '비활성 정보 보유 기간:',
+      '발송 기록 보유 기간:',
+      '정기 삭제 주기:',
+      '기기 내 저장 자료의 삭제 방법과 운영체제 백업·재설치 설정:',
+      'Supabase 수신자 연락처:',
+      'Expo 수신자 연락처:',
+      'Apple·Google 수신자 연락처 또는 정책 확인 경로:',
+      '수탁자:',
+      '이전 국가:',
+      '이전 항목:',
+      '이전 시점 및 방법:',
+      '국외 처리 보유 기간:',
+      '이전 거부 방법 및 효과:',
+      '개인정보 처리자의 법적 성명 또는 명칭:',
+      '개인정보 보호책임자 또는 고충처리 담당부서:',
+      '전화번호 등 연락처:',
+      '국외 처리 법적 근거(법률 검토 후 확정):',
+      '권리행사 접수·본인 또는 정당한 대리인 확인·처리·회신 방법:',
+      '지원 문의 처리의 법적 근거:',
+      '지원 이메일 공급자 및 확정 주소:',
+      '지원 문의 보유·삭제 기준:',
+      '지원 문의 보유·삭제 운영 증빙:',
+      '지원 이메일 공급자의 법적 역할·처리 근거:',
+      '지원 이메일 공급자의 처리 국가:',
+      '알림의 만 14세 이상 제한 또는 법정대리인 동의 절차:',
+      '실제 시행일:',
+      '오너 최종 사실확인:',
+      '법률 전문가 검토 상태:'
+    ]::text[]) as required(label)
+    where private.legal_document_has_completed_privacy_operational_details(
+      replace(
+        pg_temp.reviewed_privacy_body('전체 운영 라벨 검증'),
+        required.label,
+        '제거된 운영 라벨:'
+      )
+    )
+  ),
+  'database operational helper rejects removal of each TypeScript privacy operational label'
+);
+
+select ok(
+  private.legal_document_has_required_app_privacy_disclosures(
+    pg_temp.reviewed_privacy_body('전체 필수 고지 검증')
+  ),
+  'database disclosure helper accepts every TypeScript required privacy disclosure'
+);
+
+select ok(
+  not exists (
+    select 1
+    from unnest(array[
+      '설치 식별자',
+      '푸시 토큰',
+      '알림 선택',
+      '종교적 관심',
+      '이름·이메일',
+      '광고 식별자',
+      '결합하지 않고',
+      '알림 제공',
+      '에만 사용',
+      '광고·추적·이용자 프로파일링에 사용하지 않습니다',
+      '별도 동의',
+      '동의 버전',
+      '동의 시각',
+      '보유',
+      '비활성화',
+      'SUPABASE PTE. LTD.',
+      '650 Industries, Inc.',
+      'Apple·Google 처리',
+      '대한민국 서울(ap-northeast-2)',
+      '미국',
+      'Supabase Data API',
+      '분산 요청 제한',
+      '하루 100회',
+      '하루 500회',
+      '25시간 5분',
+      '재사용할 수 없도록',
+      '「개인정보 보호법」 제15조제1항제1호',
+      '제23조제1항제1호(민감정보 별도 동의)',
+      '최대 50건·90일',
+      '서버로 다시 전송하지 않습니다',
+      '자동화된 결정',
+      '광고 SDK',
+      '지원 이메일 공급자 및 확정 주소:',
+      '지원 문의 보유·삭제 기준:',
+      '지원 문의 보유·삭제 운영 증빙:',
+      '지원 이메일 공급자의 법적 역할·처리 근거:',
+      '만 14세'
+    ]::text[]) as required(term)
+    where private.legal_document_has_required_app_privacy_disclosures(
+      replace(
+        pg_temp.reviewed_privacy_body('전체 필수 고지 검증'),
+        required.term,
+        '제거된 필수 고지'
+      )
+    )
+  ),
+  'database disclosure helper rejects removal of each TypeScript required privacy disclosure'
+);
+
+select ok(
+  not private.legal_document_has_required_app_privacy_disclosures(
+    pg_temp.reviewed_privacy_body('검증되지 않은 과거 주장 차단')
+      || E'\n계약·서비스 운영주체는 싱가포르 법인 SUPABASE PTE. LTD.'
+  ),
+  'database disclosure helper rejects the same unverified legacy claim as TypeScript'
+);
+
+select ok(
+  not exists (
+    select 1
+    from unnest(array[
+      'Gmail 기반 후보·임시 문의 주소',
+      '최종 지원 이메일 공급자와 주소로 확정되지 않았습니다',
+      '확인하기 전에는 이 정책을 공개하지 않습니다',
+      '공급자별 법적 역할, 계약 당사자, 재위탁 구조, 국외 이전 근거는 실제 계정에 적용되는 최신 계약과 설정을 기준으로 확정합니다',
+      '실제 계정에 적용되는 최신 계약·위탁 구조를 공개 전에 확정합니다',
+      '이 연령 확인 방식의 법률적 충분성과 스토어 연령 설정의 정합성은 공개 전에 법률 전문가가 최종 검토합니다',
+      '검토가 끝나기 전에는 개인정보처리방침을 공개하거나 알림 등록을 활성화하지 않습니다'
+    ]::text[]) as unresolved(claim)
+    where private.legal_document_has_required_app_privacy_disclosures(
+      pg_temp.reviewed_privacy_body('지원 채널 전환 문구 차단')
+        || E'\n' || unresolved.claim
+    )
+  ),
+  'database disclosure helper rejects every unresolved support-channel transition claim'
+);
+
+select ok(
+  not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('문의 이메일 일치 검증'),
+      '개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com',
+      '개인정보 및 앱 이용 문의: other@example.invalid'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      replace(
+        pg_temp.reviewed_privacy_body('잠금 연락처 일치 검증'),
+        '개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com',
+        '개인정보 및 앱 이용 문의: other@example.invalid'
+      ),
+      '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com',
+      '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) other@example.invalid'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      replace(
+        pg_temp.reviewed_privacy_body('대소문자 잠금 연락처 일치 검증'),
+        '개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com',
+        '개인정보 및 앱 이용 문의: SUNDOOJUBILEEWORSHIP@GMAIL.COM'
+      ),
+      '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com',
+      '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) SUNDOOJUBILEEWORSHIP@GMAIL.COM'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('전화번호 형식 검증'),
+      '전화번호 등 연락처: 032-000-0000',
+      '전화번호 등 연락처: 2026-09-01 서면 승인 기록'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('수신자 채널 형식 검증'),
+      'Supabase 수신자 연락처: privacy@example.invalid',
+      'Supabase 수신자 연락처: 공식 지원 포털'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('법적 명칭 형식 검증'),
+      '개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자',
+      '개인정보 처리자의 법적 성명 또는 명칭: 2026-09-01 담당자 서면 승인 기록'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('법적 명칭 이메일 혼합 검증'),
+      '개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자',
+      '개인정보 처리자의 법적 성명 또는 명칭: 주빌리 담당 org@example.com'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('법적 명칭 URL 혼합 검증'),
+      '개인정보 처리자의 법적 성명 또는 명칭: 시험 운영자',
+      '개인정보 처리자의 법적 성명 또는 명칭: HTTPS://example.com 운영자'
+    )
+  ),
+  'privacy operational gate rejects mismatched email and non-contact or non-identity field values'
+);
+
+select ok(
+  private.legal_document_has_completed_terms_operational_details(
+    pg_temp.reviewed_terms_body()
+  )
+  and not private.legal_document_has_completed_terms_operational_details(
+    replace(
+      pg_temp.reviewed_terms_body(),
+      '대한민국 인천광역시 부평구 예시로 123, 032-123-4567',
+      '2026-09-01 주소·전화 서면 승인 기록'
+    )
+  )
+  and not private.legal_document_has_completed_terms_operational_details(
+    replace(
+      pg_temp.reviewed_terms_body(),
+      '서비스 제공자의 법적 성명 또는 명칭: 시험 운영자',
+      '서비스 제공자의 법적 성명 또는 명칭: 담당자 서면 승인 기록'
+    )
+  )
+  and not private.legal_document_has_completed_terms_operational_details(
+    replace(
+      pg_temp.reviewed_terms_body(),
+      '서비스 문의: sundoojubileeworship@gmail.com',
+      '서비스 문의: other@example.invalid'
+    )
+  )
+  and not private.legal_document_has_completed_terms_operational_details(
+    replace(
+      pg_temp.reviewed_terms_body(),
+      '서비스 문의: sundoojubileeworship@gmail.com',
+      '서비스 문의: SUNDOOJUBILEEWORSHIP@GMAIL.COM'
+    )
+  ),
+  'terms operational gate requires a legal identity, service email, and address with phone number'
+);
+
+select ok(
+  private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('불릿 공백 정규화 검증'),
+      'Supabase 수신자 연락처: privacy@example.invalid',
+      '- Supabase 수신자 연락처: privacy@example.invalid'
+    )
+  )
+  and not private.legal_document_has_completed_privacy_operational_details(
+    replace(
+      pg_temp.reviewed_privacy_body('불릿 공백 정규화 검증'),
+      'Supabase 수신자 연락처: privacy@example.invalid',
+      '-Supabase 수신자 연락처: privacy@example.invalid'
+    )
+  ),
+  'database and TypeScript label matchers both require whitespace after a bullet marker'
+);
+
+select ok(
+  position(
+    'legal_document_has_completed_privacy_operational_details'
+    in pg_get_functiondef('public.publish_legal_document(bigint)'::regprocedure)
+  ) > 0
+  and position(
+    'legal_document_has_required_app_privacy_disclosures'
+    in pg_get_functiondef('public.publish_legal_document(bigint)'::regprocedure)
+  ) > 0
+  and position(
+    'legal_document_has_completed_privacy_operational_details'
+    in pg_get_functiondef(
+      'private.current_store_ready_privacy_policy_exists()'::regprocedure
+    )
+  ) > 0
+  and position(
+    'legal_document_has_required_app_privacy_disclosures'
+    in pg_get_functiondef(
+      'private.current_store_ready_privacy_policy_exists()'::regprocedure
+    )
+  ) > 0
+  and position(
+    'legal_document_has_required_app_privacy_disclosures'
+    in pg_get_functiondef(
+      'private.legal_document_has_sensitive_notification_disclosure(text)'::regprocedure
+    )
+  ) > 0
+  and position(
+    'legal_document_has_completed_privacy_operational_details'
+    in pg_get_functiondef(
+      'private.legal_document_has_sensitive_notification_disclosure(text)'::regprocedure
+    )
+  ) > 0
+  and position(
+    '이름·이메일'
+    in pg_get_functiondef(
+      'private.legal_document_has_sensitive_notification_disclosure(text)'::regprocedure
+    )
+  ) = 0,
+  'direct publish, runtime, and legacy sensitive predicates share the disclosure and operational helpers without hidden phrases'
 );
 
 -- 1
@@ -1588,6 +2017,163 @@ select throws_ok(
   '23514',
   'Legal document identity and disclosure review is incomplete',
   'a direct owner RPC cannot publish a privacy policy without the religious-interest disclosure'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'privacy_policy',
+  'operational-label-bypass',
+  '운영 라벨 직접 공개 우회 검증',
+  replace(
+    pg_temp.reviewed_privacy_body('운영 라벨 직접 공개 우회 검증'),
+    '공개 콘텐츠·보안 로그 처리의 법적 근거:',
+    '제거된 운영 라벨:'
+  ),
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'operational-label-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot bypass any complete privacy operational-label requirement'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'privacy_policy',
+  'required-disclosure-bypass',
+  '필수 고지 직접 공개 우회 검증',
+  replace(
+    pg_temp.reviewed_privacy_body('필수 고지 직접 공개 우회 검증'),
+    '광고 SDK',
+    '제거된 필수 고지'
+  ),
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'required-disclosure-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot bypass any required app privacy disclosure'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'privacy_policy',
+  'support-transition-bypass',
+  '지원 채널 전환 문구 직접 공개 우회 검증',
+  pg_temp.reviewed_privacy_body('지원 채널 전환 문구 직접 공개 우회 검증')
+    || E'\nGmail 기반 후보·임시 문의 주소',
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'support-transition-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot publish a policy that still contains a support-channel transition claim'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'privacy_policy',
+  'privacy-contact-field-bypass',
+  '개인정보 연락처 필드 직접 공개 우회 검증',
+  replace(
+    replace(
+      pg_temp.reviewed_privacy_body('개인정보 연락처 필드 직접 공개 우회 검증'),
+      '개인정보 및 앱 이용 문의: sundoojubileeworship@gmail.com',
+      '개인정보 및 앱 이용 문의: other@example.invalid'
+    ),
+    '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) sundoojubileeworship@gmail.com',
+    '지원 이메일 공급자 및 확정 주소: 시험메일(Test Mail) other@example.invalid'
+  ),
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'privacy-contact-field-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot bypass privacy contact-email consistency'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'terms_of_service',
+  'terms-address-field-bypass',
+  '약관 주소·전화 필드 직접 공개 우회 검증',
+  replace(
+    pg_temp.reviewed_terms_body(),
+    '대한민국 인천광역시 부평구 예시로 123, 032-123-4567',
+    '2026-09-01 주소·전화 서면 승인 기록'
+  ),
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'terms-address-field-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot bypass terms address-and-phone field validation'
+);
+
+insert into public.legal_documents (
+  document_type, version, title, body, effective_on
+)
+values (
+  'terms_of_service',
+  'terms-contact-lock-bypass',
+  '약관 연락처 잠금 직접 공개 우회 검증',
+  replace(
+    pg_temp.reviewed_terms_body(),
+    '서비스 문의: sundoojubileeworship@gmail.com',
+    '서비스 문의: other@example.invalid'
+  ),
+  current_date
+);
+
+select throws_ok(
+  $$
+    select public.publish_legal_document(
+      (select id from public.legal_documents where version = 'terms-contact-lock-bypass')
+    )
+  $$,
+  '23514',
+  'Legal document identity and disclosure review is incomplete',
+  'a direct owner RPC cannot publish terms with a contact email different from locked site settings'
 );
 
 reset role;

@@ -76,6 +76,11 @@ const securityHeaders = [
   }
 ];
 
+const appAssociationHeaders = [
+  { key: "Content-Type", value: "application/json; charset=utf-8" },
+  { key: "Cache-Control", value: "public, max-age=3600" }
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
@@ -94,7 +99,21 @@ const nextConfig: NextConfig = {
     ]
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      {
+        source: "/.well-known/assetlinks.json",
+        headers: appAssociationHeaders
+      },
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: appAssociationHeaders
+      },
+      {
+        source: "/apple-app-site-association",
+        headers: appAssociationHeaders
+      },
+      { source: "/(.*)", headers: securityHeaders }
+    ];
   }
 };
 

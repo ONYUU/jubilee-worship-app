@@ -1,7 +1,7 @@
 {
   "name": "@jubilee/mobile",
   "main": "expo-router/entry",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
     "@expo/metro-runtime": "~57.0.12",
     "@expo/ui": "~57.0.12",
@@ -55,6 +55,9 @@
     "web": "expo start --web",
     "build": "expo export --platform all --output-dir dist",
     "lint": "expo lint --max-warnings=0",
+    "release:check-config": "APP_VARIANT=production EXPO_PUBLIC_CONTENT_SOURCE=supabase EXPO_PUBLIC_SUPABASE_URL=https://example.supabase.co EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_release_validation_placeholder EXPO_PUBLIC_WEB_ORIGIN=https://jubilee-worship.vercel.app JUBILEE_VALIDATE_PRODUCTION_CONFIG=true expo config --type public",
+    "release:check-config:eas:ios": "eas env:exec production 'EAS_BUILD_PLATFORM=ios APP_VARIANT=production EXPO_PUBLIC_CONTENT_SOURCE=supabase EXPO_PUBLIC_WEB_ORIGIN=https://jubilee-worship.vercel.app JUBILEE_VALIDATE_PRODUCTION_CONFIG=true expo config --type public'",
+    "release:check-config:eas:android": "eas env:exec production 'EAS_BUILD_PLATFORM=android APP_VARIANT=production EXPO_PUBLIC_CONTENT_SOURCE=supabase EXPO_PUBLIC_WEB_ORIGIN=https://jubilee-worship.vercel.app JUBILEE_VALIDATE_PRODUCTION_CONFIG=true expo config --type public'",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "doctor": "pnpm dlx expo-doctor@latest"

@@ -1,5 +1,9 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { createExpoMessage, JUBILEE_PUSH_TTL_SECONDS } from "./expo.ts";
+import {
+  createExpoMessage,
+  JUBILEE_ANDROID_NOTIFICATION_CHANNEL_ID,
+  JUBILEE_PUSH_TTL_SECONDS,
+} from "./expo.ts";
 
 Deno.test("generic push messages carry the bounded one-hour TTL", () => {
   assertEquals(JUBILEE_PUSH_TTL_SECONDS, 3_600);
@@ -14,6 +18,9 @@ Deno.test("generic push messages carry the bounded one-hour TTL", () => {
       to: "ExpoPushToken[ttl_test]",
       title: "예배 알림",
       body: "예배 시간을 확인해 주세요.",
+      channelId: JUBILEE_ANDROID_NOTIFICATION_CHANNEL_ID,
+      sound: "default",
+      priority: "high",
       ttl: 3_600,
       data: { url: "jubileeworship://worship/1" },
     },

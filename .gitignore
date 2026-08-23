@@ -22,6 +22,12 @@ test-results/
 .eas/
 .wrangler/
 outputs/
+!/outputs/
+/outputs/*
+!/outputs/store-assets/
+/outputs/store-assets/*
+!/outputs/store-assets/google-play-icon-512.png
+!/outputs/store-assets/google-play-feature-graphic-1024x500.png
 work/
 reference/
 *.tsbuildinfo

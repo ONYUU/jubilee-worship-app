@@ -12,12 +12,20 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry"
   },
-  webServer: {
-    command: `pnpm exec next dev -p ${serverPort}`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000
-  },
+  webServer: [
+    {
+      command: `pnpm exec next dev -p ${serverPort}`,
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000
+    },
+    {
+      command: "pnpm exec next dev e2e/fixtures/sensitive-form-app -H 127.0.0.1 -p 3101",
+      url: "http://127.0.0.1:3101",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000
+    }
+  ],
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["Pixel 5"] } }

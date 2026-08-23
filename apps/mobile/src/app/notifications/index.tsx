@@ -194,7 +194,7 @@ function createStyles(colors: ThemeColors) {
   copy: { flex: 1, gap: 4 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.active },
-  title: { ...typography.label, color: colors.text },
+  title: { ...typography.label, color: colors.text, flexShrink: 1 },
   body: { ...typography.body, color: colors.muted },
   receivedAt: { ...typography.caption, color: colors.muted, marginTop: spacing.xxs },
   pressed: { opacity: 0.68 }

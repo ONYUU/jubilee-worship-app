@@ -135,7 +135,7 @@ export default async function LegalDocumentsAdminPage({
             ) : null}
           </div>
           <p className="mt-3 rounded-xl border border-white/10 bg-night-950/60 p-4 text-sm text-stone-300">
-            확정 표시값: 운영주체 {SERVICE_IDENTITY.operatorName} · 문의·개인정보 {SERVICE_IDENTITY.contactEmail}. 기본 템플릿의 {LEGAL_REVIEW_MARKER} 항목이 남아 있으면 오너 공개 액션이 차단됩니다.
+            확정 표시값: 운영주체 {SERVICE_IDENTITY.operatorName}. 현재 문의·개인정보 이메일 {SERVICE_IDENTITY.contactEmail}은 후보·임시값으로 최종 확정이 필요합니다. 기본 템플릿의 {LEGAL_REVIEW_MARKER} 항목이나 후보·임시·미확정 전환 문구가 남아 있으면 오너 공개 액션이 차단됩니다.
           </p>
           <AdminForm action={saveLegalDocumentAction} submitLabel={selected ? "초안 저장" : "초안 만들기"} className="mt-5">
             {selected ? <input type="hidden" name="id" value={selected.id} /> : null}

@@ -26,7 +26,7 @@ const sections = [
   },
   {
     title: "이메일 지원 문의",
-    body: `지원 문의는 Google Workspace 업무용 계정으로 전환하기로 결정했으며, 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하고 월 1회 삭제 대상을 점검합니다. 실제 업무용 주소·도메인과 계약·관리 설정은 아직 확인 전이므로 ${SERVICE_IDENTITY.contactEmail}은 전환 완료 전 임시 문의 주소입니다. 비밀번호, 인증번호, 설치 비밀값, 푸시 토큰 등 비밀정보를 보내면 안 되며, 삭제를 원하면 문의 주소로 대상 메일을 알려 요청할 수 있습니다.`
+    body: `현재 표시된 ${SERVICE_IDENTITY.contactEmail}은 Gmail 기반 후보·임시 문의 주소이며 최종 지원 이메일 공급자와 주소로 확정되지 않았습니다. 문의 해결일 또는 마지막 답변일로부터 90일 후 삭제하고 월 1회 삭제 대상을 점검하는 기준은 정했지만, 실제 공급자의 계약·관리 설정·처리 국가와 삭제 운영 증빙을 확인하기 전에는 최종 정책으로 공개하지 않습니다. 비밀번호, 인증번호, 설치 비밀값, 푸시 토큰 등 비밀정보를 보내면 안 되며, 삭제를 원하면 문의 주소로 대상 메일을 알려 요청할 수 있습니다.`
   },
   {
     title: "YouTube 영상",
@@ -78,7 +78,7 @@ export default async function PrivacyPage() {
           </div>
 
           <h2 className="mt-14 font-serif text-3xl font-semibold">홈페이지 개인정보 안내</h2>
-          <p className="mt-3 text-sm text-stone-500">현황 확인: 2026-08-20 · 지원 문의 90일 삭제 기준 승인 · 업무용 주소와 최종 앱 정책은 공개 전 확인 필요</p>
+          <p className="mt-3 text-sm text-stone-500">현황 확인: 2026-08-23 · 지원 문의 90일 삭제 기준 설정 · 최종 공급자·주소·운영 증빙과 앱 정책은 공개 전 확인 필요</p>
           <div className="mt-10 divide-y divide-white/10 border-y border-white/10">
             {sections.map((section, index) => (
               <section key={section.title} className="grid gap-4 py-8 md:grid-cols-[80px_1fr] md:py-10">
@@ -91,7 +91,7 @@ export default async function PrivacyPage() {
             ))}
           </div>
           <p className="mt-10 rounded-[20px] border border-brand-sun/20 bg-brand-sun/5 p-6 text-sm text-stone-300">
-            개인정보 처리자의 법적 명칭·담당자 연락처, Vercel과 Google Workspace의 실제 운영 설정·업무용 주소는 공식 공개 전에 확인해야 합니다. 현재 임시 문의: {" "}
+            개인정보 처리자의 법적 명칭·담당자 연락처, Vercel과 최종 지원 이메일 공급자의 실제 운영 설정·확정 주소는 공식 공개 전에 확인해야 합니다. 현재 Gmail 후보·임시 문의: {" "}
             <a className="break-all underline underline-offset-2" href={contactMailto()}>
               {SERVICE_IDENTITY.contactEmail}
             </a>

@@ -16,7 +16,7 @@ import type { ActionState } from "@/lib/auth/types";
 import {
   notificationCampaignFormSchema,
   notificationCampaignIdSchema,
-  reinstallRecoveryApprovalFormSchema,
+  reinstallRecoveryApprovalDigestFormSchema,
   testPushEdgeRequestBody,
   testPushFormSchema,
   testPushPairingApprovalEdgeRequestBody,
@@ -24,7 +24,6 @@ import {
   worshipReminderScheduleFormSchema,
   worshipReminderScheduleResultSchema
 } from "@/lib/admin/mobile-content-schemas";
-import { reinstallRecoveryCodeDigest } from "@/lib/admin/reinstall-recovery";
 
 function revalidateNotificationPaths() {
   revalidatePath("/admin");
@@ -337,18 +336,21 @@ export async function approveReinstallRecoveryAction(
 ): Promise<ActionState> {
   noStore();
   const { supabase } = await requireOwner();
-  const parsed = reinstallRecoveryApprovalFormSchema.safeParse({
+  const parsed = reinstallRecoveryApprovalDigestFormSchema.safeParse({
     challenge_id: requiredString(formData.get("challenge_id")),
-    recovery_code: requiredString(formData.get("recovery_code"))
+    recovery_code_digest: requiredString(formData.get("recovery_code_digest"))
   });
-  if (!parsed.success) return zodActionError(parsed.error);
+  if (!parsed.success) {
+    return actionError("입력 내용을 확인해 주세요.", {
+      recovery_code: ["26자리 재설치 복구 코드 형식을 확인해 주세요."]
+    });
+  }
 
-  // Keep the one-time capability in this server action's memory only. The DB
-  // receives a domain-separated digest and never receives or returns the code.
-  const recoveryCodeDigest = reinstallRecoveryCodeDigest(parsed.data.recovery_code);
+  // The browser removes the raw capability before invoking this Server Action.
+  // Vercel and Supabase receive only its domain-separated digest.
   const { data, error } = await supabase.rpc("approve_owner_reinstall_recovery", {
     target_challenge_id: parsed.data.challenge_id,
-    target_recovery_code_digest: recoveryCodeDigest
+    target_recovery_code_digest: parsed.data.recovery_code_digest
   });
   if (error) {
     if (error.code === "55000") {

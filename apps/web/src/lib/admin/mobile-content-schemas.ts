@@ -116,6 +116,14 @@ export const reinstallRecoveryApprovalFormSchema = z.object({
   recovery_code: normalizedReinstallRecoveryCodeSchema
 });
 
+export const reinstallRecoveryApprovalDigestFormSchema = z.object({
+  challenge_id: z.uuid("재설치 복구 요청을 확인해 주세요."),
+  recovery_code_digest: z.string().regex(
+    /^[0-9a-f]{64}$/,
+    "26자리 재설치 복구 코드 형식을 확인해 주세요."
+  )
+});
+
 export const reinstallRecoveryChallengeListSchema = z.array(z.object({
   challenge_id: z.uuid(),
   app_variant: testPushAppVariantSchema,

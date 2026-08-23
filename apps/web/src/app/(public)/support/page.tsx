@@ -140,7 +140,8 @@ export default function SupportPage() {
             </h2>
             <p className="mt-6 max-w-3xl text-stone-300">
               아래 내용을 포함하면 문제를 확인하는 데 도움이 됩니다. 문의 입력 폼은 운영하지
-              않으며, 이메일 앱에서 직접 보내는 방식입니다.
+              않으며, 이메일 앱에서 직접 보내는 방식입니다. 문제 확인에 필요한 항목만 보내고,
+              스크린샷·화면 녹화에서 다른 사람의 얼굴과 개인정보는 가려 주세요.
             </p>
 
             <ul className="mt-10 grid gap-4 md:grid-cols-2">

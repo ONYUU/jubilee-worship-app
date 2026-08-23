@@ -341,11 +341,12 @@ export default async function NotificationsAdminPage({
                       submitLabel="대조 후 복구 승인"
                       confirmMessage="화면의 이전·신규 기기 정보와 새 기기의 26자리 복구 코드를 직접 대조했습니까? 승인 후 새 기기 앱에서 완료해야 실제 교체되며, 승인만으로 이전 연결은 폐기되지 않습니다."
                       resetOnSettled
+                      sensitiveTransform="reinstall-recovery-code"
                     >
                       <input type="hidden" name="challenge_id" value={challenge.challenge_id} />
                       <FormSection
                         title="새 기기 일회용 코드"
-                        description="새 기기 화면에 표시된 26자리 코드를 입력하세요. 서버는 즉시 해시한 값만 데이터베이스에 보냅니다."
+                        description="새 기기 화면에 표시된 26자리 코드를 입력하세요. 브라우저가 원문을 제거하고 해시한 값만 서버에 보냅니다."
                       >
                         <TextField
                           label="재설치 복구 코드"

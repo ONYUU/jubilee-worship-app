@@ -1,11 +1,11 @@
 # 쥬빌리워십 모바일 앱 개발 기획서
 
-- 문서 버전: 1.5
+- 문서 버전: 1.6
 - 최초 작성일: 2026-08-14 KST
-- 최종 결정 반영일: 2026-08-19 KST
+- 최종 현행화일: 2026-08-23 KST
 - 대상 플랫폼: iOS, Android
-- 현재 단계: v9 라이트·다크 앱 구현 및 자동·네이티브 검증, 스토어 제출 전 외부 연동 준비
-- 확정 디자인: `Light · Dark v9 · Logo-free`
+- 현재 단계: 스토어 심사 제출 직전을 위한 운영 자격 증명·서명 빌드·실기기 검수 준비
+- 확정 디자인: `Light · Dark v9 · 앱 내부 텍스트 중심`; 런처 아이콘은 공식 로고, 시작 화면은 로고 없는 추상 자산 사용
 - 기준 목업: [라이트](../design/mobile/output/app-design-board-v9-light.png), [다크](../design/mobile/output/app-design-board-v9-dark.png)
 - 기능 기준: [모바일 디자인 설명](../design/mobile/README.md), [송리스트 기능 명세](../design/mobile/SONGLIST_SPEC.md), [설교·말씀 기능 명세](../design/mobile/SERMON_SPEC.md)
 
@@ -15,7 +15,7 @@
 2. 신규 관리자는 기본 `editor`로 승인하며, `owner`만 관리자 승인·비활성화, 콘텐츠 최종 공개와 푸시 발송을 수행한다.
 3. 모든 관리자 등록과 추가 `owner` 승격은 기존 `owner`가 건별로 수동 승인하며 자동 승격 기능은 두지 않는다.
 4. 1차 송리스트 듣기 링크는 승인된 공식 YouTube 영상·재생목록만 허용한다.
-5. 앱 내부에는 그래픽 로고를 배치하지 않고 `쥬빌리워십`을 일반 한글 텍스트로만 표시한다. 앱 아이콘과 시작 배경은 사람·로고·종교 상징이 없는 하늘색·연노랑 추상 자산을 사용한다.
+5. 앱 내부 화면은 `쥬빌리워십` 텍스트 중심 구성을 유지한다. 2026-08-20 후속 결정에 따라 휴대전화 런처 아이콘에는 공식 쥬빌리워십 로고를 사용하고, 시작 화면은 타사 로고·인물·상징이 없는 추상 자산과 한글 제목을 사용한다.
 6. 1차 개발 완료 기준은 Expo/EAS 검증본을 iOS·Android에서 설치·회귀 검증하고, 스토어 제출 직전의 외부 연동·정책·서명 게이트를 명확히 분리하는 것으로 한다. 실제 스토어 제출은 별도 승인 후 수행한다.
 7. 알림 데이터는 최소수집 원칙에 따라 토큰 원문 24시간, 180일 미활동 설치 비활성화, 비활성 정보 30일, 발송 상세기록 90일, 매일 자동 정리 기준을 적용한다.
 8. Google Play 개인 개발자 계정은 2025년에 등록했으므로 정식 공개 전에 12명·14일 연속 비공개 테스트와 Production access 신청을 별도 출시 게이트로 둔다.
@@ -39,15 +39,15 @@
 
 | 구분 | 현재 확인된 상태 | 이번 개발 범위 |
 |---|---|---|
-| 앱 디자인 | 로고 없는 v9 라이트·다크 6화면 확정, 홈·예배에 설교 정보 포함 | 실제 네이티브 화면·시작 자산·접근성 반영 완료 |
+| 앱 디자인 | v9 라이트·다크 6화면, 홈·예배 설교 정보, 정식 홈 예배 사진과 공식 런처 로고 반영 | 실제 네이티브 화면·시작 자산·접근성 반영 완료 |
 | 모바일 앱 | Expo 기반 iOS·Android 공통 앱, 라이트·다크 저장, 4개 탭·상세 화면 구현 | 실제 APNs·FCM, 운영 서명, 스토어 빌드 검증 |
 | 웹 공개 사이트 | 공개 페이지와 로컬 QA 완료 | 앱과 동일 데이터 사용 여부 회귀검증 |
 | 웹 관리자 | 기존 관리 기능과 설교·송리스트·갤러리·안내·관리자 승인 기능 구현 | 법적 문서·푸시 발송 최종 연동과 운영 메일 검증 |
-| 데이터베이스 | 앱 공개 view, 설교·송리스트 승인 흐름, RLS·Storage 정책 구현, 원격 migration 9개 적용 | 최초 owner·정책 원문·운영 데이터 검증 |
+| 데이터베이스 | 앱 공개 view, 설교·송리스트 승인 흐름, RLS·Storage 정책 구현, 원격 migration 15개 적용 | 최신 법적 문서 gate migration 3개 원격 적용, 최초 owner·정책 원문·운영 데이터 검증 |
 | 공통 규칙 | 앱 DTO, 날짜·D-Day·YouTube·송리스트 검증 규칙 구현 | 푸시 요청·응답 계약 최종 검증 |
-| 운영 연결 | Free `쥬빌리` Supabase 저장소 link·기존 Edge Function 6개·retention cron 적용, 외부 push 비활성 | 시험기기 연결·딥링크 허용 경로 migration, Edge Function 2개와 변경된 `test-push` 배포, 웹 Preview, 실제 push, TestFlight·Play 테스트 연결 |
+| 운영 연결 | Free `쥬빌리` Supabase 저장소 link·Edge Function 8개·retention cron, Vercel Production 연결, 외부 push 비활성 | Firebase·APNs, 서명 빌드, 실제 push, TestFlight·Play 내부 테스트 연결 |
 
-현재 원격 Supabase 백엔드와 EAS 세 환경의 Supabase 공개 URL·publishable key는 연결됐다. 다만 Vercel 웹 배포·서버 secret, Firebase/FCM·APNs, 운영 서명·앱스토어까지 연결된 공개 서비스는 아니다.
+현재 원격 Supabase 백엔드와 EAS 세 환경의 Supabase 공개 URL·publishable key, Vercel Production 웹과 서버 secret은 연결됐다. 다만 Firebase/FCM·APNs, 운영 서명 빌드·스토어 내부 테스트는 아직 연결되지 않았다. 최신 실행 증거와 미완료 gate는 `docs/QA_REPORT.md`와 `docs/DEPLOYMENT_CHECKLIST.md`를 준거로 한다.
 
 현재 관리자 로그인은 이메일·비밀번호 인증 후 활성 `admin_users` 등록 여부를 다시 확인하며, 공개 가입도 차단돼 있다. 오너 전용 관리자 초대·비활성화 화면, 초대 수락·비밀번호 설정 경로, `owner/editor` 권한 분리도 구현됐다. 실제 메일 송수신 검증은 운영 Supabase·SMTP와 최초 오너 정보를 연결하는 단계에서 진행한다.
 

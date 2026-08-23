@@ -3,6 +3,7 @@ import { formatDday, formatEventDate } from "@/features/content/selectors";
 import { addEventToCalendar, openMapChoices, shareEvent } from "@/features/events/actions";
 import { openExternalUrl } from "@/features/links/open-external-url";
 import { useAppThemeStyles } from "@/theme/theme-provider";
+import { actionItemStyle, wrappingRowStyle } from "@/theme/responsive-layout";
 import { radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import type { MobilePublicEvent, MobilePublicSetlist } from "@jubilee/domain";
@@ -208,7 +209,7 @@ function createStyles(colors: ThemeColors) {
     songlistCopy: { flex: 1, gap: 3 },
     songSummary: { ...typography.caption, color: colors.muted },
     rowPressed: { backgroundColor: colors.raised },
-    buttonRow: { flexDirection: "row", gap: spacing.xs },
-    buttonCell: { flex: 1 }
+    buttonRow: { ...wrappingRowStyle, gap: spacing.xs },
+    buttonCell: actionItemStyle
   });
 }
