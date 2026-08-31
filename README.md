@@ -143,6 +143,9 @@ reference/          전달 패키지·초기 starter의 로컬 참고 사본(배
 
 ## 운영 문서
 
+- [Windows Codex 인계서](WINDOWS_CODEX_START_HERE.md)
+- [개발 일시중지 인계서](docs/PAUSED_HANDOFF_2026-08-24.md)
+- [Windows 별도 자료 인계 명세](docs/WINDOWS_LOCAL_ONLY_TRANSFER_MANIFEST_2026-08-31.md)
 - [관리자 운영 안내](docs/ADMIN_OPERATIONS.md)
 - [배포 전 체크리스트](docs/DEPLOYMENT_CHECKLIST.md)
 - [외부 입력 목록](docs/EXTERNAL_INPUTS.md)

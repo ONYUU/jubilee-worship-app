@@ -1,0 +1,30 @@
+이 저장소는 Mac에서 Windows Codex로 인계한 쥬빌리워십 앱입니다. 현재 개발은 제품 오너 지시로 일시중지 상태입니다.
+
+먼저 아래 두 문서를 끝까지 읽어주세요.
+
+1. WINDOWS_CODEX_START_HERE.md
+2. docs/PAUSED_HANDOFF_2026-08-24.md
+
+첫 작업은 읽기 전용 인계 점검입니다. 코드·설정·문서를 수정하지 말고, 앱을 실행·빌드·배포하지 말고, DB 마이그레이션·Edge Function 배포·푸시 활성화·Vercel Production 배포·스토어 작업을 실행하지 마세요.
+
+다음만 사실에 기반해 확인해주세요.
+
+- 현재 브랜치가 codex/notification-schedule-and-metadata인지
+- 현재 HEAD에 앱 중지 체크포인트 014859ebb191a7ba5d4ac1ff7fa284b9407b6d90가 포함되었는지
+- git status가 깨끗한지
+- Node 22.13.1과 pnpm 11.10.0 기준을 충족하는지
+- GitHub, Expo/EAS, Supabase, Vercel이 Windows에서 기존 소유 계정·프로젝트로 연결되었는지. 단, 비밀키·토큰·계정 이메일·인증 파일 내용은 채팅에 출력하지 말 것
+- Windows에 부족한 도구와 재로그인·재연결 필요 항목
+
+결과는 “확인 완료 / 미확인 / 사용자가 할 일 / 재개 후 할 일”로 나누어 비개발자도 이해할 수 있는 한국어로 보고해주세요. Docker Desktop이 없으면 DB 통합 검증을 통과로 보고하지 마세요.
+
+제품 오너가 이후 “쥬빌리워십 개발 재개”를 명시하면 다음 순서로 진행하세요.
+
+1. Windows 비호환 스크립트를 교차 플랫폼으로 수정
+2. Android FCM 자동 초기화 OFF 및 Firebase Installation ID 개인정보 계약 결정
+3. 동의 계약이 바뀐면 새 v6 순방향 마이그레이션 작성. 이미 원격에 적용된 v3~v5는 수정·삭제 금지
+4. 전체 자동화 검증·DB 통합 검증·CI 통과
+5. 최신 Vercel 운영 배포 및 Android·iOS 재검증
+6. 서명 빌드·스토어 자산·법적 선언을 완료한 뒤 실제 App Store·Play Store 심사 제출 직전에서 멈춤
+
+재개 지시 전에는 이 순서를 계획으로만 유지하고 실행하지 마세요.
