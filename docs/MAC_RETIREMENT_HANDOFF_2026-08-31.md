@@ -54,7 +54,7 @@
 
 | 서비스 | 확인된 상태 | Windows에서 확인할 사항 |
 |---|---|---|
-| GitHub | 공개 저장소와 Draft PR #11이 인계 문서 커밋 기준으로 동기화됨 | 저장소·브랜치·PR 접근, 최신 커밋 확인 |
+| GitHub | 공개 저장소와 Draft PR #11에 Mac 반납 인계 문서를 push함 | 저장소·브랜치·PR의 최신 HEAD·checks 확인 |
 | Expo/EAS | `@trust_me/jubilee-worship`, 프로젝트 ID `b003dbe7-c515-43c6-b1eb-e025c03f25bd`; Android Production JKS는 EAS 원격에 있음 | 같은 계정 로그인, 프로젝트·원격 JKS 접근 확인 |
 | Supabase | 프로젝트 ref `xyuehkayxnbfgqmnppzx`; 마이그레이션 21/21, Edge Function 8개 | 기존 프로젝트 연결과 migration/function 목록 확인 |
 | Vercel | `jubilee-worship`, Root Directory `apps/web`; Production 환경변수는 원격 유지 | 기존 프로젝트와 환경변수 이름 확인, 재개 전 배포 금지 |

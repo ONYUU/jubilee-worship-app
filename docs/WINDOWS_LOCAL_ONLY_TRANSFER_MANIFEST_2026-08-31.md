@@ -2,7 +2,7 @@
 
 - 작성일: 2026-08-31 (Asia/Seoul)
 - 목적: Git에 포함되지 않는 원본·참고·시연 자료를 Windows로 전달
-- 취급 등급: 비공개 작업 자료. GitHub에 커밋하지 않음
+- 취급 등급: 종합 ZIP과 원본은 비공개 작업 자료로 GitHub에 커밋하지 않음. 이 명세 문서는 비밀값이 없어 공개 저장소에 보존
 
 ## 1. 포함 항목
 
@@ -24,8 +24,8 @@
 
 | 파일 | SHA-256 |
 |---|---|
-| `home-stage-original.jpeg` | `5d6f0f1956122fcb6c9ddbaa279776284020c1494c51935ca759242009628fc4` |
-| `logo-official-master-4096.png` | `0ed79e5139776b0b3ee35c6433bffd8abca8570d1d4e36d3276f86f242ae4fff` |
+| `02-original-downloads/photo_2026-08-20 13.31.26.jpeg` | `5d6f0f1956122fcb6c9ddbaa279776284020c1494c51935ca759242009628fc4` |
+| `03-design-reference-font/reference/jubilee-worship-handoff/assets/web-ready/brand/logo-official-master-4096-source-locked.png` | `0ed79e5139776b0b3ee35c6433bffd8abca8570d1d4e36d3276f86f242ae4fff` |
 | `app-worship-balanced-v3.png` | `cf7dce93a7202e9d02cc74edefa7eb497447521a2308c6b0a07be00d3099e3ac` |
 | `app-worship-light-v1.png` | `853c92fe955af71e10fdf38b09c0d7bb8b45bf9853858bb1e2d9b614d2705d8a` |
 | `app-worship-light-v2.png` | `4769f25307d4253df39b9f6db928c330853ac2c3a4aad2020359cfc426c43bda` |
@@ -34,9 +34,9 @@
 Windows PowerShell에서 확인한다.
 
 ```powershell
-Get-FileHash .\source-assets\home\home-stage-original.jpeg -Algorithm SHA256
-Get-FileHash .\source-assets\brand\logo-official-master-4096.png -Algorithm SHA256
-Get-ChildItem .\source-assets\design-mobile\* | Get-FileHash -Algorithm SHA256
+Get-FileHash '.\02-original-downloads\photo_2026-08-20 13.31.26.jpeg' -Algorithm SHA256
+Get-FileHash '.\03-design-reference-font\reference\jubilee-worship-handoff\assets\web-ready\brand\logo-official-master-4096-source-locked.png' -Algorithm SHA256
+Get-ChildItem '.\03-design-reference-font\design-mobile\assets\*.png' | Get-FileHash -Algorithm SHA256
 ```
 
 ZIP 전체 SHA-256은 전달 메시지에서 따로 제공한다.
@@ -54,7 +54,7 @@ ZIP 전체 SHA-256은 전달 메시지에서 따로 제공한다.
 - GitHub·Expo·Supabase·Vercel·Firebase CLI 토큰과 상태 파일
 - `.env`, Mac Keychain, Apple 서명키·인증서, 서비스 계정 JSON
 - `google-services.json`, `GoogleService-Info.plist`, Firebase Admin 자격증명
-- `reference/vinext-starter-backup` (폐기된 초기 starter와 `node_modules` 포함)
+- `reference/vinext-starter-backup`의 Mac ARM용 `node_modules`; 약 0.36MB source-only obsolete 참고본만 별도 포함
 
 Windows에서 설치·인증·빌드를 새로 생성한다. Android Production JKS는 EAS 서버에 있으므로 이 ZIP에 없다. 일반 ZIP에는 활성 비밀값을 넣지 않는다.
 

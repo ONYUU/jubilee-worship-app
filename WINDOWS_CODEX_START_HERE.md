@@ -17,7 +17,7 @@ Windows에서 첫 Codex 작업은 읽기 전용 점검이다. 코드 수정, 빌
 | GitHub | 공개 저장소 `ONYUU/jubilee-worship-app` |
 | 작업 브랜치 | `codex/notification-schedule-and-metadata` |
 | 앱 코드 중지 체크포인트 | `014859ebb191a7ba5d4ac1ff7fa284b9407b6d90` |
-| GitHub 상태 | 로컬·원격 일치, Draft PR #11 `OPEN / MERGEABLE`, 해당 체크포인트의 CI·CodeQL 6건 모두 성공 |
+| GitHub 상태 | 앱 중지 체크포인트 `014859e`의 CI·CodeQL 6건 모두 성공. 이후 Mac 반납 인계 커밋은 문서만 변경하며, Windows에서 Draft PR #11의 최신 HEAD·checks를 다시 확인 |
 | 중지 시점 자동 검증 기록 | 앱·웹 267 + Edge Function 30 + pgTAP 723 = 총 1,020건 통과 |
 | 남은 자산 게이트 | iOS 6.9인치 최종 스크린샷 0/6으로 의도된 차단 |
 
@@ -77,11 +77,11 @@ Windows 11의 네이티브 PowerShell 환경을 우선 사용한다. Android Stu
 winget install --id 9PLM9XGG6VKS -s msstore
 ```
 
-Codex에 기존 계정으로 로그인하고, 클론한 `jubilee-worship-app` 폴더를 프로젝트로 추가한다. 가능하면 Windows 샌드박스의 elevated 모드를 활성화한다.
+Codex에 기존 계정으로 로그인하고, 클론한 `jubilee-worship-app` 폴더를 프로젝트로 추가한다. composer 아래에서 `Ask for approval`을 선택해 Windows 샌드박스 경계를 유지한다. 관리자 권한이 실제로 필요한 특정 명령이 있을 때만 앱을 관리자로 다시 실행한다.
 
 - Codex Windows: https://developers.openai.com/codex/app/windows
 - Windows 샌드박스: https://developers.openai.com/codex/windows
-- WSL2는 선택사항이다. 사용할 경우 저장소를 `/mnt/c` 대신 `~/code`에 둔다: https://learn.chatgpt.com/docs/windows/wsl
+- WSL2는 선택사항이다. Windows 네이티브 agent를 유지하면 저장소를 Windows 파일시스템에 두고 WSL에서 `/mnt/<drive>/...`로 접근한다. agent 자체를 WSL2로 전환할 때만 WSL 파일시스템 프로젝트를 연다: https://learn.chatgpt.com/docs/windows/wsl
 
 ### 기준 도구 버전
 
