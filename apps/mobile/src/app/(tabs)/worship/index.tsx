@@ -4,24 +4,30 @@ import { Screen } from "@/components/screen";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui";
 import { useContent } from "@/features/content/content-provider";
 import { partitionMobileEvents, selectSetlistForEvent } from "@/features/content/selectors";
-import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function WorshipScreen() {
   const { content, error, loading, refresh } = useContent();
   const [mode, setMode] = useState<"upcoming" | "past">("upcoming");
+  const { styles } = useAppThemeStyles(createStyles);
 
   if (loading && !content) return <Screen><LoadingState /></Screen>;
   if (error && !content) return <Screen><ErrorState message={error} retry={() => void refresh()} /></Screen>;
   if (!content) return null;
 
   const eventsByTime = partitionMobileEvents(content.events);
-  const events = eventsByTime[mode];
+  const events = mode === "past"
+    ? [...eventsByTime.past].sort(
+        (left, right) => Date.parse(right.starts_at) - Date.parse(left.starts_at)
+      )
+    : eventsByTime.upcoming;
 
   return (
     <Screen>
-      <AppHeader eyebrow="Worship" title="예배" notifications />
+      <AppHeader title={content.site.name_ko} notifications />
       <View accessibilityRole="tablist" style={styles.segmented}>
         {(["upcoming", "past"] as const).map((value) => {
           const selected = mode === value;
@@ -62,23 +68,25 @@ export default function WorshipScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   segmented: {
     flexDirection: "row",
-    backgroundColor: colors.secondarySurface,
-    borderRadius: radii.pill,
-    padding: 4,
-    gap: 4
+    marginHorizontal: -spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line
   },
   segment: {
     flex: 1,
     minHeight: 44,
-    borderRadius: radii.pill,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.sm
+    paddingHorizontal: spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent"
   },
-  selectedSegment: { backgroundColor: colors.card },
+  selectedSegment: { borderBottomColor: colors.active },
   segmentText: { ...typography.label, color: colors.muted },
-  selectedText: { color: colors.text }
-});
+  selectedText: { color: colors.active }
+  });
+}

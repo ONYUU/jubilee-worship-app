@@ -113,7 +113,9 @@ pnpm test:e2e
 
 기본 `test:e2e`는 공개 화면을 검사하고 Supabase 관리자 자격 증명이 필요한 시나리오는 제외합니다. 로컬 Supabase 관리자·Storage까지 검사하려면 Supabase 모드 서버를 먼저 실행한 뒤 `E2E_BASE_URL`, `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_UPLOAD_FILE`을 일회성 테스트 값으로 지정합니다. 운영 계정이나 운영 비밀번호는 E2E에 사용하지 않습니다.
 
-Supabase 정책 테스트는 `supabase/tests/`를 확인하세요. 실제 개발 프로젝트 연결 후 Security Advisor·Performance Advisor도 별도로 확인해야 합니다.
+Supabase 정책 테스트는 `supabase/tests/`를 확인하세요. 원격 `쥬빌리` 프로젝트 적용 후 DB lint와 Performance Advisor는 이슈 0건, Security Advisor는 오류 0건으로 확인했습니다. Security Advisor의 나머지 27개 경고는 `authenticated` 관리자 전용 `SECURITY DEFINER` RPC이며, 익명 실행 차단·활성 관리자 또는 owner 검사·고정 `search_path`를 개별 확인한 검토 예외입니다.
+
+원격은 `Jubilee Worship` 조직의 Free `쥬빌리` 프로젝트 하나를 통합검수와 초기 운영에 사용합니다. 일상 개발·`db reset`·seed·CI는 로컬 Supabase에서만 실행하고, 원격에는 `db reset --linked`나 `--include-seed`를 사용하지 않습니다. Vercel Preview에는 Supabase 서버 secret을 제공하지 않고, Production 서버에만 신뢰할 수 있는 환경변수로 설정합니다.
 
 ## 저장소 구조
 
@@ -128,20 +130,27 @@ reference/          전달 패키지·초기 starter의 로컬 참고 사본(배
 
 ## 공개 전 외부 입력
 
-- 운영 Supabase 프로젝트 URL·publishable key
 - 최초 관리자 이메일과 생성된 Auth 사용자 UUID
 - 2026년 9월 4일 예배 일정의 공개 직전 재확인
-- 쥬빌리워십 전용 문의 이메일 사용 여부
-- 선두교회 하위 도메인과 DNS 담당자 승인
-- Vercel Preview 확인 후 사용자의 공식 공개 승인
+- Vercel Preview 프로젝트·무료 주소와 사용자의 공개 승인
+- 확정 보유·자동 삭제 기준의 첫 운영 cron 실행 이력·실제 삭제 검증과 국외 처리 항목의 오너 검토
+- Apple Team ID·Android 앱 서명값과 실제 기기 푸시 검증
+- Google Play 비공개 테스터 12명·14일 연속 테스트와 Production access 신청
+- 정식 운영용 `.com` 또는 `.org` 도메인 선택
 
-`jubilee.sundoo.org`와 `worship.sundoo.org`는 현재 생성된 주소가 아니라 후보입니다. DNS 담당자가 레코드를 만들기 전에는 공식 URL로 표기하지 않습니다.
+개발·검수에는 Supabase Free와 Vercel `*.vercel.app` 주소를 사용하고,
+정식 공개 전에 실제 운영 형태와 가용성 요건에 맞는 요금제를 다시 확인합니다.
 
 ## 운영 문서
 
+- [Windows Codex 인계서](WINDOWS_CODEX_START_HERE.md)
+- [Mac 반납·Windows 이전 인계 기준](docs/MAC_RETIREMENT_HANDOFF_2026-08-31.md)
+- [개발 일시중지 인계서](docs/PAUSED_HANDOFF_2026-08-24.md)
+- [Windows 별도 자료 인계 명세](docs/WINDOWS_LOCAL_ONLY_TRANSFER_MANIFEST_2026-08-31.md)
 - [관리자 운영 안내](docs/ADMIN_OPERATIONS.md)
 - [배포 전 체크리스트](docs/DEPLOYMENT_CHECKLIST.md)
 - [외부 입력 목록](docs/EXTERNAL_INPUTS.md)
+- [스토어·운영 메타데이터](docs/STORE_METADATA.md)
 - [개발본 QA 보고서](docs/QA_REPORT.md)
 - [자산 사용 기준](docs/ASSET_USAGE.md)
 

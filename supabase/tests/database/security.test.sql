@@ -1084,13 +1084,13 @@ select results_eq(
   $$,
   $$
     values (
-      '/images/hero/hero-home-group-07-desktop-1920x1080.webp'::text,
-      '/images/hero/hero-home-group-07-mobile-1080x1350.webp'::text,
-      '선두교회 본당 무대에서 자유롭게 포즈를 취한 쥬빌리워십 공동체'::text,
+      '/images/hero/hero-home-stage-20260820-desktop-1280x720.webp'::text,
+      '/images/hero/hero-home-stage-20260820-mobile-672x840.webp'::text,
+      '선두교회 본당 무대에서 찬양을 인도하는 쥬빌리워십 찬양팀'::text,
       '/images/social/og-home-group-07-1200x630.png'::text
     )
   $$,
-  'site settings use the approved group-photo hero and cache-busting asset paths'
+  'site settings use requester-provided stage-photo crops for desktop and mobile heroes'
 );
 
 select * from finish();

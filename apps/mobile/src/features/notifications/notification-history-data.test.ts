@@ -39,4 +39,15 @@ describe("received notification history", () => {
     expect(merged).toHaveLength(1);
     expect(merged[0]?.receivedAt).toBe("2026-08-15T11:00:00+09:00");
   });
+
+  it("normalizes stored production links to the installed preview variant", () => {
+    const parsed = parseNotificationHistory([
+      {
+        ...item("linked", "2026-08-14T12:00:00+09:00"),
+        url: "jubileeworship://notifications"
+      }
+    ], now, "preview");
+
+    expect(parsed[0]?.url).toBe("jubileeworship-preview://notifications");
+  });
 });

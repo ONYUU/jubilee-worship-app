@@ -6,6 +6,7 @@ import { AdminDataNotice, AdminPageHeader } from "@/components/admin/admin-page"
 import { DirectImageUpload } from "@/components/admin/direct-image-upload";
 import { HeroImageUploads } from "@/components/admin/hero-image-uploads";
 import { requireActiveAdmin } from "@/lib/auth/admin";
+import { SERVICE_IDENTITY } from "@/lib/site-identity";
 import { saveSettingsAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -78,12 +79,13 @@ export default async function SettingsAdminPage() {
         </FormSection>
 
         <FormSection title="공식 연결 정보" description="현재 검증 기준에 고정된 값입니다. 변경하려면 공식 출처 재검증과 domain/migration 변경이 필요합니다.">
+          <TextField label="운영주체" name="operator_name_readonly" defaultValue={SERVICE_IDENTITY.operatorName} readOnly />
           <TextField label="Instagram" name="instagram_url_display" defaultValue={SITE.instagram_url} readOnly />
           <TextField label="YouTube" name="youtube_channel_url_display" defaultValue={SITE.youtube_channel_url} readOnly />
           <TextField label="YouTube 채널 ID" name="youtube_channel_id_display" defaultValue={SITE.youtube_channel_id} readOnly />
           <TextField label="교회" name="church_name_display" defaultValue={SITE.church_name} readOnly />
           <TextField label="주소" name="address_display" defaultValue={SITE.address} readOnly />
-          <div className="grid gap-4 sm:grid-cols-2"><TextField label="대표 전화" name="phone_display_readonly" defaultValue={SITE.phone_display} readOnly /><TextField label="공개 연락 이메일" name="contact_email_readonly" defaultValue={SITE.contact_email} readOnly /></div>
+          <div className="grid gap-4 sm:grid-cols-2"><TextField label="대표 전화" name="phone_display_readonly" defaultValue={SITE.phone_display} readOnly /><TextField label="문의·개인정보 이메일" name="contact_email_readonly" defaultValue={SERVICE_IDENTITY.contactEmail} readOnly /></div>
         </FormSection>
 
         <FormSection title="SEO">

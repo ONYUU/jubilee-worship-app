@@ -20,7 +20,7 @@ export const SITE = {
   address_lot: "인천광역시 서구 석남동 547-23",
   phone_display: "032-574-7221~5",
   phone_href: "+82-32-574-7221",
-  contact_email: "sundoomedia@naver.com",
+  contact_email: "sundoojubileeworship@gmail.com",
   naver_map_url:
     "https://map.naver.com/p/entry/place/12087641?placePath=%2Fhome",
   kakao_map_url: "https://place.map.kakao.com/9174591",
@@ -47,6 +47,19 @@ export const APPROVED_YOUTUBE_CHANNEL_IDS = [SITE.youtube_channel_id] as const;
 
 /** Canonical locator prefix for objects in the public-media Storage bucket. */
 export const PUBLIC_MEDIA_URI_PREFIX = "storage://public-media/" as const;
+
+/**
+ * Versioned, separate consent required before registering any notification
+ * choice that can reveal an interest in religious worship. Keep this value in
+ * sync with the database and Edge Function contract.
+ */
+export const SENSITIVE_INTEREST_NOTIFICATION_CONSENT = {
+  version: "sensitive-interest-notifications-v5",
+  policyVersion: "1.0.0",
+  draftedOn: "2026-08-24",
+  locale: "ko-KR",
+  disclosureSha256: "575ecb39ce1c1670e169e5fdae28587b09477a765a80c6dcfdb5df2f170a5f0e"
+} as const;
 
 /**
  * URLs whose publisher was verified against the current Jubilee Worship

@@ -2,10 +2,16 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { AdminActionButton } from "@/components/admin/admin-action-button";
 import { AdminForm } from "@/components/admin/admin-form";
-import { FormSection, SelectField, TextAreaField, TextField } from "@/components/admin/admin-fields";
+import { FormSection, TextAreaField, TextField } from "@/components/admin/admin-fields";
 import { AdminDataNotice, AdminPageHeader, StatusPill } from "@/components/admin/admin-page";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { requireActiveAdmin } from "@/lib/auth/admin";
+import {
+  getLegalDocumentTemplate,
+  LEGAL_REVIEW_MARKER,
+  type LegalDocumentType
+} from "@/lib/admin/legal-document-templates";
+import { SERVICE_IDENTITY } from "@/lib/site-identity";
 import {
   deleteLegalDocumentAction,
   publishLegalDocumentAction,
@@ -39,13 +45,17 @@ function formatSeoul(value: string | null): string {
   }).format(new Date(value));
 }
 
+function legalDocumentType(value: unknown): LegalDocumentType {
+  return value === "terms_of_service" ? "terms_of_service" : "privacy_policy";
+}
+
 export default async function LegalDocumentsAdminPage({
   searchParams
 }: {
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string; type?: string }>;
 }) {
   noStore();
-  const [{ edit }, { supabase, admin }] = await Promise.all([searchParams, requireActiveAdmin()]);
+  const [{ edit, type }, { supabase, admin }] = await Promise.all([searchParams, requireActiveAdmin()]);
   const selectedId = /^\d+$/.test(edit ?? "") ? Number(edit) : null;
   const [documentsResult, selectedResult] = await Promise.all([
     supabase
@@ -64,6 +74,8 @@ export default async function LegalDocumentsAdminPage({
   const documents = documentsResult.data ?? [];
   const selected = selectedResult.data;
   const error = documentsResult.error ?? selectedResult.error;
+  const draftType = legalDocumentType(selected?.document_type ?? type);
+  const template = getLegalDocumentTemplate(draftType);
 
   return (
     <div className="space-y-8">
@@ -113,25 +125,29 @@ export default async function LegalDocumentsAdminPage({
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-night-900 p-5">
-          <h2 className="text-xl font-bold">{selected ? "법적 문서 초안 수정" : "새 법적 문서 초안"}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">{selected ? "법적 문서 초안 수정" : "새 법적 문서 초안"}</h2>
+            {!selected ? (
+              <div className="flex flex-wrap gap-2 text-sm">
+                <Link className="rounded-lg border border-white/15 px-3 py-2" href="/admin/legal?type=privacy_policy">개인정보 초안</Link>
+                <Link className="rounded-lg border border-white/15 px-3 py-2" href="/admin/legal?type=terms_of_service">이용약관 초안</Link>
+              </div>
+            ) : null}
+          </div>
+          <p className="mt-3 rounded-xl border border-white/10 bg-night-950/60 p-4 text-sm text-stone-300">
+            확정 표시값: 운영주체 {SERVICE_IDENTITY.operatorName}. 현재 문의·개인정보 이메일 {SERVICE_IDENTITY.contactEmail}은 후보·임시값으로 최종 확정이 필요합니다. 기본 템플릿의 {LEGAL_REVIEW_MARKER} 항목이나 후보·임시·미확정 전환 문구가 남아 있으면 오너 공개 액션이 차단됩니다.
+          </p>
           <AdminForm action={saveLegalDocumentAction} submitLabel={selected ? "초안 저장" : "초안 만들기"} className="mt-5">
             {selected ? <input type="hidden" name="id" value={selected.id} /> : null}
+            <input type="hidden" name="document_type" value={draftType} />
             <FormSection title="문서 정보" description="효력일이 오늘보다 늦으면 오너가 아직 공개할 수 없습니다.">
-              <SelectField
-                label="문서 종류"
-                name="document_type"
-                defaultValue={selected?.document_type ?? "privacy_policy"}
-                options={[
-                  { value: "privacy_policy", label: "개인정보처리방침" },
-                  { value: "terms_of_service", label: "이용약관" }
-                ]}
-              />
+              <TextField label="문서 종류" name="document_type_display" defaultValue={TYPE_LABELS[draftType] ?? draftType} readOnly />
               <div className="grid gap-4 sm:grid-cols-2">
-                <TextField label="버전" name="version" required defaultValue={selected?.version} hint="예: 2026-08-15, v1.1" />
-                <TextField label="효력일" name="effective_on" type="date" required defaultValue={selected?.effective_on ?? todayInSeoul()} />
+                <TextField label="버전" name="version" required defaultValue={selected?.version ?? template.version ?? todayInSeoul()} hint="예: 1.0.0, 1.1.0" />
+                <TextField label="효력일" name="effective_on" type="date" required defaultValue={selected?.effective_on ?? template.effectiveOn ?? (draftType === "privacy_policy" ? "" : todayInSeoul())} />
               </div>
-              <TextField label="제목" name="title" required defaultValue={selected?.title} />
-              <TextAreaField label="본문" name="body" required defaultValue={selected?.body} rows={20} hint="공개 전 법무·개인정보 검토 완료 여부를 확인하세요." />
+              <TextField label="제목" name="title" required defaultValue={selected?.title ?? template.title} />
+              <TextAreaField label="본문" name="body" required defaultValue={selected?.body ?? template.body} rows={28} hint={`공개 전 법무·개인정보 검토를 완료하고 ${LEGAL_REVIEW_MARKER} 문구를 모두 제거하세요.`} />
             </FormSection>
           </AdminForm>
           {admin.role === "owner" && selected ? <p className="mt-4 text-sm text-brand-sun">수정했다면 초안을 먼저 저장하세요. 저장된 전체 본문을 검토한 뒤 왼쪽의 선택된 문서에서 공개본으로 승인할 수 있습니다.</p> : null}

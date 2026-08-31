@@ -22,6 +22,12 @@ test-results/
 .eas/
 .wrangler/
 outputs/
+!/outputs/
+/outputs/*
+!/outputs/store-assets/
+/outputs/store-assets/*
+!/outputs/store-assets/google-play-icon-512.png
+!/outputs/store-assets/google-play-feature-graphic-1024x500.png
 work/
 reference/
 *.tsbuildinfo
@@ -54,9 +60,13 @@ apps/mobile/android/
 .easignore
 credentials.json
 google-services.json
+**/google-services*.json
 GoogleService-Info.plist
 *service-account*.json
+**/*firebase*service-account*.json
 *-firebase-adminsdk-*.json
+**/*firebase-adminsdk*.json
+apps/mobile/.credentials/
 
 # Local databases and dumps
 *.sqlite

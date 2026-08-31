@@ -1,4 +1,9 @@
-import { mediaPathSchema, slugSchema, youtubeListeningUrlSchema } from "@jubilee/domain";
+import {
+  mediaPathSchema,
+  mobileAppDeepLinkSchema,
+  slugSchema,
+  youtubeListeningUrlSchema
+} from "@jubilee/domain";
 import { z } from "zod";
 
 export const adminRecordIdSchema = z.number().int().positive().safe();
@@ -71,18 +76,109 @@ export const legalDocumentFormSchema = z.object({
 });
 
 export const notificationCampaignIdSchema = z.uuid("알림 캠페인 식별값을 확인해 주세요.");
+export const testPushAppVariantSchema = z.enum(["development", "preview"]);
+
+const normalizedTestPushPairingCodeSchema = z
+  .string()
+  .trim()
+  .min(1, "앱에 표시된 연결 코드를 입력해 주세요.")
+  .max(20)
+  .transform((value) => value
+    .toUpperCase()
+    .replaceAll("-", "")
+    .replaceAll(" ", "")
+    .replaceAll("O", "0")
+    .replace(/[IL]/g, "1"))
+  .pipe(z.string().regex(/^[0-9A-HJKMNP-TV-Z]{12}$/, "연결 코드 형식을 확인해 주세요."));
+
+export const testPushPairingApprovalFormSchema = z.object({
+  pairing_code: normalizedTestPushPairingCodeSchema
+});
+
+const normalizedReinstallRecoveryCodeSchema = z
+  .string()
+  .trim()
+  .min(1, "새 기기에 표시된 복구 코드를 입력해 주세요.")
+  .max(50)
+  .transform((value) => value
+    .toUpperCase()
+    .replaceAll("-", "")
+    .replaceAll(" ", "")
+    .replaceAll("O", "0")
+    .replace(/[IL]/g, "1"))
+  .pipe(z.string().regex(
+    /^[0-9A-HJKMNP-TV-Z]{26}$/,
+    "26자리 재설치 복구 코드 형식을 확인해 주세요."
+  ));
+
+export const reinstallRecoveryApprovalFormSchema = z.object({
+  challenge_id: z.uuid("재설치 복구 요청을 확인해 주세요."),
+  recovery_code: normalizedReinstallRecoveryCodeSchema
+});
+
+export const reinstallRecoveryApprovalDigestFormSchema = z.object({
+  challenge_id: z.uuid("재설치 복구 요청을 확인해 주세요."),
+  recovery_code_digest: z.string().regex(
+    /^[0-9a-f]{64}$/,
+    "26자리 재설치 복구 코드 형식을 확인해 주세요."
+  )
+});
+
+export const reinstallRecoveryChallengeListSchema = z.array(z.object({
+  challenge_id: z.uuid(),
+  app_variant: testPushAppVariantSchema,
+  source_display_label: z.string().trim().min(1).max(200),
+  target_display_label: z.string().trim().min(1).max(200),
+  created_at: z.iso.datetime({ offset: true }),
+  expires_at: z.iso.datetime({ offset: true })
+}).strict()).max(100);
+
+export const testPushTargetListSchema = z.array(z.object({
+  push_endpoint_id: z.uuid(),
+  app_variant: testPushAppVariantSchema,
+  display_label: z.string().trim().min(1).max(200)
+}).strict()).max(100);
+
+export const worshipReminderScheduleFormSchema = z.object({
+  event_id: adminRecordIdSchema,
+  day_before_title: z.string().trim().min(1).max(120),
+  day_before_body: z.string().trim().min(1).max(500),
+  one_hour_title: z.string().trim().min(1).max(120),
+  one_hour_body: z.string().trim().min(1).max(500)
+});
+
+export const worshipReminderScheduleResultSchema = z.object({
+  reminder_slot: z.enum(["day_before_1930", "one_hour_before"]),
+  campaign_id: z.uuid(),
+  scheduled_for: z.iso.datetime({ offset: true }),
+  status: z.enum(["approved", "queued", "processing", "completed", "failed"]),
+  requires_action: z.boolean()
+});
+
+export const worshipReminderScheduleListSchema = z.array(z.object({
+  campaign_id: z.uuid(),
+  event_id: adminRecordIdSchema,
+  event_slug: z.string().trim().min(1).max(200),
+  event_title: z.string().trim().min(1).max(200),
+  reminder_slot: z.enum(["day_before_1930", "one_hour_before"]),
+  scheduled_for: z.iso.datetime({ offset: true }),
+  event_starts_at_snapshot: z.iso.datetime({ offset: true }),
+  current_event_starts_at: z.iso.datetime({ offset: true }),
+  status: z.enum(["draft", "approved", "queued", "processing", "completed", "cancelled", "failed"]),
+  title: z.string().trim().min(1).max(120),
+  body: z.string().trim().min(1).max(500),
+  approved_at: z.iso.datetime({ offset: true }).nullable(),
+  queued_at: z.iso.datetime({ offset: true }).nullable(),
+  completed_at: z.iso.datetime({ offset: true }).nullable(),
+  requires_reapproval: z.boolean()
+}));
 
 export const notificationCampaignFormSchema = z
   .object({
     kind: z.enum(["test", "worship_reminder", "schedule_change", "setlist_update"]),
     title: z.string().trim().min(1).max(120),
     body: z.string().trim().min(1).max(500),
-    deep_link: z
-      .string()
-      .trim()
-      .regex(/^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/)
-      .max(1_000)
-      .nullable(),
+    deep_link: mobileAppDeepLinkSchema.nullable(),
     audience_kind: z.enum([
       "test_endpoint",
       "worship_reminder",
@@ -105,15 +201,44 @@ export const notificationCampaignFormSchema = z
     }
   });
 
+const testPushTargetSelectionSchema = z
+  .string()
+  .trim()
+  .min(1, "시험 기기를 선택해 주세요.")
+  .max(64)
+  .transform((value) => {
+    const separator = value.indexOf(":");
+    return {
+      app_variant: separator < 0 ? "" : value.slice(0, separator),
+      push_endpoint_id: separator < 0 ? "" : value.slice(separator + 1)
+    };
+  })
+  .pipe(z.object({
+    app_variant: testPushAppVariantSchema,
+    push_endpoint_id: z.uuid("시험 기기 식별값을 확인해 주세요.")
+  }));
+
 export const testPushFormSchema = z.object({
-  installation_id: z.uuid("시험 기기 ID를 확인해 주세요."),
-  installation_secret: z.string().trim().min(1).max(128),
+  request_id: z.uuid("시험 요청 식별값을 확인해 주세요."),
+  target: testPushTargetSelectionSchema,
   title: z.string().trim().min(1).max(120),
   body: z.string().trim().min(1).max(500),
-  deep_link: z
-    .string()
-    .trim()
-    .regex(/^jubileeworship:\/\/[A-Za-z0-9/_?=&.%-]+$/)
-    .max(1_000)
-    .nullable()
+  deep_link: mobileAppDeepLinkSchema.nullable()
 });
+
+export function testPushEdgeRequestBody(input: z.infer<typeof testPushFormSchema>) {
+  return {
+    requestId: input.request_id,
+    pushEndpointId: input.target.push_endpoint_id,
+    appVariant: input.target.app_variant,
+    title: input.title,
+    body: input.body,
+    deepLink: input.deep_link
+  };
+}
+
+export function testPushPairingApprovalEdgeRequestBody(
+  input: z.infer<typeof testPushPairingApprovalFormSchema>
+) {
+  return { pairingCode: input.pairing_code };
+}

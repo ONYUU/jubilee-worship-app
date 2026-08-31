@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:security": "playwright test e2e/sensitive-admin-form.spec.ts --project=desktop-chromium"
   },
   "dependencies": {
     "@jubilee/domain": "workspace:*",

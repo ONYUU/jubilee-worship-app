@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react";
+import { useActionState, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { AdminFieldErrorsContext, getAdminFieldId } from "@/components/admin/admin-fields";
+import { redactReinstallRecoveryCode } from "@/lib/admin/reinstall-recovery-browser";
 import type { ActionState } from "@/lib/auth/types";
 import { INITIAL_ACTION_STATE } from "@/lib/auth/types";
 
@@ -11,10 +12,14 @@ type AdminFormProps = {
   children: React.ReactNode;
   submitLabel: string;
   className?: string;
+  confirmMessage?: string;
+  resetOnSettled?: boolean;
+  sensitiveTransform?: "reinstall-recovery-code";
 };
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ label, actionPending }: { label: string; actionPending: boolean }) {
+  const { pending: formPending } = useFormStatus();
+  const pending = formPending || actionPending;
 
   return (
     <button
@@ -27,15 +32,50 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-export function AdminForm({ action, children, submitLabel, className = "" }: AdminFormProps) {
-  const [state, formAction] = useActionState(action, INITIAL_ACTION_STATE);
+export function AdminForm({
+  action,
+  children,
+  submitLabel,
+  className = "",
+  confirmMessage,
+  resetOnSettled = false,
+  sensitiveTransform
+}: AdminFormProps) {
+  const sensitiveSubmissionLockedRef = useRef(false);
+  const [sensitivePending, setSensitivePending] = useState(false);
+  const transformedAction = useCallback(async (
+    previousState: ActionState,
+    formData: FormData
+  ): Promise<ActionState> => {
+    try {
+      if (sensitiveTransform === "reinstall-recovery-code") {
+        await redactReinstallRecoveryCode(formData);
+      }
+      return await action(previousState, formData);
+    } finally {
+      sensitiveSubmissionLockedRef.current = false;
+      setSensitivePending(false);
+    }
+  }, [action, sensitiveTransform]);
+  const [state, formAction, actionPending] = useActionState(
+    sensitiveTransform ? transformedAction : action,
+    INITIAL_ACTION_STATE
+  );
   const errors = Object.entries(state.fieldErrors ?? {});
   const formId = useId().replaceAll(":", "");
   const summaryRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const fieldContext = useMemo(
     () => ({ fieldErrors: state.fieldErrors ?? {}, formId }),
     [formId, state.fieldErrors]
   );
+  const clearSettledForm = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement && formRef.current?.contains(activeElement)) {
+      activeElement.blur();
+    }
+    formRef.current?.reset();
+  }, []);
 
   useEffect(() => {
     if (state.status === "error") {
@@ -43,8 +83,33 @@ export function AdminForm({ action, children, submitLabel, className = "" }: Adm
     }
   }, [state.status, state.message, state.fieldErrors]);
 
+  useEffect(() => {
+    if (!resetOnSettled || state.status === "idle") return;
+    clearSettledForm();
+  }, [clearSettledForm, resetOnSettled, state]);
+
   return (
-    <form action={formAction} className={`space-y-6 ${className}`} noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      className={`space-y-6 ${className}`}
+      noValidate
+      onSubmit={(event) => {
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          event.preventDefault();
+          if (resetOnSettled) clearSettledForm();
+          return;
+        }
+        if (sensitiveTransform) {
+          if (sensitiveSubmissionLockedRef.current) {
+            event.preventDefault();
+            return;
+          }
+          sensitiveSubmissionLockedRef.current = true;
+          setSensitivePending(true);
+        }
+      }}
+    >
       <AdminFieldErrorsContext.Provider value={fieldContext}>
         {children}
       </AdminFieldErrorsContext.Provider>
@@ -76,7 +141,10 @@ export function AdminForm({ action, children, submitLabel, className = "" }: Adm
           ) : null}
         </div>
       ) : null}
-      <SubmitButton label={submitLabel} />
+      <SubmitButton
+        label={submitLabel}
+        actionPending={actionPending || sensitivePending}
+      />
     </form>
   );
 }

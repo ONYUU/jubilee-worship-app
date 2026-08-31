@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createLocalContent } from "./local-content";
-import { formatDday, partitionMobileEvents, selectNextMobileEvent, selectSetlistForEvent } from "./selectors";
+import {
+  formatDday,
+  partitionMobileEvents,
+  selectHomeHeroMediaPath,
+  selectNextMobileEvent,
+  selectSetlistForEvent
+} from "./selectors";
 
 describe("mobile content selectors", () => {
   it("selects the next scheduled worship", () => {
@@ -14,6 +20,21 @@ describe("mobile content selectors", () => {
 
   it("does not invent a missing setlist", () => {
     expect(selectSetlistForEvent([], 1)).toBeNull();
+  });
+
+  it("uses the landscape website hero for the app and falls back to the mobile crop", () => {
+    expect(
+      selectHomeHeroMediaPath({
+        hero_media_path: "/images/hero/desktop.webp",
+        hero_media_mobile_path: "/images/hero/mobile.webp"
+      })
+    ).toBe("/images/hero/desktop.webp");
+    expect(
+      selectHomeHeroMediaPath({
+        hero_media_path: null,
+        hero_media_mobile_path: "/images/hero/mobile.webp"
+      })
+    ).toBe("/images/hero/mobile.webp");
   });
 
   it("classifies cached events against the current time", () => {

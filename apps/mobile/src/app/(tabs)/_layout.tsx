@@ -1,4 +1,4 @@
-import { colors } from "@/theme/tokens";
+import { useAppTheme } from "@/theme/theme-provider";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import type { ComponentProps } from "react";
@@ -22,6 +22,7 @@ function tabIcon(name: IconName, focusedName: IconName) {
 }
 
 export default function TabsLayout() {
+  const { colors } = useAppTheme();
   return (
     <Tabs
       screenOptions={{
@@ -31,9 +32,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.navigation,
           borderTopColor: colors.line,
-          height: 82,
-          paddingTop: 8,
-          paddingBottom: 12
+          paddingTop: 8
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
         sceneStyle: { backgroundColor: colors.background }
@@ -53,7 +52,10 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="guide/index"
-        options={{ title: "안내", tabBarIcon: tabIcon("location-outline", "location") }}
+        options={{
+          title: "안내",
+          tabBarIcon: tabIcon("information-circle-outline", "information-circle")
+        }}
       />
     </Tabs>
   );

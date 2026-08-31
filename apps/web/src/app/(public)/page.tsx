@@ -16,16 +16,16 @@ function HeroArtwork({ site }: { site: PublicSite }) {
   const desktop = getImageProps({
     src: site.heroDesktopPath,
     alt: site.heroImageAlt,
-    width: 1920,
-    height: 1080,
+    width: 1280,
+    height: 720,
     sizes: "100vw",
     priority: true
   }).props;
   const mobile = getImageProps({
     src: site.heroMobilePath,
     alt: site.heroImageAlt,
-    width: 1080,
-    height: 1350,
+    width: 672,
+    height: 840,
     sizes: "100vw",
     priority: true
   }).props;
@@ -37,7 +37,7 @@ function HeroArtwork({ site }: { site: PublicSite }) {
         {...desktop}
         alt={site.heroImageAlt}
         fetchPriority="high"
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="absolute inset-0 h-full w-full object-cover object-[40%_50%] md:object-[50%_65%]"
       />
     </picture>
   );

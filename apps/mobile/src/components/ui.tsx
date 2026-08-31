@@ -1,17 +1,20 @@
-import { colors, radii, shadows, spacing, typography } from "@/theme/tokens";
+import { useAppThemeStyles } from "@/theme/theme-provider";
+import { createShadows, radii, spacing, typography, type ThemeColors } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 export function Card({ children }: PropsWithChildren) {
+  const { styles } = useAppThemeStyles(createStyles);
   return <View style={styles.card}>{children}</View>;
 }
 
 export function SectionHeading({ title, action }: { title: string; action?: ReactNode }) {
+  const { styles } = useAppThemeStyles(createStyles);
   return (
     <View style={styles.sectionHeading}>
       <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>
-      {action}
+      {action ? <View style={styles.sectionAction}>{action}</View> : null}
     </View>
   );
 }
@@ -25,6 +28,8 @@ type ButtonProps = {
 };
 
 export function ActionButton({ label, icon, onPress, primary = false, disabled = false }: ButtonProps) {
+  const { colors, styles } = useAppThemeStyles(createStyles);
+  const foregroundColor = primary ? colors.onCta : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -38,13 +43,14 @@ export function ActionButton({ label, icon, onPress, primary = false, disabled =
         disabled && styles.disabled
       ]}
     >
-      {icon ? <Ionicons name={icon} size={17} color={colors.text} /> : null}
-      <Text style={styles.buttonLabel}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={17} color={foregroundColor} /> : null}
+      <Text style={[styles.buttonLabel, primary && styles.primaryButtonLabel]}>{label}</Text>
     </Pressable>
   );
 }
 
 export function LoadingState() {
+  const { colors, styles } = useAppThemeStyles(createStyles);
   return (
     <View style={styles.state} accessibilityLabel="콘텐츠 불러오는 중">
       <ActivityIndicator color={colors.active} />
@@ -54,6 +60,7 @@ export function LoadingState() {
 }
 
 export function EmptyState({ title, description }: { title: string; description: string }) {
+  const { colors, styles } = useAppThemeStyles(createStyles);
   return (
     <Card>
       <View style={styles.state}>
@@ -66,6 +73,7 @@ export function EmptyState({ title, description }: { title: string; description:
 }
 
 export function ErrorState({ message, retry }: { message: string; retry: () => void }) {
+  const { colors, styles } = useAppThemeStyles(createStyles);
   return (
     <Card>
       <View style={styles.state} accessibilityRole="alert">
@@ -78,7 +86,9 @@ export function ErrorState({ message, retry }: { message: string; retry: () => v
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  const shadows = createShadows(colors);
+  return StyleSheet.create({
   card: {
     borderRadius: radii.lg,
     backgroundColor: colors.card,
@@ -94,7 +104,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.xs
   },
-  sectionTitle: { ...typography.heading, color: colors.text },
+  sectionTitle: {
+    ...typography.heading,
+    color: colors.text,
+    flex: 1,
+    flexShrink: 1,
+    paddingRight: spacing.xxs
+  },
+  sectionAction: { flexShrink: 0 },
   button: {
     minHeight: 46,
     paddingHorizontal: spacing.md,
@@ -108,9 +125,11 @@ const styles = StyleSheet.create({
   primaryButton: { backgroundColor: colors.cta, borderColor: colors.ctaBorder },
   secondaryButton: { backgroundColor: colors.raised, borderColor: colors.controlBorder },
   buttonLabel: { ...typography.label, color: colors.text },
+  primaryButtonLabel: { color: colors.onCta },
   pressed: { opacity: 0.68 },
   disabled: { opacity: 0.45 },
   state: { alignItems: "center", gap: spacing.xs, paddingVertical: spacing.xl },
   emptyTitle: { ...typography.heading, color: colors.text, textAlign: "center" },
   stateText: { ...typography.body, color: colors.muted, textAlign: "center" }
-});
+  });
+}

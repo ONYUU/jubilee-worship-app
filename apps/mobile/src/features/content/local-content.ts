@@ -1,16 +1,19 @@
 import type { MobilePublicContent } from "@jubilee/domain";
+import { APP_INFO } from "../../config/app-info";
 
 export function createLocalContent(now = new Date()): MobilePublicContent {
   return {
     site: {
-      name_ko: "쥬빌리워십",
+      name_ko: APP_INFO.appName,
       name_en: "JUBILEE WORSHIP",
       hero_title: "오직 예배를 세우는 일",
       hero_description:
         "개인의 예배를 넘어 공동체의 예배로, 인천의 다음 세대와 함께 하나님을 예배합니다.",
-      hero_media_path: "/images/hero/hero-home-group-07-desktop-1920x1080.webp",
-      hero_media_mobile_path: "/images/hero/hero-home-group-07-mobile-1080x1350.webp",
-      hero_media_alt: "선두교회 본당 무대에서 자유롭게 포즈를 취한 쥬빌리워십 공동체",
+      hero_media_path: "/images/hero/hero-home-stage-20260820-desktop-1280x720.webp",
+      hero_media_mobile_path: "/images/hero/hero-home-stage-20260820-mobile-672x840.webp",
+      hero_media_alt: "선두교회 본당 무대에서 찬양을 인도하는 쥬빌리워십 찬양팀",
+      visit_media_path: "/images/hero/visit-welcome-960x610.webp",
+      visit_media_alt: "선두교회에서 함께 예배를 준비하는 쥬빌리워십 공동체",
       instagram_url: "https://www.instagram.com/jubilee_worship_/",
       youtube_channel_url: "https://www.youtube.com/@JUBILEEWORSHIP-25",
       church_name: "선두교회",
@@ -73,9 +76,9 @@ export function createLocalContent(now = new Date()): MobilePublicContent {
       },
       {
         id: 2,
-        media_path: "/images/gallery/sundoo-jubilee-06.webp",
+        media_path: "/images/gallery/sundoo-jubilee-01.webp",
         thumbnail_path: null,
-        alt: "선두교회 본당 무대에 함께 모인 쥬빌리워십 공동체",
+        alt: "함께 찬양하는 다음 세대 예배자들의 옆모습",
         caption: null,
         occurred_on: null,
         sort_order: 20

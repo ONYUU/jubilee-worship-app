@@ -1,11 +1,40 @@
 import { describe, expect, it } from "vitest";
 import {
+  mobileAppDeepLinkSchema,
   mobilePublicEventSchema,
+  mobilePublicSiteSchema,
   mobilePublicSetlistSchema,
   youtubeListeningUrlSchema
 } from "./mobile";
 
 describe("mobile public contracts", () => {
+  it("accepts administrator-managed home and visit images", () => {
+    const site = mobilePublicSiteSchema.parse({
+      name_ko: "쥬빌리워십",
+      name_en: "Jubilee Worship",
+      hero_title: "예배",
+      hero_description: "함께 예배합니다.",
+      hero_media_path: "/images/home.webp",
+      hero_media_mobile_path: "/images/home-mobile.webp",
+      hero_media_alt: "함께 예배하는 공동체",
+      visit_media_path: "/images/visit.webp",
+      visit_media_alt: "예배당 안내 사진",
+      instagram_url: "https://www.instagram.com/jubilee_worship_/",
+      youtube_channel_url: "https://www.youtube.com/@JUBILEEWORSHIP-25",
+      church_name: "선두교회",
+      church_url: "https://www.sundoo.org/",
+      address: "인천광역시 서구 거북로109번길 10",
+      phone_display: "032-574-7221",
+      naver_map_url: "https://map.naver.com/",
+      kakao_map_url: "https://map.kakao.com/",
+      about_title: "소개",
+      about_body: "쥬빌리워십 소개 본문"
+    });
+
+    expect(site.hero_media_mobile_path).toBe("/images/home-mobile.webp");
+    expect(site.visit_media_path).toBe("/images/visit.webp");
+  });
+
   it("accepts an event without published sermon information", () => {
     expect(
       mobilePublicEventSchema.parse({
@@ -51,5 +80,27 @@ describe("mobile public contracts", () => {
       true
     );
     expect(youtubeListeningUrlSchema.safeParse("https://example.com/song").success).toBe(false);
+  });
+
+  it.each([
+    "jubileeworship://notifications",
+    "jubileeworship://notification-settings",
+    "jubileeworship://privacy",
+    "jubileeworship://worship",
+    "jubileeworship://media",
+    "jubileeworship://guide",
+    "jubileeworship://worship/september-worship",
+    "jubileeworship://worship/september-worship/songlist"
+  ])("accepts the known app destination %s", (value) => {
+    expect(mobileAppDeepLinkSchema.safeParse(value).success).toBe(true);
+  });
+
+  it.each([
+    "jubileeworship://notificaitons",
+    "jubileeworship://../../admin",
+    "jubileeworship-preview://notifications",
+    "https://example.com/phishing"
+  ])("rejects the unsupported app destination %s", (value) => {
+    expect(mobileAppDeepLinkSchema.safeParse(value).success).toBe(false);
   });
 });

@@ -17,6 +17,15 @@ export type ClaimedDelivery = {
   deep_link: string | null;
 };
 
+export type RevalidatedDelivery = {
+  delivery_id: number;
+  expo_push_token: string;
+  title: string;
+  body: string;
+  deep_link: string | null;
+  expires_at: string | null;
+};
+
 export type PendingReceipt = {
   delivery_id: number;
   expo_ticket_id: string;

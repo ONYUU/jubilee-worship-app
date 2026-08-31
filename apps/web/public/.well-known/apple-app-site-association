@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "N84F73NX4K.org.sundoo.jubileeworship",
+        "paths": ["/worship", "/worship/*"]
+      }
+    ]
+  }
+}

@@ -188,7 +188,7 @@ export default async function AppSonglistsAdminPage({
                           <div className="mt-3 flex flex-wrap items-center gap-3">
                             <StatusPill status={selectedSetlist.playlist_verified_at ? "오너 검증 완료" : "오너 검증 필요"} />
                             {admin.role === "owner" && !selectedSetlist.playlist_verified_at ? (
-                              <AdminActionButton action={verifySetlistPlaylistAction} id={selectedSetlist.id} label="공식 링크 검증" confirmMessage="이 YouTube 전체 듣기 링크가 주빌리워십이 확인한 공식 링크입니까?" />
+                              <AdminActionButton action={verifySetlistPlaylistAction} id={selectedSetlist.id} label="공식 링크 검증" confirmMessage="이 YouTube 전체 듣기 링크가 쥬빌리워십이 확인한 공식 링크입니까?" />
                             ) : null}
                           </div>
                         </div>
@@ -208,7 +208,7 @@ export default async function AppSonglistsAdminPage({
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <StatusPill status={selectedSetlist.playlist_verified_at ? "오너 검증 완료" : "오너 검증 필요"} />
                           {selectedSetlist.status === "review_requested" && admin.role === "owner" && !selectedSetlist.playlist_verified_at ? (
-                            <AdminActionButton action={verifySetlistPlaylistAction} id={selectedSetlist.id} label="공식 링크 검증" confirmMessage="이 YouTube 전체 듣기 링크가 주빌리워십이 확인한 공식 링크입니까?" />
+                            <AdminActionButton action={verifySetlistPlaylistAction} id={selectedSetlist.id} label="공식 링크 검증" confirmMessage="이 YouTube 전체 듣기 링크가 쥬빌리워십이 확인한 공식 링크입니까?" />
                           ) : null}
                         </div>
                       ) : null}
@@ -257,7 +257,7 @@ export default async function AppSonglistsAdminPage({
                               </>
                             ) : null}
                             {admin.role === "owner" && item.youtube_url && !item.youtube_verified_at ? (
-                              <AdminActionButton action={verifySetlistItemYoutubeAction} id={item.id} label="공식 링크 검증" confirmMessage="이 곡의 YouTube 링크가 주빌리워십이 확인한 공식 링크입니까?" />
+                              <AdminActionButton action={verifySetlistItemYoutubeAction} id={item.id} label="공식 링크 검증" confirmMessage="이 곡의 YouTube 링크가 쥬빌리워십이 확인한 공식 링크입니까?" />
                             ) : null}
                           </div>
                         ) : null}

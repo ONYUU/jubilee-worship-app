@@ -17,6 +17,19 @@ const httpsUrlSchema = z
   .url()
   .refine((value) => new URL(value).protocol === "https:", "Use an HTTPS URL");
 
+export const MOBILE_APP_DEEP_LINK_PATH_PATTERN =
+  /^(?:notifications|notification-settings|privacy|worship|media|guide|worship\/[A-Za-z0-9][A-Za-z0-9_-]*(?:\/songlist)?)(?:\?[A-Za-z0-9_%=&.-]+)?$/;
+
+export const mobileAppDeepLinkSchema = z
+  .string()
+  .trim()
+  .max(1_000)
+  .refine((value) => {
+    const prefix = "jubileeworship://";
+    return value.startsWith(prefix)
+      && MOBILE_APP_DEEP_LINK_PATH_PATTERN.test(value.slice(prefix.length));
+  }, "Use a supported Jubilee Worship app destination");
+
 function isYouTubeListeningUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -57,6 +70,8 @@ export const mobilePublicSiteSchema = z.object({
   hero_media_path: optionalTextSchema(1_000),
   hero_media_mobile_path: optionalTextSchema(1_000),
   hero_media_alt: optionalTextSchema(300),
+  visit_media_path: optionalTextSchema(1_000).default(null),
+  visit_media_alt: optionalTextSchema(300).default(null),
   instagram_url: httpsUrlSchema,
   youtube_channel_url: httpsUrlSchema,
   church_name: z.string().trim().min(1).max(100),

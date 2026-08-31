@@ -48,7 +48,7 @@ async function loadFromSupabase(
     await Promise.all([
       client
         .from("public_site_settings")
-        .select("name_ko,name_en,hero_title,hero_description,hero_media_path,hero_media_mobile_path,hero_media_alt,instagram_url,youtube_channel_url,church_name,church_url,address,phone_display,naver_map_url,kakao_map_url,about_title,about_body")
+        .select("name_ko,name_en,hero_title,hero_description,hero_media_path,hero_media_mobile_path,hero_media_alt,visit_media_path,visit_media_alt,instagram_url,youtube_channel_url,church_name,church_url,address,phone_display,naver_map_url,kakao_map_url,about_title,about_body")
         .limit(1)
         .maybeSingle(),
       client

@@ -3,6 +3,8 @@ import * as Calendar from "expo-calendar/legacy";
 import * as Linking from "expo-linking";
 import { Alert, Platform, Share } from "react-native";
 
+import { createAppDeepLink } from "@/features/links/current-app-deep-link";
+
 async function openExternalUrl(url: string): Promise<void> {
   try {
     const supported = await Linking.canOpenURL(url);
@@ -13,8 +15,31 @@ async function openExternalUrl(url: string): Promise<void> {
   }
 }
 
+export function requiresLegacyIosCalendarPermission(
+  platform: string,
+  version: string | number
+): boolean {
+  if (platform !== "ios") return false;
+  const majorVersion = Number.parseInt(String(version), 10);
+  return Number.isFinite(majorVersion) && majorVersion < 17;
+}
+
 export async function addEventToCalendar(event: MobilePublicEvent): Promise<void> {
   try {
+    if (requiresLegacyIosCalendarPermission(Platform.OS, Platform.Version)) {
+      const currentPermission = await Calendar.getCalendarPermissionsAsync();
+      const permission = currentPermission.granted
+        ? currentPermission
+        : await Calendar.requestCalendarPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          "캘린더 권한이 필요합니다",
+          "iOS 16에서 일정 추가 화면을 열려면 캘린더 권한을 허용해야 합니다. 앱은 기존 일정을 읽거나 서버로 전송하지 않습니다."
+        );
+        return;
+      }
+    }
+
     const startDate = new Date(event.starts_at);
     const endDate = event.ends_at ? new Date(event.ends_at) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
     const details = {
@@ -53,9 +78,10 @@ export async function shareEvent(event: MobilePublicEvent): Promise<void> {
     }).format(new Date(event.starts_at));
     const webOrigin = process.env.EXPO_PUBLIC_WEB_ORIGIN?.replace(/\/$/, "");
     const webUrl = webOrigin ? `${webOrigin}/worship` : null;
+    const appUrl = createAppDeepLink(`worship/${event.slug}`);
     await Share.share({
       title: event.title,
-      message: [event.title, formattedDate, event.venue_name, webUrl, `jubileeworship://worship/${event.slug}`]
+      message: [event.title, formattedDate, event.venue_name, webUrl, appUrl]
         .filter(Boolean)
         .join("\n")
     });
