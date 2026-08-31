@@ -169,6 +169,7 @@ npx vercel@54.20.1 project inspect jubilee-worship
 
 | 서비스 | 2026-08-31 확인 결과 | 재개 후 할 일 |
 |---|---|---|
+| GitHub 의존성 보안 | 기본 브랜치에 Dependabot 알림 3건(High 2, Medium 1) 열려 있음. 작업 브랜치는 `uuid 11.1.1`로 패치되었고, 패치 버전이 없는 `image-size` 알림 2건은 기존 보안 기준선에 명시됨 | 알림을 임의로 닫지 말고 `pnpm audit:baseline`·CI·Dependabot 상태를 같이 재확인 |
 | Supabase | 서울 프로젝트 `ACTIVE_HEALTHY`, 마이그레이션 21/21 일치, Edge Function 8개 `ACTIVE`, 새 푸시 등록 게이트는 닫힘 | FCM/FID 계약 결정 후 필요하면 v6 순방향 마이그레이션 |
 | Vercel | `https://jubilee-worship.vercel.app` `READY`, 홈·개인정보·지원·앱링크 파일 HTTP 200 | 운영 배포는 `3be9fe1`로 중지 체크포인트보다 4커밋 이전. 갱신된 서버 키는 기존 배포에 소급 적용되지 않으므로 최신 코드 재배포 후 검증 |
 | EAS iOS | 최신 빌드는 내부용 시뮬레이터 빌드이며 중지 체크포인트보다 3커밋 이전 | Distribution, Provisioning, APNs, App Store Connect 자격증명 모두 미설정 |
