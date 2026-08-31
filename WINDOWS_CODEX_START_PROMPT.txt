@@ -1,9 +1,10 @@
 이 저장소는 Mac에서 Windows Codex로 인계한 쥬빌리워십 앱입니다. 현재 개발은 제품 오너 지시로 일시중지 상태입니다.
 
-먼저 아래 두 문서를 끝까지 읽어주세요.
+먼저 아래 세 문서를 끝까지 읽어주세요.
 
 1. WINDOWS_CODEX_START_HERE.md
-2. docs/PAUSED_HANDOFF_2026-08-24.md
+2. docs/MAC_RETIREMENT_HANDOFF_2026-08-31.md
+3. docs/PAUSED_HANDOFF_2026-08-24.md
 
 첫 작업은 읽기 전용 인계 점검입니다. 코드·설정·문서를 수정하지 말고, 앱을 실행·빌드·배포하지 말고, DB 마이그레이션·Edge Function 배포·푸시 활성화·Vercel Production 배포·스토어 작업을 실행하지 마세요.
 
@@ -12,8 +13,9 @@
 - 현재 브랜치가 codex/notification-schedule-and-metadata인지
 - 현재 HEAD에 앱 중지 체크포인트 014859ebb191a7ba5d4ac1ff7fa284b9407b6d90가 포함되었는지
 - git status가 깨끗한지
+- 전달 ZIP의 SHA-256과 01-git-source/jubilee-worship-full-handoff.bundle 검증이 성공하는지
 - Node 22.13.1과 pnpm 11.10.0 기준을 충족하는지
-- GitHub, Expo/EAS, Supabase, Vercel이 Windows에서 기존 소유 계정·프로젝트로 연결되었는지. 단, 비밀키·토큰·계정 이메일·인증 파일 내용은 채팅에 출력하지 말 것
+- GitHub, Expo/EAS, Supabase, Vercel, Firebase, Google Play, Apple이 Windows에서 기존 소유 계정·프로젝트로 연결되었는지. 단, 비밀키·토큰·계정 이메일·인증 파일 내용은 채팅에 출력하지 말 것
 - Windows에 부족한 도구와 재로그인·재연결 필요 항목
 
 결과는 “확인 완료 / 미확인 / 사용자가 할 일 / 재개 후 할 일”로 나누어 비개발자도 이해할 수 있는 한국어로 보고해주세요. Docker Desktop이 없으면 DB 통합 검증을 통과로 보고하지 마세요.

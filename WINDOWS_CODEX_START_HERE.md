@@ -54,10 +54,18 @@ git merge-base --is-ancestor 014859ebb191a7ba5d4ac1ff7fa284b9407b6d90 HEAD
 - 모바일 디자인 과정 렌더링
 - 초기 제품·디자인 인계 참고자료
 - Instagram 이미지 후보 참고자료
-- 기존 시연 영상·포스터·프레임
+- 과거 Jubilee 인계 ZIP 6개
+- 기존 시연 영상·포스터·프레임과 정제된 QA 자료
+- 스토어 자산 재현용 NanumGothic Bold 폰트와 OFL 문서
+- Supabase schema·roles·정제 데이터 백업
+- 만료되지 않은 EAS 내부배포·iOS Simulator 산출물
+- 캐시를 제거한 Android·iOS 자동생성 소스 참고본
+- 원격 서비스 복구 상태 문서
 - 인터넷 없이도 복원할 수 있는 Git bundle
 
 상세 파일명과 해시는 [별도 자료 인계 명세](docs/WINDOWS_LOCAL_ONLY_TRANSFER_MANIFEST_2026-08-31.md)를 따른다. 시연 영상과 후보 이미지는 최신 앱 QA 증거나 공개 게시 자산으로 간주하지 않는다.
+
+기존 `Jubilee_Windows_Private_Transfer_2026-08-31.zip`은 사용하지 않는다. 개인 화면이 포함된 구 인계본이므로, `Jubilee_Mac_Retirement_Full_2026-08-31.zip`과 같은 이름의 SHA-256 파일이 함께 전달된 새 정제본만 사용한다. Mac 초기화 조건과 복원 판정은 [Mac 반납·Windows 이전 인계 기준](docs/MAC_RETIREMENT_HANDOFF_2026-08-31.md)을 따른다.
 
 ## 3. Windows 첫 설정
 
@@ -161,7 +169,7 @@ npx vercel@54.20.1 project inspect jubilee-worship
 
 ### Firebase·Apple·Google
 
-- Firebase CLI는 재개 시 소유자가 재로그인하고 실제 프로젝트·앱 ID를 다시 확인한다.
+- Firebase 프로젝트는 `jubilee-worship-push`다. dev·preview Android 앱은 확인됐고 production 앱과 SHA 지문은 아직 없다. 세션별 표시가 달랐으므로 Windows에서 동일 소유자 계정 접근을 먼저 재확인한다.
 - Apple 인증서를 Mac Keychain에서 복사하지 않는다. 재개 시 EAS·Apple에서 새로 인증한다.
 - Google Play 서비스 계정과 Android FCM V1 자격증명은 현재 미설정 상태다.
 
